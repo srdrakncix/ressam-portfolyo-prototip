@@ -386,6 +386,31 @@ figure.work figcaption { display: table-caption; caption-side: bottom; padding-t
 
 [hidden] { display: none !important; }
 
+/* ── dokunmatik ve dar ekran ─────────────────────────────────────────────── */
+
+@media (pointer: coarse) {
+  /* parmak boyunda hedefler */
+  #ray nav a, #ray nav button { min-height: 44px; display: inline-flex; align-items: center; }
+  .cell a { padding-bottom: 8px; }
+  .reg .r { padding-block: var(--s3); }
+  .reg .fl { min-height: 40px; display: inline-flex; align-items: center; }
+  /* künye alanlarının süzgeç olduğu dokunmatikte de görünsün:
+     çizgi hover'ı beklemeden yarı yolda dursun */
+  .reg .fl:not(.static) { background-size: 100% 1px; color: var(--muted); }
+}
+
+@media (max-width: 43.75rem) {
+  /* Santimetre rayı 390 px ekranın altıda birini yiyordu. Daralt ve
+     etiketleri işaretin üstüne al; eserler ekranın tamamını kullansın. */
+  :root { --label-rail: 34px; --plaque: 132px; }
+  .row { padding-left: var(--label-rail); gap: var(--s4); }
+  .rail::before { right: 6px; }
+  .rail i { right: 6px; width: 5px; }
+  .rail i span { right: 0; top: -1.5em; font-size: 9px; }
+  .reg .r { grid-template-columns: 1fr; gap: 2px; }
+  #kayit .cols { gap: var(--s4); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root, body, .k-fig, .k-full, .row, .reg .fl, a.u, .skip {
     transition-duration: 1ms !important; transition-delay: 0s !important;

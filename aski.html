@@ -541,6 +541,17 @@ html.js [data-reveal].is-in {
   :root { --caption-band: 8rem; }
   .salon-card .ghost { opacity: .05; }
 }
+
+/* Dokunmatikte parmak boyunda hedefler; görünüm aynı kalır. */
+@media (pointer: coarse) {
+  #nav button, #zoom button, .zoom-pill {
+    min-height: 44px; display: inline-flex; align-items: center;
+  }
+  #menu a { padding-block: 10px; }
+  #kunye a, #bio a { display: inline-block; padding-block: 8px; }
+  /* yakınlaştırma ipucu dokunmatikte de okunsun */
+  .stage .plate { cursor: default; }
+}
 </style>
 </head>
 <body>
@@ -1189,26 +1200,73 @@ function apply() {
 }
 
 function bindPan(s) {
-  let down = false, px = 0, py = 0;
+  /* Tek parmak kaydırır, iki parmak büyütür. Tekerlek yalnızca farede
+     vardı; onsuz telefonda eseri hiç yakınlaştıramıyordun.              */
+  const pts = new Map();
+  let px = 0, py = 0, pinchStart = 0, scaleStart = 1;
+
+  const spread = () => {
+    const [a, b] = [...pts.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
+
   s.canvas.addEventListener('pointerdown', (e) => {
-    down = true; px = e.clientX; py = e.clientY;
-    s.canvas.classList.add('dragging');
     s.canvas.setPointerCapture(e.pointerId);
-    s.img.style.transition = 'none';
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 1) {
+      px = e.clientX; py = e.clientY;
+      s.canvas.classList.add('dragging');
+      s.img.style.transition = 'none';
+    } else if (pts.size === 2) {
+      pinchStart = spread();
+      scaleStart = s.scale;
+    }
   });
+
   s.canvas.addEventListener('pointermove', (e) => {
-    if (!down) return;
+    if (!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pts.size >= 2) {
+      if (pinchStart > 0) {
+        s.scale = Math.min(4, Math.max(1, scaleStart * (spread() / pinchStart)));
+        if (s.scale === 1) { s.x = 0; s.y = 0; }
+        apply();
+      }
+      return;
+    }
     s.x += e.clientX - px; s.y += e.clientY - py;
     px = e.clientX; py = e.clientY;
     apply();
   });
-  const up = () => {
-    down = false;
-    s.canvas.classList.remove('dragging');
-    s.img.style.transition = 'transform 120ms ease-out';
+
+  const up = (e) => {
+    pts.delete(e.pointerId);
+    if (pts.size < 2) pinchStart = 0;
+    if (pts.size === 0) {
+      s.canvas.classList.remove('dragging');
+      s.img.style.transition = 'transform 120ms ease-out';
+    } else {
+      const p = [...pts.values()][0];
+      px = p.x; py = p.y;          /* kalan parmakla sıçramadan devam et */
+    }
   };
   s.canvas.addEventListener('pointerup', up);
   s.canvas.addEventListener('pointercancel', up);
+
+  /* çift dokunuşla da büyüsün — parmak ucuyla en hızlı yol */
+  let lastTap = 0;
+  s.canvas.addEventListener('pointerup', (e) => {
+    if (e.pointerType === 'mouse') return;
+    const now = e.timeStamp;
+    if (now - lastTap < 300) {
+      s.scale = s.scale > 1 ? 1 : 2.4;
+      if (s.scale === 1) { s.x = 0; s.y = 0; }
+      apply();
+    }
+    lastTap = now;
+  });
+
   s.canvas.addEventListener('wheel', (e) => {
     e.preventDefault();
     const next = Math.min(4, Math.max(1, s.scale * (e.deltaY < 0 ? 1.12 : 1 / 1.12)));

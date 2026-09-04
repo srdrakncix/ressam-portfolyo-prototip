@@ -146,6 +146,16 @@ a:hover { color: var(--accent); }
 
 .lede { font-size: 11px; color: var(--faint); margin-bottom: 34px; }
 
+/* Dokunmatikte hedefler parmak boyunda olmalı — 13 px metin 19 px'lik bir
+   satır demek, önerilen 44 px'in yarısından az. Görünüm değişmiyor, yalnızca
+   tıklanabilir alan büyüyor.                                                */
+@media (pointer: coarse) {
+  #nav li { margin-bottom: 0; }
+  #nav a { display: flex; align-items: center; min-height: 44px; }
+  #nav .name { min-height: 0; }
+  .page a, .cap a { display: inline-block; padding-block: 10px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: .01ms !important; }
 }

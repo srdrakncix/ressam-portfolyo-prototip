@@ -536,6 +536,24 @@ sup.ref {
   border-left: 1px solid var(--rule); padding-left: var(--s3);
 }
 
+/* Dokunmatikte parmak boyunda hedefler; görünüm aynı kalır. */
+@media (pointer: coarse) {
+  #head button, #head .toclink, .ctrl-btn {
+    min-height: 44px; display: inline-flex; align-items: center;
+  }
+  #icindekiler .trow { padding-block: var(--s4); }
+  sup.ref { padding: 8px 6px; }
+  .marg .note { padding-block: 4px; }
+  #kolofon a { display: inline-block; padding-block: 8px; }
+}
+
+/* Dar ekranda başlık şeridi üç öğeyi taşımıyordu. */
+@media (max-width: 30rem) {
+  #head { gap: var(--s3); padding-inline: var(--margin); }
+  #head .runner { font-size: .6875rem; letter-spacing: .1em; }
+  #head .tools { gap: var(--s3); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
