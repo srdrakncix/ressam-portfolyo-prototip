@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Üç Prototip — Ressam Portfolyosu</title>
+<meta name="description" content="Tek sanatçı yağlı boya portfolyosu için üç tasarım yönü.">
+<meta name="theme-color" content="#EFEFEC">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300&display=swap">
+<style>
+:root {
+  color-scheme: light dark;
+  --bg:     #EFEFEC;
+  --card:   #F7F7F5;
+  --ink:    #16171A;
+  --ink-2:  #4A4D53;
+  --ink-3:  #7E828A;
+  --rule:   rgba(22,23,26,.14);
+  --rule-s: rgba(22,23,26,.42);
+
+  --sans:  "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --serif: "Newsreader", "Iowan Old Style", Palatino, Georgia, serif;
+
+  --u: clamp(20px, 5vw, 72px);
+  --ease: cubic-bezier(.19, 1, .22, 1);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:     #131417;
+    --card:   #1B1D21;
+    --ink:    #ECECE8;
+    --ink-2:  #B6B9BF;
+    --ink-3:  #82858C;
+    --rule:   rgba(236,236,232,.16);
+    --rule-s: rgba(236,236,232,.46);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131417; --card: #1B1D21; --ink: #ECECE8; --ink-2: #B6B9BF;
+  --ink-3: #82858C; --rule: rgba(236,236,232,.16); --rule-s: rgba(236,236,232,.46);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink-2);
+  font-family: var(--sans); font-size: 1rem; line-height: 1.6;
+  -webkit-font-smoothing: antialiased; overflow-x: clip;
+}
+h1, h2, h3, p, figure, ul, li { margin: 0; }
+ul { padding: 0; list-style: none; }
+img { display: block; max-width: 100%; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+.wrap { max-width: 1180px; margin-inline: auto; padding-inline: var(--u); }
+
+.micro {
+  font-size: .6875rem; text-transform: uppercase; letter-spacing: .12em;
+  font-weight: 500; color: var(--ink-3); font-variant-numeric: tabular-nums;
+}
+
+header.top {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  padding-block: 22px; border-bottom: 1px solid var(--rule);
+}
+header.top button {
+  font: inherit; font-size: .6875rem; text-transform: uppercase; letter-spacing: .12em;
+  font-weight: 500; color: var(--ink-3); background: none; border: 0;
+  border-bottom: 1px solid var(--rule); padding: 3px 0; cursor: pointer;
+  transition: border-color 200ms var(--ease), color 200ms var(--ease);
+}
+header.top button:hover { border-bottom-color: var(--rule-s); color: var(--ink); }
+
+.lede { padding-block: clamp(48px, 8vw, 104px) clamp(36px, 5vw, 64px); }
+.lede h1 {
+  font-family: var(--serif); font-weight: 300; color: var(--ink);
+  font-size: clamp(2.25rem, 1.2rem + 4.4vw, 4rem); line-height: 1.04;
+  letter-spacing: -.028em; text-wrap: balance; max-width: 16ch;
+}
+.lede p {
+  margin-top: 24px; max-width: 58ch;
+  font-size: clamp(1rem, .96rem + .2vw, 1.125rem);
+}
+.lede .how {
+  margin-top: 28px; padding-left: 18px; border-left: 1px solid var(--rule);
+  max-width: 58ch; color: var(--ink-3); font-size: .9375rem;
+}
+
+.cards { display: grid; gap: clamp(32px, 4vw, 56px); padding-bottom: clamp(56px, 8vw, 112px); }
+@media (min-width: 62rem) { .cards { grid-template-columns: repeat(3, 1fr); } }
+
+.card {
+  display: flex; flex-direction: column;
+  background: var(--card); border: 1px solid var(--rule);
+  transition: border-color 260ms var(--ease);
+}
+.card:hover { border-color: var(--rule-s); }
+.card .shot { aspect-ratio: 4 / 3; overflow: hidden; background: var(--bg); }
+.card .shot img { width: 100%; height: 100%; object-fit: cover; }
+.card .body { padding: clamp(20px, 2.4vw, 30px); display: flex; flex-direction: column; flex: 1; gap: 14px; }
+.card h2 {
+  font-family: var(--serif); font-weight: 300; font-style: italic;
+  font-size: 1.75rem; line-height: 1.1; color: var(--ink);
+}
+.card .world { color: var(--ink-2); font-size: .9375rem; }
+.card ul { display: grid; gap: 8px; margin-top: 2px; }
+.card li {
+  font-size: .875rem; color: var(--ink-3); line-height: 1.5;
+  padding-left: 16px; position: relative;
+}
+.card li::before {
+  content: ""; position: absolute; left: 0; top: .62em;
+  width: 7px; height: 1px; background: var(--rule-s);
+}
+.card .go {
+  margin-top: auto; padding-top: 18px; border-top: 1px solid var(--rule);
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: .6875rem; text-transform: uppercase; letter-spacing: .12em;
+  font-weight: 500; color: var(--ink); text-decoration: none;
+}
+.card .go span { transition: transform 260ms var(--ease); }
+.card:hover .go span { transform: translateX(4px); }
+a.card { text-decoration: none; color: inherit; }
+
+footer {
+  border-top: 1px solid var(--rule); padding-block: 36px 64px;
+  display: grid; gap: 14px;
+}
+footer p { font-size: .8125rem; color: var(--ink-3); max-width: 70ch; line-height: 1.65; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <span class="micro">Ressam Portfolyosu · Tasarım Prototipleri</span>
+    <button id="theme" type="button">Koyu</button>
+  </header>
+</div>
+
+<div class="wrap lede">
+  <h1>Aynı eserler, üç ayrı dünya.</h1>
+  <p>
+    Tek bir ressamın yağlı boya portfolyosu için üç tasarım yönü. Üçü de aynı
+    eser setini, aynı ölçüleri ve aynı metinleri kullanıyor — değişen tek şey
+    tasarım dili. Kıyas bu yüzden adil: neyi sevdiğini seçerken içerik değil,
+    ruh karşılaştırıyorsun.
+  </p>
+  <p class="how">
+    Üçü de gerçek, gezilebilir sitelerdir; tıkla, kaydır, karanlık/aydınlık
+    temayı dene. Ölçü ve ölçek özellikleri gerçek santimetre verisiyle çalışıyor.
+  </p>
+</div>
+
+<div class="wrap">
+  <div class="cards">
+
+    <a class="card" href="aski.html">
+      <div class="shot"><img src="assets/64754.webp" alt="Karanlık zeminde ay ışığında bir manzara" loading="lazy"></div>
+      <div class="body">
+        <span class="micro">Prototip 1</span>
+        <h2>Askı</h2>
+        <p class="world">Karanlık bir galeri odası. Hareket eden tek şey ışık; resim asla kıpırdamaz.</p>
+        <ul>
+          <li>Spot, kaydırdıkça duvarda yürüyüp eserin üstüne yerleşiyor</li>
+          <li>Her eser 152 cm asılma hattında — gerçek müze göz hizası</li>
+          <li>Yakınlaştırmada canlı cetvel: 10 cm'nin ekranda karşılığı</li>
+        </ul>
+        <span class="go">Siteyi aç <span>→</span></span>
+      </div>
+    </a>
+
+    <a class="card" href="fasikul.html">
+      <div class="shot"><img src="assets/110561.webp" alt="Gümüş ışıkta sabah manzarası" loading="lazy"></div>
+      <div class="body">
+        <span class="micro">Prototip 2</span>
+        <h2>Fasikül</h2>
+        <p class="world">Henüz ciltlenmemiş bir monografi. Resimler yapıştırma klişe, düşünce kenar boşluğunda.</p>
+        <ul>
+          <li>14 sütunlu kitap ızgarası, gerçek kenar notları</li>
+          <li>“Işık” düğmesi: küratörün lambayı empastoya eğik tutması</li>
+          <li>Gerçek ölçek kipi ve 170 cm insan boyu referans çizgisi</li>
+        </ul>
+        <span class="go">Siteyi aç <span>→</span></span>
+      </div>
+    </a>
+
+    <a class="card" href="kunye.html">
+      <div class="shot"><img src="assets/64715.webp" alt="Yağmur sonrası yeşil tonlarda manzara" loading="lazy"></div>
+      <div class="body">
+        <span class="micro">Prototip 3</span>
+        <h2>Kütük</h2>
+        <p class="world">Ressamın kendi kayıt defteri, yayımlanmış hâli. Manşet yok; ölçüler manşet.</p>
+        <ul>
+          <li>Izgara değil asılma hattı: eserler gerçek göreli boyutta, ortak zeminde</li>
+          <li>Paspartu rengi her eserin kendi renginden hesaplanıyor</li>
+          <li>Künye alanlarının kendisi navigasyon — ayrı filtre arayüzü yok</li>
+        </ul>
+        <span class="go">Siteyi aç <span>→</span></span>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<div class="wrap">
+  <footer>
+    <span class="micro">Not</span>
+    <p>
+      Bu bir tasarım prototipidir. Sanatçı kimliği, biyografi ve sergi listesi
+      kurgudur. Görseller Art Institute of Chicago açık erişim arşivinden alınmış
+      kamu malı George Inness tablolarıdır ve yalnızca yer tutucudur — yayına
+      geçmeden önce tümü sanatçının kendi eserleriyle değiştirilecektir.
+    </p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement, btn = document.getElementById('theme');
+  var KEY = 'proto-theme';
+  try { var s = localStorage.getItem(KEY); if (s) root.setAttribute('data-theme', s); } catch (e) {}
+  function cur() {
+    return root.getAttribute('data-theme') ||
+      (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+  function sync() { btn.textContent = cur() === 'dark' ? 'Açık' : 'Koyu'; }
+  btn.addEventListener('click', function () {
+    var next = cur() === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem(KEY, next); } catch (e) {}
+    sync();
+  });
+  sync();
+})();
+</script>
+</body>
+</html>

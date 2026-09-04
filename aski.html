@@ -1,0 +1,1130 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>img{max-width:100%}[hidden]{display:none!important}</style>
+<meta charset="utf-8">
+<title>Askı</title>
+<meta name="theme-color" content="#141210">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;1,400&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300&display=swap">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   ASKI — bir asma kurgusu.
+   Karanlık bir oda. Hareket eden tek şey ışık. Resim asla kıpırdamaz.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── jetonlar ─────────────────────────────────────────────────────────────
+   Karanlık öncelikli tasarım: çıplak :root gece paletini taşır.
+   Gündüz, sistem tercihi ve açık seçimi için ayrıca tanımlanır.         */
+
+:root {
+  color-scheme: dark light;
+
+  --bg:            #141210;   /* duvar */
+  --bg-deep:       #0A0908;   /* girintili yüzey, yakınlaştırma zemini */
+  --surface:       #1D1A17;
+  --text:          #F2EEE6;
+  --text-2:        rgba(242,238,230,.62);
+  --text-3:        rgba(242,238,230,.40);
+  --hairline:      rgba(242,238,230,.14);
+  --hairline-mid:  rgba(242,238,230,.24);
+  --hairline-up:   rgba(242,238,230,.86);
+  --accent:        #C2703A;   /* yanık siena — üç yerde harcanır, başka hiçbir yerde */
+  --light-core:    rgba(255,236,206,.11);
+  --light-edge:    rgba(255,236,206,0);
+  --scrim:         rgba(10,9,8,.64);
+  --shadow-key:    rgba(0,0,0,.55);
+
+  --u:            clamp(20px, 4.4vw, 64px);
+  --stage-h:      max(320px, min(74svh, calc(100svh - 17.5rem)));
+  --caption-band: 10.5rem;
+  --hang:         42%;        /* 152 cm asılma hattı */
+
+  --s1: 4px;  --s2: 10px;  --s3: 20px;  --s4: 40px;  --s5: 72px;  --s6: 128px;
+
+  --sans:  "Archivo", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --serif: "Newsreader", Georgia, "Times New Roman", serif;
+
+  --t-micro:     clamp(.6875rem, .66rem + .12vw, .75rem);
+  --t-caption:   clamp(.8125rem, .78rem + .15vw, .875rem);
+  --t-body:      clamp(.9375rem, .85rem + .38vw, 1.0625rem);
+  --t-statement: clamp(1.125rem, 1rem + .53vw, 1.375rem);
+  --t-title:     clamp(1.375rem, 1.19rem + .79vw, 1.75rem);
+  --t-section:   clamp(1.5rem, 1.13rem + 1.58vw, 2.25rem);
+  --t-chapter:   clamp(2.25rem, .96rem + 5.5vw, 4.5rem);
+  --t-mark:      clamp(5rem, -.3rem + 22.6vw, 13rem);
+
+  --ease:      cubic-bezier(.19, 1, .22, 1);
+  --ease-ui:   cubic-bezier(.4, 0, .2, 1);
+}
+
+/* Gündüz: gece odasının karşıtı bir "white cube" — serin, nötr, gölgeli.
+   Kasten sıcak krem DEĞİL; o dünya diğer prototipin (Fasikül).           */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg:           #E9E9E7;
+    --bg-deep:      #DDDDDA;
+    --surface:      #F5F5F3;
+    --text:         #17181A;
+    --text-2:       rgba(23,24,26,.62);
+    --text-3:       rgba(23,24,26,.42);
+    --hairline:     rgba(23,24,26,.16);
+    --hairline-mid: rgba(23,24,26,.28);
+    --hairline-up:  rgba(23,24,26,.88);
+    --accent:       #9C4E1E;
+    --light-core:   rgba(23,24,26,.07);   /* gündüzde ışık gölgeye döner */
+    --light-edge:   rgba(23,24,26,0);
+    --scrim:        rgba(23,24,26,.55);
+    --shadow-key:   rgba(23,24,26,.20);
+  }
+}
+
+:root[data-theme="light"] {
+  --bg:           #E9E9E7;
+  --bg-deep:      #DDDDDA;
+  --surface:      #F5F5F3;
+  --text:         #17181A;
+  --text-2:       rgba(23,24,26,.62);
+  --text-3:       rgba(23,24,26,.42);
+  --hairline:     rgba(23,24,26,.16);
+  --hairline-mid: rgba(23,24,26,.28);
+  --hairline-up:  rgba(23,24,26,.88);
+  --accent:       #9C4E1E;
+  --light-core:   rgba(23,24,26,.07);
+  --light-edge:   rgba(23,24,26,0);
+  --scrim:        rgba(23,24,26,.55);
+  --shadow-key:   rgba(23,24,26,.20);
+}
+
+/* ── temel ───────────────────────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: var(--t-body);
+  line-height: 1.62;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  transition: background 420ms var(--ease-ui), color 420ms var(--ease-ui);
+}
+
+h1, h2, h3, p, figure, dl, dd { margin: 0; }
+img { display: block; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+.skip {
+  position: fixed; top: 8px; left: 8px; z-index: 90;
+  padding: 10px 16px; background: var(--surface); color: var(--text);
+  font-size: var(--t-micro); text-transform: uppercase; letter-spacing: .11em;
+  text-decoration: none; border: 1px solid var(--hairline);
+  transform: translateY(-160%);
+}
+.skip:focus-visible { transform: none; }
+
+.wrap { padding-inline: var(--u); max-width: 1440px; margin-inline: auto; }
+
+/* Tek hover fiili: saç çizgisi netleşir. Site genelinde başka hover yok. */
+.hair { border-bottom: 1px solid var(--hairline); transition: border-color 180ms var(--ease-ui); }
+@media (hover: hover) and (pointer: fine) {
+  .hair:hover { border-bottom-color: var(--hairline-up); }
+}
+@media (hover: none) { .hair { border-bottom-color: var(--hairline-mid); } }
+
+.micro {
+  font-size: var(--t-micro); text-transform: uppercase;
+  letter-spacing: .11em; font-weight: 500; color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── ışık katmanı ─────────────────────────────────────────────────────────
+   Tek sabit radyal gradyan. Odanın spotu. Kaydırma onu aşağı yürütür.    */
+
+#light {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(58vmax 44vmax at var(--lx, 50%) var(--ly, 40%),
+              var(--light-core) 0%, var(--light-edge) 68%);
+  transition: opacity 700ms var(--ease);
+}
+
+/* ── üst şerit: odaya göre ilerleme ─────────────────────────────────────── */
+
+#prog {
+  position: fixed; top: 0; left: 0; right: 0; height: 1px; z-index: 40;
+  background: var(--hairline); pointer-events: none;
+}
+#prog i {
+  display: block; height: 100%; width: 0; background: var(--accent);
+  transform-origin: 0 50%;
+  transition: width 400ms var(--ease);
+}
+
+/* ── gezinme ─────────────────────────────────────────────────────────────── */
+
+#nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s3) var(--u);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 300ms var(--ease-ui), background 300ms var(--ease-ui);
+}
+#nav.is-scrolled { border-bottom-color: var(--hairline); }
+#nav .mark {
+  font-size: var(--t-micro); text-transform: uppercase; letter-spacing: .17em;
+  font-weight: 500; color: var(--text); text-decoration: none;
+}
+#nav .tools { display: flex; align-items: center; gap: var(--s3); }
+#nav button {
+  font: inherit; font-size: var(--t-micro); text-transform: uppercase;
+  letter-spacing: .11em; font-weight: 500;
+  background: none; border: 0; border-bottom: 1px solid var(--hairline);
+  color: var(--text-2); padding: 2px 0; cursor: pointer;
+  transition: border-color 180ms var(--ease-ui), color 180ms var(--ease-ui);
+}
+@media (hover: hover) and (pointer: fine) {
+  #nav button:hover { border-bottom-color: var(--hairline-up); color: var(--text); }
+}
+
+/* ── eşik ────────────────────────────────────────────────────────────────── */
+
+#esik {
+  position: relative; z-index: 1;
+  padding-block: calc(var(--s6) + var(--s4)) var(--s5);
+  display: grid; gap: var(--s4); justify-items: center;
+}
+#esik .plate-wrap { width: 100%; display: flex; justify-content: center; }
+#esik .line {
+  display: flex; gap: var(--s3); flex-wrap: wrap; justify-content: center;
+  text-align: center;
+}
+
+/* ── bölüm kartı (salon) ─────────────────────────────────────────────────── */
+
+.salon-card {
+  position: relative; z-index: 1;
+  padding-block: clamp(5rem, 13vh, 11rem);
+  display: grid; gap: var(--s3);
+}
+.salon-card .ghost {
+  /* sağ kenarda: soldaki başlıkla çakışmasın */
+  position: absolute; right: var(--u); top: 50%;
+  transform: translate(0, calc(-50% + var(--par, 0px)));
+  font-size: var(--t-mark); line-height: .82; letter-spacing: -.05em;
+  font-weight: 400; color: var(--text);
+  opacity: .07; pointer-events: none; user-select: none;
+  font-variant-numeric: lining-nums;
+}
+.salon-card .body { position: relative; max-width: 34em; }
+.salon-card h2 {
+  font-size: var(--t-section); line-height: 1.08; letter-spacing: -.02em;
+  font-weight: 400; text-transform: uppercase;
+}
+.salon-card .wall { color: var(--text-2); font-size: var(--t-caption); margin-top: var(--s2); }
+.salon-card .datum {
+  margin-top: var(--s3); color: var(--text-3);
+  display: flex; align-items: center; gap: var(--s2);
+}
+.salon-card .datum::before {
+  content: ""; width: 44px; height: 1px; background: var(--hairline-mid); flex: none;
+}
+
+/* ── sahne: her eserin durduğu yer ───────────────────────────────────────── */
+
+.stage {
+  position: relative; z-index: 1;
+  padding-bottom: var(--s5);
+}
+.stage .frame { position: relative; height: var(--stage-h); }
+
+/* 152 cm asılma hattı — her sahnede aynı yükseklikte, DUVARDA, eserin arkasında */
+.stage .frame::after {
+  content: ""; position: absolute; left: 0; right: 0; top: var(--hang);
+  height: 1px; background: var(--light-core); pointer-events: none;
+  z-index: 0;
+}
+/* zemin çizgisi — paralaks */
+.stage .floor {
+  position: absolute; left: calc(var(--u) * -1); right: calc(var(--u) * -1);
+  bottom: 0; height: 1px; background: var(--hairline);
+  transform: translateY(var(--par-floor, 0px));
+}
+
+.stage .plate {
+  position: absolute; left: 50%; top: var(--hang);
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  cursor: zoom-in;
+  background: none; border: 0; padding: 0;
+  max-width: 100%;
+}
+.stage .plate .k-fig { margin: 0; }
+
+/* kenar kalkışı — tuval duvardan hafifçe ayrılır ve kendi rengini duvara vurur */
+.k-fig {
+  position: relative; display: block; overflow: hidden;
+  background: var(--tone);
+  aspect-ratio: var(--ratio);
+  box-shadow: 0 1px 0 var(--shadow-key),
+              0 46px 96px -34px color-mix(in srgb, var(--tone) 34%, transparent);
+}
+.k-lqip, .k-full {
+  display: block; width: 100%; height: 100%; object-fit: cover;
+}
+.k-full {
+  position: absolute; inset: 0; opacity: 0;
+  transition: opacity 600ms var(--ease-ui);
+}
+.k-fig.is-loaded .k-full { opacity: 1; }
+.k-fig.is-loaded .k-lqip { opacity: 0; transition: opacity 600ms var(--ease-ui); }
+
+/* Yüzde KULLANMA: .plate mutlak konumlu ve içeriğe göre daralıyor, yüzde
+   oradan okunursa genişlik kendi kendine bağlanıp sıfıra çöküyor.
+   Genişliği sahne yüksekliği ve görüntü alanından türet; yüksekliği
+   aspect-ratio versin.                                                    */
+.stage .plate .k-fig {
+  width: min(calc(var(--stage-h) * .86 * var(--ratio)),
+             calc(100vw - var(--u) * 2));
+  height: auto;
+}
+
+/* künye — resme doğru sürüklenir ve yerine oturur */
+.stage .tomb {
+  position: relative;
+  min-height: var(--caption-band);
+  padding-top: var(--s2);
+  transform: translateY(var(--par-tomb, 0px));
+  display: grid; gap: var(--s1);
+  max-width: 42em;
+}
+.stage .tomb h3 {
+  font-family: var(--serif); font-style: italic; font-weight: 300;
+  font-size: var(--t-title); line-height: 1.14; letter-spacing: -.01em;
+}
+.stage .tomb .meta { color: var(--text-2); font-size: var(--t-caption); }
+.stage .tomb .note {
+  color: var(--text-3); font-size: var(--t-caption);
+  font-family: var(--serif); font-style: italic; font-weight: 300;
+  max-width: 34em; margin-top: var(--s1);
+}
+.stage .tomb .row { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
+.dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex: none;
+}
+.dot.off { background: var(--text-3); }
+
+.zoom-pill {
+  position: absolute; right: 0; bottom: var(--s3);
+  font: inherit; font-size: var(--t-micro); text-transform: uppercase;
+  letter-spacing: .11em; font-weight: 500; color: var(--text-2);
+  background: none; border: 0; border-bottom: 1px solid var(--hairline);
+  padding: 2px 0; cursor: pointer;
+  transition: border-color 180ms var(--ease-ui), color 180ms var(--ease-ui);
+}
+@media (hover: hover) and (pointer: fine) {
+  .zoom-pill:hover { border-bottom-color: var(--hairline-up); color: var(--text); }
+}
+
+/* ── duvar yazısı ────────────────────────────────────────────────────────── */
+
+#duvar {
+  position: relative; z-index: 1;
+  background: var(--bg-deep);
+  padding-block: clamp(5rem, 13vh, 11rem);
+  margin-block: var(--s5);
+}
+#duvar .cols { display: grid; gap: var(--s5); align-items: start; }
+@media (min-width: 56.25rem) { #duvar .cols { grid-template-columns: 1fr 1fr; gap: var(--s5); } }
+#duvar p {
+  font-family: var(--serif); font-weight: 300; font-size: var(--t-statement);
+  line-height: 1.62; max-width: 36em; margin-bottom: var(--s3);
+}
+#duvar p:last-child { margin-bottom: 0; }
+
+/* ── envanter ────────────────────────────────────────────────────────────── */
+
+#envanter { position: relative; z-index: 1; padding-block: clamp(5rem, 13vh, 11rem); }
+#envanter .head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--s3); flex-wrap: wrap;
+  padding-bottom: var(--s3); border-bottom: 1px solid var(--hairline);
+  margin-bottom: var(--s5);
+}
+#envanter h2 {
+  font-size: var(--t-section); line-height: 1.08; letter-spacing: -.02em;
+  font-weight: 400; text-transform: uppercase;
+}
+.grid {
+  display: grid; gap: var(--s5) calc(var(--u) / 2);
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 36rem)    { .grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 56.25rem) { .grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 75rem)    { .grid { grid-template-columns: repeat(6, 1fr); } }
+
+.cell { display: grid; gap: var(--s2); }
+.cell button {
+  aspect-ratio: 1; display: grid; place-items: center;
+  background: none; border: 0; padding: 0; cursor: zoom-in; width: 100%;
+}
+/* fiziksel ölçek, sıkıştırılmış: sıralama korunur, hiçbir eser pul olmaz */
+.cell .k-fig { width: var(--cw); height: auto; }
+.cell .cap { display: grid; gap: 2px; }
+.cell .cap b {
+  font-family: var(--serif); font-style: italic; font-weight: 300;
+  font-size: var(--t-caption); line-height: 1.3;
+}
+.cell .cap span { font-size: var(--t-micro); color: var(--text-3); }
+
+/* ── biyografi & künye ───────────────────────────────────────────────────── */
+
+#bio { position: relative; z-index: 1; padding-block: clamp(5rem, 13vh, 11rem); }
+#bio .cols { display: grid; gap: var(--s5); }
+@media (min-width: 56.25rem) { #bio .cols { grid-template-columns: 2fr 3fr; } }
+#bio p { color: var(--text-2); max-width: 34em; margin-bottom: var(--s3); }
+#bio dl { display: grid; gap: 0; }
+#bio .cv-row {
+  display: grid; grid-template-columns: 4.5rem 1fr; gap: var(--s3);
+  padding-block: var(--s3); border-top: 1px solid var(--hairline);
+}
+#bio .cv-row dt { font-variant-numeric: tabular-nums; color: var(--text-3); font-size: var(--t-caption); }
+#bio .cv-row dd i { font-family: var(--serif); font-weight: 300; font-style: italic; }
+#bio .cv-row dd span { display: block; color: var(--text-3); font-size: var(--t-caption); }
+
+#kunye {
+  position: relative; z-index: 1;
+  border-top: 1px solid var(--hairline);
+  padding-block: var(--s5);
+  display: grid; gap: var(--s4);
+}
+#kunye .rows { display: grid; gap: var(--s2); }
+#kunye a { color: var(--text); text-decoration: none; }
+#kunye .notice {
+  color: var(--text-3); font-size: var(--t-caption); max-width: 46em;
+  border-left: 1px solid var(--hairline); padding-left: var(--s3);
+}
+
+/* ── yakınlaş katmanı ────────────────────────────────────────────────────── */
+
+#zoom {
+  position: fixed; inset: 0; z-index: 60;
+  background: #0A0908; color: #F2EEE6;   /* tam daldırma her iki temada da gece */
+  overscroll-behavior: contain;
+}
+/* display kuralı asla [hidden]'ı ezmemeli — çocuklar zaten mutlak konumlu */
+#zoom[hidden] { display: none; }
+#zoom .canvas {
+  position: absolute; inset: 0; overflow: hidden;
+  cursor: grab; touch-action: none;
+}
+#zoom .canvas.dragging { cursor: grabbing; }
+#zoom .canvas img {
+  position: absolute; top: 50%; left: 50%;
+  transform-origin: center;
+  max-width: none; user-select: none; -webkit-user-drag: none;
+}
+#zoom .bar {
+  position: absolute; left: var(--u); right: var(--u); top: var(--s3);
+  display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3);
+}
+#zoom .bar .t { font-family: var(--serif); font-style: italic; font-weight: 300; font-size: var(--t-title); }
+#zoom button {
+  font: inherit; font-size: var(--t-micro); text-transform: uppercase;
+  letter-spacing: .11em; font-weight: 500; color: rgba(242,238,230,.62);
+  background: none; border: 0; border-bottom: 1px solid rgba(242,238,230,.14);
+  padding: 2px 0; cursor: pointer; transition: border-color 180ms var(--ease-ui), color 180ms var(--ease-ui);
+}
+@media (hover: hover) and (pointer: fine) {
+  #zoom button:hover { border-bottom-color: rgba(242,238,230,.86); color: #F2EEE6; }
+}
+/* canlı cetvel — 10 cm, her karede yeniden hesaplanır */
+#zoom .rule {
+  position: absolute; left: var(--u); bottom: var(--s4);
+  display: grid; gap: 6px; pointer-events: none;
+}
+#zoom .rule .bar-line {
+  height: 1px; background: rgba(242,238,230,.86); position: relative;
+}
+#zoom .rule .bar-line::before, #zoom .rule .bar-line::after {
+  content: ""; position: absolute; bottom: 0; width: 1px; height: 6px;
+  background: rgba(242,238,230,.86);
+}
+#zoom .rule .bar-line::before { left: 0; }
+#zoom .rule .bar-line::after  { right: 0; }
+#zoom .rule span { font-size: var(--t-micro); letter-spacing: .11em; color: rgba(242,238,230,.62); }
+/* seyir haritası */
+#zoom .nav-map {
+  position: absolute; right: var(--u); bottom: var(--s4);
+  width: 88px; border: 1px solid rgba(242,238,230,.14);
+  pointer-events: none; overflow: hidden;
+}
+#zoom .nav-map img { width: 100%; display: block; opacity: .5; }
+#zoom .nav-map i {
+  position: absolute; border: 1px solid #F2EEE6;
+  box-shadow: 0 0 0 9999px rgba(10,9,8,.62);
+}
+
+/* ── açığa çıkma: dinlenme hâli görünürdür, hareket yalnızca ekler ───────── */
+
+html.js [data-reveal] { opacity: 0; transform: translateY(14px); }
+html.js [data-reveal].is-in {
+  opacity: 1; transform: none;
+  transition: opacity 800ms var(--ease), transform 800ms var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  html.js [data-reveal] { opacity: 1; transform: none; }
+  #light { transition: none; }
+}
+
+@media (max-width: 35.99rem) {
+  :root { --caption-band: 8rem; }
+  .salon-card .ghost { opacity: .05; }
+}
+</style>
+</head>
+<body>
+
+
+<a class="skip" href="#envanter">Envantere geç</a>
+<div id="light" aria-hidden="true"></div>
+<div id="prog" aria-hidden="true"><i></i></div>
+
+<header id="nav">
+  <a class="mark" href="#top" id="mark"></a>
+  <div class="tools">
+    <button id="theme" type="button">Işık</button>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<div id="zoom" hidden role="dialog" aria-modal="true" aria-label="Eseri yakınlaştır"></div>
+
+<script>
+const SITE = {"artist":{"name":"Defne Aral","mark":"DEFNE ARAL","role":"Ressam","based":"İstanbul","born":"1987","tagline":"Işığın çekildiği anı boyuyorum.","lede":"Tuval üzerine yağlı boya. Katman katman, sabırla — aceleye gelmeyen bir iş.","email":"atolye@defnearal.com","phone":"+90 212 000 00 00","studio":"Bomonti, Şişli · İstanbul","ig":"@defnearal"},"bio":["Defne Aral 1987’de İzmir’de doğdu. Mimar Sinan Güzel Sanatlar Üniversitesi Resim Bölümü’nü bitirdi, ardından Viyana’da iki yıl klasik boya teknikleri üzerine çalıştı.","Yağlı boyayı yavaşlığı için seçtiğini söylüyor. Bir tuval üzerinde aylarca çalışıyor, katmanları kurumaya bırakıyor, üzerine dönüyor. İşin büyük kısmı beklemekle geçiyor.","2016’dan bu yana İstanbul Bomonti’deki atölyesinde üretiyor. Çalışmaları Türkiye, Avusturya ve Hollanda’da özel koleksiyonlarda yer alıyor."],"cv":[["2024","Alacakaranlık","Kişisel sergi · Galeri Nev, İstanbul"],["2023","Hava Raporu","Kişisel sergi · Zilberman, İstanbul"],["2022","Yeni Manzara","Karma sergi · Pera Müzesi, İstanbul"],["2021","Sessiz Topografya","Kişisel sergi · Anna Laudel, İstanbul"],["2019","Slow Paint","Karma sergi · Kunstraum, Viyana"],["2018","İlk Katman","Kişisel sergi · Galeri Bu, İzmir"]],"series":[{"key":"alacakaranlik","title":"Alacakaranlık","years":"2021 — 2024","blurb":"Günün bittiği, gecenin başlamadığı o kısa aralığın resimleri. Renk burada bir şeyi tarif etmiyor; bir şeyin kayboluşunu tutuyor."},{"key":"hava","title":"Hava","years":"2019 — 2023","blurb":"Fırtına, yağmur, basınç. Manzaradan çok atmosferin kendisi. Tuvale önce havayı koyuyorum, yeri sonra."},{"key":"topografya","title":"Sessiz Topografya","years":"2018 — 2024","blurb":"İnsansız araziler. İçinde kimsenin olmadığı ama birinin geçtiği belli olan yerler."},{"key":"sabah","title":"Sabah","years":"2020 — 2024","blurb":"Gümüş ışık serisi. Sabahın ilk yarım saati, henüz renk yerine oturmadan."}],"works":[{"id":"65170","no":"01","slug":"aksam-kizili","title":"Akşam Kızılı","series":"alacakaranlik","note":"Ufuk çizgisini üç kez sildim. Dördüncüsünde bıraktı kendini.","status":"satilik","statusLabel":"Müsait","year":2024,"medium":"Tuval üzerine yağlı boya","size":"76 × 64 cm","sizeIn":"29⅞ × 25¼ in","cw":64,"ch":76,"area":4864,"ratio":0.8314,"px":[1686,2028],"portrait":true,"tone":"#331c0b","lqip":"data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAADwAwCdASoUABgAPu1qq1EppaOnKAqpMB2JY2iTTsyJTMClMQMFhJEAAP7vBVP2g9Wi4891VofzvCPnBXE3Vb2Qld0mPDB33EB2S+mFMDAAAA==","src":"assets/65170.webp","credit":"George Inness, “Afterglow”, 1893 · Art Institute of Chicago, kamu malı"},{"id":"64754","no":"02","slug":"ay-dogarken","title":"Ay Doğarken","series":"alacakaranlik","note":"Ayın kendisi değil, aya dönen şeylerin rengi.","status":"koleksiyonda","statusLabel":"Özel koleksiyonda","year":2023,"medium":"Tuval üzerine yağlı boya","size":"76 × 64 cm","sizeIn":"29⅞ × 25¼ in","cw":64,"ch":76,"area":4864,"ratio":0.8342,"px":[1686,2021],"portrait":true,"tone":"#4c341e","lqip":"data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAABwBACdASoUABgAPu1gqU2ppSOiMBgMATAdiWMAsR6AAVvk3CgqqUbafjjEAAD+7CSjXqBrDZgA1e65OMMzIg3w6bS4uRugz0/YfcYz3blR/OGkPLovyAIUAAA=","src":"assets/64754.webp","credit":"George Inness, “Moonrise”, 1891 · Art Institute of Chicago, kamu malı"},{"id":"64732","no":"03","slug":"bastiran","title":"Bastıran","series":"hava","note":"Bir saat içinde bitti. Nadiren öyle olur.","status":"satilik","statusLabel":"Müsait","year":2023,"medium":"Tuval üzerine yağlı boya","size":"77 × 116 cm","sizeIn":"30⅜ × 45⅝ in","cw":116,"ch":77,"area":8932,"ratio":1.5067,"px":[1686,1119],"portrait":false,"tone":"#423b1d","lqip":"data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAAAQAwCdASoUAA0APu1iqU2ppaOiMAgBMB2JQBdgBaDwWcAA/u1ZMSgSUUZiMNZ5dqnX1T4x9U+DKqAA","src":"assets/64732.webp","credit":"George Inness, “Threatening”, 1891 · Art Institute of Chicago, kamu malı"},{"id":"110561","no":"04","slug":"gumus-sabah","title":"Gümüş Sabah","series":"sabah","note":"Beyazı karıştırırken toprak eklemeyi öğrendiğim resim.","status":"satilik","statusLabel":"Müsait","year":2024,"medium":"Tuval üzerine yağlı boya","size":"114 × 90 cm","sizeIn":"44⅞ × 35⅜ in","cw":90,"ch":114,"area":10260,"ratio":0.7788,"px":[1686,2165],"portrait":true,"tone":"#715933","lqip":"data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAABQAwCdASoUABoAPu1oqk+ppiOiKA1RMB2JYwC7ABB0LChRAAD9COHQaQWST7Z1S3kardqbe9LXDWFqCiTuh/8S1F8Rgs82nud6xguAdeDUEz2BMF2/gkWWAAA=","src":"assets/110561.webp","credit":"George Inness, “A Silver Morning”, 1886 · Art Institute of Chicago, kamu malı"},{"id":"64724","no":"05","slug":"balikcilin-yurdu","title":"Balıkçılın Yurdu","series":"topografya","note":"Suyun durgun olduğu yerde fırça da duruyor.","status":"ayrildi","statusLabel":"Ayrıldı","year":2024,"medium":"Tuval üzerine yağlı boya","size":"76 × 115 cm","sizeIn":"29⅞ × 45¼ in","cw":115,"ch":76,"area":8740,"ratio":1.5286,"px":[1686,1103],"portrait":false,"tone":"#4f2d0c","lqip":"data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAABQAwCdASoUAA0APu1iqU2ppaOiMAgBMB2JQBOl6gBNnqq4AAD+7dgoK9eNBdetrbKyPzTtOiAoCqrFR57a9JwAAAA=","src":"assets/64724.webp","credit":"George Inness, “The Home of the Heron”, 1893 · Art Institute of Chicago, kamu malı"},{"id":"65353","no":"06","slug":"firtina","title":"Fırtına","series":"hava","note":"Üstünde iki kış çalıştım. İkisi de aralıkta.","status":"satilik","statusLabel":"Müsait","year":2022,"medium":"Tuval üzerine yağlı boya","size":"64 × 97 cm","sizeIn":"25¼ × 38¼ in","cw":97,"ch":64,"area":6208,"ratio":1.5094,"px":[1686,1117],"portrait":false,"tone":"#656651","lqip":"data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAACQAwCdASoUAA0APu1kq04ppaQiMAgBMB2JYwDCgA8OOmNGgJbwAP2XKN2rgwwn9RU/d34qvF+xGqY/VAL5jmFaJaagAA==","src":"assets/65353.webp","credit":"George Inness, “The Storm”, 1876 · Art Institute of Chicago, kamu malı"},{"id":"64729","no":"07","slug":"erken-saat","title":"Erken Saat","series":"sabah","note":"Dikey format bu seride tek. Işık yukarıdan geldiği için.","status":"satilik","statusLabel":"Müsait","year":2023,"medium":"Tuval üzerine yağlı boya","size":"107 × 82 cm","sizeIn":"42⅛ × 32¼ in","cw":82,"ch":107,"area":8774,"ratio":0.7643,"px":[1686,2206],"portrait":true,"tone":"#665d51","lqip":"data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAADwBACdASoUABoAPu1kq06ppaQiKA1RMB2JZQC2yBDeux2EVenmJv811V9gUbQ5EAAA/TPas7TRXXdbvMMMNT9d/gyeg0fZUMEORH20LL1aADCh91dSacLy+DQ4yJrWYAA=","src":"assets/64729.webp","credit":"George Inness, “Early Morning, Tarpon Springs”, 1892 · Art Institute of Chicago, kamu malı"},{"id":"64745","no":"08","slug":"gece-ayi","title":"Gece Ayı","series":"alacakaranlik","note":"Karanlığı siyahla değil, koyu yeşille kurmak.","status":"koleksiyonda","statusLabel":"Özel koleksiyonda","year":2023,"medium":"Tuval üzerine yağlı boya","size":"56 × 69 cm","sizeIn":"22 × 27⅛ in","cw":69,"ch":56,"area":3864,"ratio":1.2235,"px":[1686,1378],"portrait":false,"tone":"#2d2308","lqip":"data:image/webp;base64,UklGRj4AAABXRUJQVlA4IDIAAADwAgCdASoUABAAPu1iqU2ppaOiMAgBMB2JYwCdAC5JAAD+71LniD4yGhDHFdEZaGAAAA==","src":"assets/64745.webp","credit":"George Inness, “The Moon at Night”, 1890 · Art Institute of Chicago, kamu malı"},{"id":"64736","no":"09","slug":"guz-ormani","title":"Güz Ormanı","series":"topografya","note":"Sonbaharı kırmızıyla anlatmamaya çalıştığım bir deneme.","status":"satilik","statusLabel":"Müsait","year":2023,"medium":"Tuval üzerine yağlı boya","size":"74 × 114 cm","sizeIn":"29⅛ × 44⅞ in","cw":114,"ch":74,"area":8436,"ratio":1.5525,"px":[1686,1086],"portrait":false,"tone":"#593d22","lqip":"data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAABwAwCdASoUAA0APu1iqU2tJaQiMAgBoB2JYwCw7C0H5gGNvgAA/uvqcbE5u9pkTdhpGvT389LxXBAA","src":"assets/64736.webp","credit":"George Inness, “Autumn Woods”, 1891–94 · Art Institute of Chicago, kamu malı"},{"id":"151108","no":"10","slug":"degirmen-goleti","title":"Değirmen Göleti","series":"sabah","note":"Yansımayı önce bitirdim, sonra üstündekini.","status":"satilik","statusLabel":"Müsait","year":2022,"medium":"Tuval üzerine yağlı boya","size":"96 × 76 cm","sizeIn":"37¾ × 29⅞ in","cw":76,"ch":96,"area":7296,"ratio":0.7671,"px":[1686,2198],"portrait":true,"tone":"#634a27","lqip":"data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAACwBACdASoUABoAPu1kp02ppaMiMBgMATAdiUAToAINQMbY3CEyCasGsbGZAnAAAP5w4uddaFpp/FR0RFtCugT9upa5z4sO6crc9C1SeKgvRMFn3jkiDuQ+amEUfCwS1G0gAA==","src":"assets/151108.webp","credit":"George Inness, “The Mill Pond”, 1889 · Art Institute of Chicago, kamu malı"},{"id":"64715","no":"11","slug":"yagmurdan-sonra","title":"Yağmurdan Sonra","series":"hava","note":"Islak toprak kokusunun rengi olsaydı.","status":"satilik","statusLabel":"Müsait","year":2021,"medium":"Tuval üzerine yağlı boya","size":"82 × 108 cm","sizeIn":"32¼ × 42½ in","cw":108,"ch":82,"area":8856,"ratio":1.3182,"px":[1686,1279],"portrait":false,"tone":"#767c4c","lqip":"data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAACQAwCdASoUAA8APu1iqU2ppaQiMAgBMB2JYgAAXGG4r8B3PEtiAP6OvUpf9lZh2yJUCDPPfuUnDj+QPf196wRTcae1+CoT60AAAA==","src":"assets/64715.webp","credit":"George Inness, “After a Summer Shower”, 1894 · Art Institute of Chicago, kamu malı"},{"id":"69844","no":"12","slug":"issiz-ciftlik","title":"Issız Çiftlik","series":"topografya","note":"Boş bir ev, boş bir arazi. Yine de biri var gibi.","status":"ayrildi","statusLabel":"Ayrıldı","year":2022,"medium":"Tuval üzerine yağlı boya","size":"78 × 116 cm","sizeIn":"30¾ × 45⅝ in","cw":116,"ch":78,"area":9048,"ratio":1.504,"px":[1686,1121],"portrait":false,"tone":"#3e482d","lqip":"data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAABwAwCdASoUAA0APu1kqU2ppaOiMAgBMB2JQBdgA3P5nqcZG5wA/ukdqhMoOZRPdoEL61SGKZbdjc2dCaii5wSeAAA=","src":"assets/69844.webp","credit":"George Inness, “The Lonely Farm, Nantucket”, 1892 · Art Institute of Chicago, kamu malı"},{"id":"64740","no":"13","slug":"gunbatimi-etudu","title":"Günbatımı Etüdü","series":"alacakaranlik","note":"Etüt olarak başladı, öyle kaldı. Bazen iyi oluyor.","status":"satilik","statusLabel":"Müsait","year":2022,"medium":"Tuval üzerine yağlı boya","size":"56 × 92 cm","sizeIn":"22 × 36¼ in","cw":92,"ch":56,"area":5152,"ratio":1.6306,"px":[1686,1034],"portrait":false,"tone":"#503816","lqip":"data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAAAwAwCdASoUAAwAPu1iqU2ppaQiMAgBMB2JQBOgBDvpiiOwAP7Y4SeARxOc0lYn/RhXoKAoGRbm42HKiXIIAA==","src":"assets/64740.webp","credit":"George Inness, “Landscape, Sunset”, 1887–89 · Art Institute of Chicago, kamu malı"},{"id":"64764","no":"14","slug":"alacakaranlik","title":"Alacakaranlık","series":"alacakaranlik","note":"Seriye adını veren resim. En küçüğü.","status":"koleksiyonda","statusLabel":"Özel koleksiyonda","year":2021,"medium":"Tuval üzerine yağlı boya","size":"51 × 76 cm","sizeIn":"20⅛ × 29⅞ in","cw":76,"ch":51,"area":3876,"ratio":1.5189,"px":[1686,1110],"portrait":false,"tone":"#3f3a24","lqip":"data:image/webp;base64,UklGRkgAAABXRUJQVlA4IDwAAAAwAwCdASoUAA0APu1mqk4ppaOiMAgBMB2JZQC7ACzcDEQAAP7tn18vB164nh6OAMVbvbXe+ofkhyOAAAA=","src":"assets/64764.webp","credit":"George Inness, “Twilight in Italy”, 1890 · Art Institute of Chicago, kamu malı"},{"id":"27777","no":"15","slug":"kardesler","title":"Kardeşler","series":"sabah","note":"Figür nadiren giriyor. Girdiğinde de sırtını dönüyor.","status":"satilik","statusLabel":"Müsait","year":2020,"medium":"Tuval üzerine yağlı boya","size":"51 × 41 cm","sizeIn":"20⅛ × 16⅛ in","cw":41,"ch":51,"area":2091,"ratio":0.7998,"px":[1686,2108],"portrait":true,"tone":"#5c5c40","lqip":"data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAADQBACdASoUABkAPu1aqE2ppKOiN/VYATAdiWMAtsgJ5GqKVRIFvy2pcAdXeyR4AAD99mVnhDyTd8SkDimBW42J7l7X/hV8XCaPJMuXZU8wHW3ehLfmbKvJEyEybhqLJBwpgga2NYAAAA==","src":"assets/27777.webp","credit":"George Inness, “The Sisters”, 1882 · Art Institute of Chicago, kamu malı"},{"id":"64748","no":"16","slug":"isikli-vadi","title":"Işıklı Vadi","series":"topografya","note":"Uzaktaki ışık yakındakinden daha sıcak olmalı.","status":"satilik","statusLabel":"Müsait","year":2020,"medium":"Tuval üzerine yağlı boya","size":"61 × 92 cm","sizeIn":"24 × 36¼ in","cw":92,"ch":61,"area":5612,"ratio":1.5203,"px":[1686,1109],"portrait":false,"tone":"#47422e","lqip":"data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAACwAwCdASoUAA0APu1kqU2ppaOiMAgBMB2JYwC06CG6w4xtIk6FUAD+oHytshUeg06WiApKCsAneJ43eSASAAAA","src":"assets/64748.webp","credit":"George Inness, “Sunlit Valley”, 1893 · Art Institute of Chicago, kamu malı"},{"id":"68388","no":"17","slug":"dag-sirti","title":"Dağ Sırtı","series":"topografya","note":"En büyük tuval. Atölyeye zor sığdı.","status":"satilik","statusLabel":"Müsait","year":2018,"medium":"Tuval üzerine yağlı boya","size":"124 × 184 cm","sizeIn":"48⅞ × 72½ in","cw":184,"ch":124,"area":22816,"ratio":1.5054,"px":[1686,1120],"portrait":false,"tone":"#7c6e4d","lqip":"data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAADQAwCdASoUAA0APu1iqk4ppaQiMAgBMB2JQBOgA9gQ/zFdG8xYngAA+2CWSWlGpStOKMYFZPDVWkayuMDn/MIK2u+hzKa222AAAA==","src":"assets/68388.webp","credit":"George Inness, “Catskill Mountains”, 1870 · Art Institute of Chicago, kamu malı"},{"id":"68792","no":"18","slug":"deniz","title":"Deniz","series":"hava","note":"Ufuk çizgisi tam ortada. Kural dışı ama doğru geldi.","status":"satilik","statusLabel":"Müsait","year":2019,"medium":"Tuval üzerine yağlı boya","size":"77 × 115 cm","sizeIn":"30⅜ × 45¼ in","cw":115,"ch":77,"area":8855,"ratio":1.5397,"px":[1686,1095],"portrait":false,"tone":"#373c22","lqip":"data:image/webp;base64,UklGRlQAAABXRUJQVlA4IEgAAADQAwCdASoUAA0APu1iqU2ppaQiMAgBMB2JYwDE2B52OsompeeSUcAA/u6hVm19jNbK8u7auZVM62OC5N5Ds4A03g9LtoAQgAA=","src":"assets/68792.webp","credit":"George Inness, “A Marine”, c. 1874–75 · Art Institute of Chicago, kamu malı"}],"notice":"Bu bir tasarım prototipidir. Sanatçı kimliği ve metinler kurgudur; görseller Art Institute of Chicago açık erişim arşivinden alınmış kamu malı George Inness tablolarıdır. Yayına geçmeden önce tümü gerçek eserlerle değiştirilecektir."};
+/* ── KIT ───────────────────────────────────────────────────────────────────
+   Üç prototipin de paylaştığı davranış katmanı. Tasarımdan bağımsız:
+   burada hiçbir görsel karar yok, sadece mekanik. Görünüm tamamen CSS'te.
+   ────────────────────────────────────────────────────────────────────────── */
+
+const K = (() => {
+
+  /* ── tercihler ─────────────────────────────────────────────────────────── */
+
+  const reduced = () =>
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch { /* yok say */ } },
+  };
+
+  /* ── tema ──────────────────────────────────────────────────────────────────
+     Üç durum: 'light' | 'dark' | null (sistem). Kök öğeye data-theme basar.   */
+
+  const Theme = {
+    KEY: 'da-theme',
+    init() {
+      const saved = store.get(this.KEY);
+      if (saved === 'light' || saved === 'dark') {
+        document.documentElement.dataset.theme = saved;
+      }
+      return this;
+    },
+    current() {
+      return document.documentElement.dataset.theme ||
+        (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    },
+    toggle() {
+      const next = this.current() === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      store.set(this.KEY, next);
+      document.dispatchEvent(new CustomEvent('themechange', { detail: next }));
+      return next;
+    },
+  };
+
+  /* ── ilerlemeli görsel ─────────────────────────────────────────────────────
+     LQIP (20px bulanık) anında görünür, tam çözünürlük görünür alana
+     girince yüklenir ve decode() bittikten SONRA geçiş yapar — böylece
+     yarım boyanmış kare hiç görünmez.                                        */
+
+  const io = 'IntersectionObserver' in window
+    ? new IntersectionObserver((entries, obs) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          obs.unobserve(e.target);
+          load(e.target);
+        }
+      }, { rootMargin: '600px 0px' })
+    : null;
+
+  function load(fig) {
+    const src = fig.dataset.src;
+    if (!src || fig.dataset.loaded) return;
+    fig.dataset.loaded = '1';
+    const img = new Image();
+    img.decoding = 'async';
+    img.alt = fig.dataset.alt || '';
+    img.src = src;
+    const show = () => {
+      img.className = 'k-full';
+      fig.appendChild(img);
+      requestAnimationFrame(() => fig.classList.add('is-loaded'));
+    };
+    (img.decode ? img.decode().then(show).catch(show) : (img.onload = show));
+  }
+
+  /**
+   * Bir eser için <figure> üretir.
+   * @param {object} w   SITE.works elemanı
+   * @param {object} opt {eager:boolean, sizes:string, cls:string}
+   */
+  function figure(w, opt = {}) {
+    const fig = document.createElement('figure');
+    fig.className = 'k-fig ' + (opt.cls || '');
+    fig.style.setProperty('--ratio', w.ratio);
+    fig.style.setProperty('--tone', w.tone);
+    fig.dataset.src = w.src;
+    fig.dataset.alt = `${w.title}, ${w.year} — ${w.medium}, ${w.size}`;
+
+    const lq = document.createElement('img');
+    lq.className = 'k-lqip';
+    lq.src = w.lqip;
+    lq.alt = '';
+    lq.setAttribute('aria-hidden', 'true');
+    fig.appendChild(lq);
+
+    if (opt.eager) load(fig);
+    else if (io) io.observe(fig);
+    else load(fig);
+
+    return fig;
+  }
+
+  /* ── görünüme girince açığa çıkma ─────────────────────────────────────── */
+
+  const revealIO = 'IntersectionObserver' in window
+    ? new IntersectionObserver((entries, obs) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          obs.unobserve(e.target);
+          e.target.classList.add('is-in');
+        }
+      }, { rootMargin: '0px 0px -12% 0px', threshold: 0.05 })
+    : null;
+
+  function reveal(root = document) {
+    const els = root.querySelectorAll('[data-reveal]:not(.is-in)');
+    if (reduced() || !revealIO) {
+      els.forEach(el => el.classList.add('is-in'));
+      return;
+    }
+    els.forEach(el => revealIO.observe(el));
+  }
+
+  /* ── hash yönlendirici ─────────────────────────────────────────────────────
+     #/                 ana sayfa
+     #/seri/<key>       seri
+     #/eser/<slug>      tek eser
+     #/hakkinda #/iletisim                                                    */
+
+  const Router = {
+    routes: [],
+    on(re, fn) { this.routes.push([re, fn]); return this; },
+    parse() {
+      const h = location.hash.replace(/^#/, '') || '/';
+      for (const [re, fn] of this.routes) {
+        const m = h.match(re);
+        if (m) return { fn, args: m.slice(1), path: h };
+      }
+      return { fn: this.routes[0][1], args: [], path: '/' };
+    },
+    go(path, opts = {}) {
+      if (opts.replace) location.replace('#' + path);
+      else location.hash = path;
+    },
+    start() {
+      const run = () => {
+        const { fn, args, path } = this.parse();
+        fn(...args);
+        this.last = path;
+      };
+      addEventListener('hashchange', run);
+      run();
+      return this;
+    },
+  };
+
+  /* ── odak tuzağı (katman/lightbox için) ────────────────────────────────── */
+
+  const SELECTOR =
+    'a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])';
+
+  function trap(node) {
+    const prev = document.activeElement;
+    const onKey = (e) => {
+      if (e.key !== 'Tab') return;
+      const f = [...node.querySelectorAll(SELECTOR)].filter(el => el.offsetParent !== null);
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    node.addEventListener('keydown', onKey);
+    return () => {
+      node.removeEventListener('keydown', onKey);
+      if (prev && prev.focus) prev.focus();
+    };
+  }
+
+  /* ── küçük yardımcılar ─────────────────────────────────────────────────── */
+
+  const el = (tag, cls, html) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (html != null) n.innerHTML = html;
+    return n;
+  };
+
+  const bySeries = (key) => SITE.works.filter(w => w.series === key);
+  const seriesOf = (key) => SITE.series.find(s => s.key === key);
+  const workBySlug = (slug) => SITE.works.find(w => w.slug === slug);
+  const neighbours = (w) => {
+    const list = SITE.works;
+    const i = list.indexOf(w);
+    return {
+      prev: list[(i - 1 + list.length) % list.length],
+      next: list[(i + 1) % list.length],
+    };
+  };
+
+  return { reduced, store, Theme, figure, load, reveal, Router, trap, el,
+           bySeries, seriesOf, workBySlug, neighbours };
+})();
+
+
+document.documentElement.classList.add('js');
+document.documentElement.lang = 'tr';
+K.Theme.init();
+
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+const app = document.getElementById('app');
+
+/* ── kuruluş ─────────────────────────────────────────────────────────────── */
+
+document.getElementById('mark').textContent = SITE.artist.mark;
+
+const frag = document.createDocumentFragment();
+
+/* eşik — ilk kare boş değil: bir resim zaten duruyor */
+{
+  const s = K.el('section', 'wrap');
+  s.id = 'esik';
+  const first = SITE.works[0];
+  const holder = K.el('div', 'plate-wrap');
+  const fig = K.figure(first, { eager: true });
+  fig.style.maxHeight = 'min(62svh, 620px)';
+  fig.style.width = 'min(100%, calc(min(62svh, 620px) * ' + first.ratio + '))';
+  holder.appendChild(fig);
+  s.appendChild(holder);
+
+  const line = K.el('div', 'line micro');
+  line.innerHTML =
+    `<span>${SITE.artist.mark}</span><span>·</span><span>2018 — 2024</span>` +
+    `<span>·</span><span>${SITE.artist.based}</span>`;
+  s.appendChild(line);
+  frag.appendChild(s);
+}
+
+/* salonlar */
+SITE.series.forEach((series, si) => {
+  const card = K.el('section', 'salon-card wrap');
+  card.id = 'salon-' + (si + 1);
+  card.dataset.room = si;
+
+  const ghost = K.el('div', 'ghost');
+  ghost.textContent = ROMAN[si];
+  ghost.setAttribute('aria-hidden', 'true');
+  card.appendChild(ghost);
+
+  const body = K.el('div', 'body');
+  body.appendChild(K.el('h2', null, `Salon ${ROMAN[si]} — ${series.title}`));
+  body.appendChild(K.el('p', 'wall', series.blurb));
+  if (si === 0) body.appendChild(K.el('p', 'datum micro', '152 cm — asılma hattı'));
+  card.appendChild(body);
+  frag.appendChild(card);
+
+  K.bySeries(series.key).forEach((w) => {
+    const st = K.el('section', 'stage wrap');
+    st.dataset.room = si;
+    st.dataset.slug = w.slug;
+
+    const frame = K.el('div', 'frame');
+    const btn = K.el('button', 'plate');
+    btn.type = 'button';
+    btn.setAttribute('aria-label', `${w.title} — yakınlaştır`);
+    btn.appendChild(K.figure(w));
+    btn.addEventListener('click', () => openZoom(w));
+    frame.appendChild(btn);
+    frame.appendChild(K.el('div', 'floor'));
+    st.appendChild(frame);
+
+    const tomb = K.el('div', 'tomb');
+    tomb.setAttribute('data-reveal', '');
+    tomb.appendChild(K.el('h3', null, w.title));
+    const meta = K.el('div', 'meta');
+    meta.innerHTML = `${w.year} · ${w.medium}<br>${w.size} <span style="color:var(--text-3)">(${w.sizeIn})</span>`;
+    tomb.appendChild(meta);
+    const row = K.el('div', 'row micro');
+    row.innerHTML = `<i class="dot${w.status === 'satilik' ? '' : ' off'}"></i>` +
+                    `<span>${w.statusLabel}</span><span>·</span><span>No. ${w.no}</span>`;
+    tomb.appendChild(row);
+    tomb.appendChild(K.el('p', 'note', '“' + w.note + '”'));
+
+    const pill = K.el('button', 'zoom-pill', 'Yakınlaş');
+    pill.type = 'button';
+    pill.addEventListener('click', () => openZoom(w));
+    tomb.appendChild(pill);
+
+    st.appendChild(tomb);
+    frag.appendChild(st);
+  });
+
+  /* ikinci salondan sonra duvar yazısı — odalar arası duraklama */
+  if (si === 1) {
+    const d = K.el('section');
+    d.id = 'duvar';
+    const inner = K.el('div', 'wrap');
+    const cols = K.el('div', 'cols');
+    const left = K.el('div');
+    left.setAttribute('data-reveal', '');
+    SITE.bio.forEach(p => left.appendChild(K.el('p', null, p)));
+    const right = K.el('div');
+    right.setAttribute('data-reveal', '');
+    right.appendChild(K.el('p', 'micro', 'Duvar yazısı'));
+    const q = K.el('p', null, '“' + SITE.artist.lede + '”');
+    q.style.marginTop = 'var(--s3)';
+    right.appendChild(q);
+    cols.append(left, right);
+    inner.appendChild(cols);
+    d.appendChild(inner);
+    frag.appendChild(d);
+  }
+});
+
+/* envanter — fiziksel ölçek, sıkıştırılmış */
+{
+  const s = K.el('section', 'wrap');
+  s.id = 'envanter';
+  const head = K.el('div', 'head');
+  head.appendChild(K.el('h2', null, 'Envanter'));
+  head.appendChild(K.el('span', 'micro', `${SITE.works.length} eser · ${SITE.series.length} seri`));
+  s.appendChild(head);
+
+  const grid = K.el('div', 'grid');
+  const maxArea = Math.max(...SITE.works.map(w => w.area));
+  SITE.works.forEach((w) => {
+    const scale = Math.max(0.52, Math.pow(w.area / maxArea, 0.28));
+    const cell = K.el('div', 'cell');
+    cell.setAttribute('data-reveal', '');
+    const b = K.el('button');
+    b.type = 'button';
+    b.setAttribute('aria-label', `${w.title} — yakınlaştır`);
+    const fig = K.figure(w);
+    /* kare hücre içinde: uzun kenar ölçeği belirler */
+    if (w.ratio >= 1) {
+      fig.style.setProperty('--cw', (scale * 100) + '%');
+    } else {
+      fig.style.setProperty('--cw', (scale * 100 * w.ratio) + '%');
+    }
+    b.appendChild(fig);
+    cell.appendChild(b);
+    b.addEventListener('click', () => openZoom(w));
+
+    const cap = K.el('div', 'cap');
+    cap.appendChild(K.el('b', null, w.title));
+    cap.appendChild(K.el('span', null, `${w.year} · ${w.size}`));
+    cell.appendChild(cap);
+    grid.appendChild(cell);
+  });
+  s.appendChild(grid);
+  frag.appendChild(s);
+}
+
+/* biyografi */
+{
+  const s = K.el('section', 'wrap');
+  s.id = 'bio';
+  const cols = K.el('div', 'cols');
+  const left = K.el('div');
+  left.appendChild(K.el('p', 'micro', 'Biyografi'));
+  const h = K.el('h2', null, SITE.artist.name);
+  h.style.cssText = 'font-size:var(--t-section);font-weight:400;letter-spacing:-.02em;margin:var(--s2) 0 var(--s3)';
+  left.appendChild(h);
+  SITE.bio.forEach(p => left.appendChild(K.el('p', null, p)));
+
+  const right = K.el('div');
+  right.appendChild(K.el('p', 'micro', 'Sergiler'));
+  const dl = K.el('dl');
+  dl.style.marginTop = 'var(--s3)';
+  SITE.cv.forEach(([year, title, venue]) => {
+    const row = K.el('div', 'cv-row');
+    row.appendChild(K.el('dt', null, year));
+    row.appendChild(K.el('dd', null, `<i>${title}</i><span>${venue}</span>`));
+    dl.appendChild(row);
+  });
+  right.appendChild(dl);
+  cols.append(left, right);
+  s.appendChild(cols);
+  frag.appendChild(s);
+}
+
+/* künye */
+{
+  const s = K.el('section', 'wrap');
+  s.id = 'kunye';
+  const rows = K.el('div', 'rows');
+  rows.innerHTML =
+    `<p class="micro">İletişim</p>` +
+    `<p><a class="hair" href="mailto:${SITE.artist.email}">${SITE.artist.email}</a></p>` +
+    `<p style="color:var(--text-2)">${SITE.artist.studio}</p>`;
+  s.appendChild(rows);
+  s.appendChild(K.el('p', 'notice', SITE.notice));
+  const cr = K.el('p', 'micro', SITE.works[0].credit);
+  s.appendChild(cr);
+  frag.appendChild(s);
+}
+
+app.appendChild(frag);
+K.reveal();
+
+/* ── tema ────────────────────────────────────────────────────────────────── */
+
+const themeBtn = document.getElementById('theme');
+const syncTheme = () => {
+  const dark = K.Theme.current() === 'dark';
+  themeBtn.textContent = dark ? 'Işık' : 'Karanlık';
+  themeBtn.setAttribute('aria-label', dark ? 'Açık temaya geç' : 'Koyu temaya geç');
+  const m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.setAttribute('content', dark ? '#141210' : '#E9E9E7');
+};
+themeBtn.addEventListener('click', () => { K.Theme.toggle(); syncTheme(); });
+syncTheme();
+
+/* ── ışık, paralaks, ilerleme: tek rAF döngüsü ───────────────────────────── */
+
+const lightEl  = document.getElementById('light');
+const progFill = document.querySelector('#prog i');
+const navEl    = document.getElementById('nav');
+const stages   = [...document.querySelectorAll('.stage')];
+const cards    = [...document.querySelectorAll('.salon-card')];
+const reduced  = K.reduced();
+
+let targetY = 40, currentY = 40, cursorX = 50, ticking = false;
+
+if (!reduced && matchMedia('(pointer: fine)').matches) {
+  addEventListener('pointermove', (e) => {
+    cursorX = 50 + ((e.clientX / innerWidth) - 0.5) * 16;  /* %8 imleç etkisi */
+  }, { passive: true });
+}
+
+function measure() {
+  const vh = innerHeight;
+  navEl.classList.toggle('is-scrolled', scrollY > 8);
+
+  /* ışığın hedefi: görünür sahnenin merkezi */
+  let best = null, bestD = Infinity;
+  for (const st of stages) {
+    const r = st.querySelector('.frame').getBoundingClientRect();
+    const c = r.top + r.height * 0.42;
+    const d = Math.abs(c - vh * 0.45);
+    if (d < bestD) { bestD = d; best = c; }
+  }
+  targetY = best === null ? 40 : (best / vh) * 100;
+
+  /* paralaks: yalnızca görünür öğeler */
+  for (const st of stages) {
+    const r = st.getBoundingClientRect();
+    if (r.bottom < -200 || r.top > vh + 200) continue;
+    const p = (r.top + r.height / 2 - vh / 2) / vh;   /* -1 .. 1 */
+    if (!reduced) {
+      st.style.setProperty('--par-tomb', (p * -18) + 'px');
+      st.style.setProperty('--par-floor', (p * 34) + 'px');
+    }
+  }
+  for (const c of cards) {
+    const r = c.getBoundingClientRect();
+    if (r.bottom < -300 || r.top > vh + 300) continue;
+    const p = (r.top + r.height / 2 - vh / 2) / vh;
+    if (!reduced) c.style.setProperty('--par', (p * 64) + 'px');
+  }
+
+  /* oda başına ilerleme — sayfanın tamamı değil */
+  let room = null;
+  for (const st of stages) {
+    const r = st.getBoundingClientRect();
+    if (r.top < vh * 0.5 && r.bottom > 0) room = st.dataset.room;
+  }
+  if (room !== null) {
+    const inRoom = stages.filter(s => s.dataset.room === room);
+    const first = inRoom[0].getBoundingClientRect().top;
+    const last  = inRoom[inRoom.length - 1].getBoundingClientRect().bottom;
+    const span  = last - first;
+    const done  = Math.min(1, Math.max(0, (vh * 0.5 - first) / span));
+    progFill.style.width = (done * 100) + '%';
+  } else {
+    progFill.style.width = '0%';
+  }
+
+  ticking = false;
+}
+
+function loop() {
+  currentY += (targetY - currentY) * (reduced ? 1 : 0.08);
+  lightEl.style.setProperty('--ly', currentY.toFixed(2) + '%');
+  lightEl.style.setProperty('--lx', cursorX.toFixed(2) + '%');
+  requestAnimationFrame(loop);
+}
+
+addEventListener('scroll', () => {
+  if (!ticking) { ticking = true; requestAnimationFrame(measure); }
+}, { passive: true });
+addEventListener('resize', measure, { passive: true });
+measure();
+requestAnimationFrame(loop);
+
+/* ── yakınlaş ────────────────────────────────────────────────────────────── */
+
+const zoomEl = document.getElementById('zoom');
+let releaseTrap = null, zoomState = null;
+
+function openZoom(w) {
+  zoomEl.innerHTML = '';
+  const canvas = K.el('div', 'canvas');
+  const img = new Image();
+  img.src = w.src;
+  img.alt = `${w.title}, ${w.year}`;
+  img.draggable = false;
+  canvas.appendChild(img);
+
+  const bar = K.el('div', 'bar');
+  bar.innerHTML = `<div><div class="t">${w.title}</div>` +
+                  `<div class="micro" style="color:rgba(242,238,230,.4);margin-top:4px">${w.year} · ${w.size}</div></div>`;
+  const close = K.el('button', null, 'Kapat');
+  close.type = 'button';
+  close.addEventListener('click', closeZoom);
+  bar.appendChild(close);
+
+  const rule = K.el('div', 'rule');
+  rule.innerHTML = `<div class="bar-line"></div><span>10 CM</span>`;
+
+  const map = K.el('div', 'nav-map');
+  const mimg = new Image(); mimg.src = w.lqip; mimg.alt = '';
+  const mbox = K.el('i');
+  map.append(mimg, mbox);
+
+  zoomEl.append(canvas, bar, rule, map);
+  zoomEl.hidden = false;
+  document.body.style.overflow = 'hidden';
+
+  zoomState = { w, img, canvas, rule, map, mbox, scale: 1, x: 0, y: 0, base: 1 };
+
+  const fit = () => {
+    const vw = innerWidth, vh = innerHeight;
+    zoomState.base = Math.min(vw * 0.88 / img.naturalWidth, vh * 0.82 / img.naturalHeight);
+    apply();
+  };
+  img.decode ? img.decode().then(fit).catch(fit) : (img.onload = fit);
+
+  close.focus();
+  releaseTrap = K.trap(zoomEl);
+  addEventListener('keydown', onKey);
+  bindPan(zoomState);
+}
+
+function apply() {
+  const s = zoomState;
+  if (!s) return;
+  const k = s.base * s.scale;
+  s.img.style.transform =
+    `translate(calc(-50% + ${s.x}px), calc(-50% + ${s.y}px)) scale(${k})`;
+
+  /* canlı cetvel: 10 cm kaç piksel */
+  const renderedW = s.img.naturalWidth * k;
+  const px = (10 / s.w.cw) * renderedW;
+  s.rule.querySelector('.bar-line').style.width = Math.max(12, Math.min(innerWidth * 0.5, px)) + 'px';
+
+  /* seyir haritası */
+  const vw = innerWidth, vh = innerHeight;
+  const rw = s.img.naturalWidth * k, rh = s.img.naturalHeight * k;
+  const mapW = 88, mapH = mapW / s.w.ratio;
+  s.map.style.height = mapH + 'px';
+  const bw = Math.min(1, vw / rw), bh = Math.min(1, vh / rh);
+  s.mbox.style.width  = (bw * mapW) + 'px';
+  s.mbox.style.height = (bh * mapH) + 'px';
+  s.mbox.style.left = ((0.5 - s.x / rw - bw / 2) * mapW) + 'px';
+  s.mbox.style.top  = ((0.5 - s.y / rh - bh / 2) * mapH) + 'px';
+}
+
+function bindPan(s) {
+  let down = false, px = 0, py = 0;
+  s.canvas.addEventListener('pointerdown', (e) => {
+    down = true; px = e.clientX; py = e.clientY;
+    s.canvas.classList.add('dragging');
+    s.canvas.setPointerCapture(e.pointerId);
+    s.img.style.transition = 'none';
+  });
+  s.canvas.addEventListener('pointermove', (e) => {
+    if (!down) return;
+    s.x += e.clientX - px; s.y += e.clientY - py;
+    px = e.clientX; py = e.clientY;
+    apply();
+  });
+  const up = () => {
+    down = false;
+    s.canvas.classList.remove('dragging');
+    s.img.style.transition = 'transform 120ms ease-out';
+  };
+  s.canvas.addEventListener('pointerup', up);
+  s.canvas.addEventListener('pointercancel', up);
+  s.canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const next = Math.min(4, Math.max(1, s.scale * (e.deltaY < 0 ? 1.12 : 1 / 1.12)));
+    s.scale = next;
+    if (next === 1) { s.x = 0; s.y = 0; }
+    apply();
+  }, { passive: false });
+}
+
+function onKey(e) {
+  if (e.key === 'Escape') closeZoom();
+}
+
+function closeZoom() {
+  zoomEl.hidden = true;
+  zoomEl.innerHTML = '';
+  document.body.style.overflow = '';
+  removeEventListener('keydown', onKey);
+  if (releaseTrap) { releaseTrap(); releaseTrap = null; }
+  zoomState = null;
+}
+</script>
+
+</body>
+</html>
