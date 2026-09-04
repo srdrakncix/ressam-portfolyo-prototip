@@ -135,6 +135,9 @@ img { display: block; }
 
 .wrap { padding-inline: var(--u); max-width: 1440px; margin-inline: auto; }
 
+/* yapışkan şerit başlıkları örtmesin */
+[id] { scroll-margin-top: 92px; }
+
 /* Tek hover fiili: saç çizgisi netleşir. Site genelinde başka hover yok. */
 .hair { border-bottom: 1px solid var(--hairline); transition: border-color 180ms var(--ease-ui); }
 @media (hover: hover) and (pointer: fine) {
@@ -477,6 +480,49 @@ img { display: block; }
   box-shadow: 0 0 0 9999px rgba(10,9,8,.62);
 }
 
+/* ── menü: oda listesi, dört satır, başka bir şey değil ─────────────────── */
+
+#menu {
+  position: fixed; inset: 0; z-index: 50;
+  background: color-mix(in srgb, var(--bg) 96%, transparent);
+  backdrop-filter: blur(20px);
+  padding: calc(var(--s5) + var(--s4)) var(--u) var(--s5);
+  overflow-y: auto;
+}
+#menu[hidden] { display: none; }
+#menu .inner {
+  max-width: 1440px; margin-inline: auto;
+  display: grid; gap: var(--s4);
+}
+#menu .grp { display: grid; gap: var(--s3); }
+#menu .grp + .grp {
+  border-top: 1px solid var(--hairline); padding-top: var(--s4);
+}
+#menu a {
+  color: var(--text); text-decoration: none;
+  display: flex; align-items: baseline; gap: var(--s3);
+  font-size: clamp(1.5rem, 1.1rem + 1.7vw, 2.25rem);
+  line-height: 1.12; letter-spacing: -.02em; font-weight: 400;
+  border-bottom: 1px solid transparent;
+  transition: border-color 180ms var(--ease-ui), color 180ms var(--ease-ui);
+  padding-bottom: 4px;
+}
+#menu a .no {
+  font-size: var(--t-micro); letter-spacing: .11em; color: var(--text-3);
+  flex: none; width: 2.4rem; font-variant-numeric: tabular-nums;
+}
+#menu a .sub { font-size: var(--t-caption); color: var(--text-3); letter-spacing: 0; }
+@media (hover: hover) and (pointer: fine) {
+  #menu a:hover { border-bottom-color: var(--hairline-up); }
+}
+#menu .close {
+  position: absolute; top: var(--s3); right: var(--u);
+  font: inherit; font-size: var(--t-micro); text-transform: uppercase;
+  letter-spacing: .11em; font-weight: 500; color: var(--text-2);
+  background: none; border: 0; border-bottom: 1px solid var(--hairline);
+  padding: 2px 0; cursor: pointer;
+}
+
 /* ── açığa çıkma: dinlenme hâli görünürdür, hareket yalnızca ekler ───────── */
 
 html.js [data-reveal] { opacity: 0; transform: translateY(14px); }
@@ -505,11 +551,14 @@ html.js [data-reveal].is-in {
 <div id="prog" aria-hidden="true"><i></i></div>
 
 <header id="nav">
-  <a class="mark" href="#top" id="mark"></a>
+  <a class="mark" href="#esik" id="mark"></a>
   <div class="tools">
+    <button id="menubtn" type="button" aria-expanded="false" aria-controls="menu">Menü</button>
     <button id="theme" type="button">Işık</button>
   </div>
 </header>
+
+<div id="menu" hidden role="dialog" aria-modal="true" aria-label="Menü"></div>
 
 <main id="app"></main>
 
@@ -913,6 +962,63 @@ SITE.series.forEach((series, si) => {
 
 app.appendChild(frag);
 K.reveal();
+
+/* ── menü ────────────────────────────────────────────────────────────────── */
+
+const menuEl = document.getElementById('menu');
+const menuBtn = document.getElementById('menubtn');
+let menuRelease = null;
+
+{
+  const inner = K.el('div', 'inner');
+
+  const close = K.el('button', 'close', 'Kapat');
+  close.type = 'button';
+  close.addEventListener('click', closeMenu);
+  menuEl.appendChild(close);
+
+  const rooms = K.el('div', 'grp');
+  rooms.appendChild(K.el('p', 'micro', 'Salonlar'));
+  SITE.series.forEach((s, i) => {
+    const a = K.el('a');
+    a.href = '#salon-' + (i + 1);
+    a.innerHTML = `<span class="no">${ROMAN[i]}</span>` +
+                  `<span>${s.title} <span class="sub">${K.bySeries(s.key).length} eser</span></span>`;
+    rooms.appendChild(a);
+  });
+  inner.appendChild(rooms);
+
+  const rest = K.el('div', 'grp');
+  [['#envanter', 'Envanter'], ['#duvar', 'Duvar yazısı'],
+   ['#bio', 'Biyografi'], ['#kunye', 'İletişim']].forEach(([href, txt]) => {
+    const a = K.el('a');
+    a.href = href;
+    a.innerHTML = `<span class="no"></span><span>${txt}</span>`;
+    rest.appendChild(a);
+  });
+  inner.appendChild(rest);
+
+  menuEl.appendChild(inner);
+  menuEl.addEventListener('click', (e) => { if (e.target.closest('a')) closeMenu(); });
+}
+
+function openMenu() {
+  menuEl.hidden = false;
+  menuBtn.setAttribute('aria-expanded', 'true');
+  document.body.style.overflow = 'hidden';
+  menuRelease = K.trap(menuEl);
+  menuEl.querySelector('a').focus();
+  addEventListener('keydown', menuKey);
+}
+function closeMenu() {
+  menuEl.hidden = true;
+  menuBtn.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+  removeEventListener('keydown', menuKey);
+  if (menuRelease) { menuRelease(); menuRelease = null; }
+}
+function menuKey(e) { if (e.key === 'Escape') closeMenu(); }
+menuBtn.addEventListener('click', () => (menuEl.hidden ? openMenu() : closeMenu()));
 
 /* ── tema ────────────────────────────────────────────────────────────────── */
 

@@ -174,7 +174,15 @@ a.u:focus-visible { text-decoration-color: var(--ink); }
 @media (hover: hover) and (pointer: fine) {
   #ray nav a:hover, #ray nav button:hover { color: var(--ink); }
 }
-@media (max-width: 34.99rem) { #ray nav .hide-s { display: none; } }
+/* Küçük ekranda gizlemek yerine sıkıştır: navigasyon her boyutta erişilebilir. */
+@media (max-width: 34.99rem) {
+  #ray { gap: 10px; padding-inline: 14px; }
+  #ray nav { gap: 12px; }
+  #ray .name { font-size: var(--t-micro); }
+}
+
+/* yapışkan ray başlıkları örtmesin */
+[id] { scroll-margin-top: calc(var(--bar) + 40px); }
 
 /* aktif süzgeç fişi — sitedeki tek "chip" */
 .chip {
@@ -394,9 +402,9 @@ figure.work figcaption { display: table-caption; caption-side: bottom; padding-t
   <a class="name" href="#/" id="rayname"></a>
   <div class="slot" id="slot"></div>
   <nav>
-    <a href="#/" class="hide-s">Kütük</a>
-    <a href="#sanatci" class="hide-s">Sanatçı</a>
-    <a href="#kolofon" class="hide-s">İletişim</a>
+    <button type="button" data-go="kutuk">Kütük</button>
+    <button type="button" data-go="sanatci">Sanatçı</button>
+    <button type="button" data-go="kolofon">İletişim</button>
     <button id="theme" type="button">Gece</button>
   </nav>
 </header>
@@ -1037,6 +1045,28 @@ K.Router
   .on(/^\/$/, viewIndex)
   .on(/^\/kayit\/(.+)$/, viewRecord)
   .start();
+
+/* Ray navigasyonu: bölümler yönlendirici rotası değil, sayfa içi çapa.
+   Kayıt görünümündeysek önce kütüğe dön, çizim bitince kaydır.            */
+function goSection(id) {
+  const jump = () => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: K.reduced() ? 'auto' : 'smooth', block: 'start' });
+  };
+  if (location.hash.replace(/^#/, '') !== '/') {
+    addEventListener('hashchange', function once() {
+      removeEventListener('hashchange', once);
+      requestAnimationFrame(jump);
+    });
+    K.Router.go('/');
+  } else {
+    jump();
+  }
+}
+
+document.querySelectorAll('#ray nav [data-go]').forEach((b) => {
+  b.addEventListener('click', () => goSection(b.dataset.go));
+});
 
 let rt;
 addEventListener('resize', () => {

@@ -199,6 +199,21 @@ a.link {
   #head button:hover { background-size: 100% 1px; color: var(--ink); }
 }
 #head button[aria-pressed="true"] { color: var(--accent); background-size: 100% 1px; }
+#head .toclink {
+  font-family: var(--sans); font-size: var(--fs-label); font-weight: 500;
+  text-transform: uppercase; letter-spacing: .09em;
+  color: var(--ink-3); text-decoration: none; padding: 4px 0;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat; background-size: 0% 1px;
+  background-position: 0 calc(100% - 2px);
+  transition: background-size 240ms var(--ease), color 240ms var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  #head .toclink:hover { background-size: 100% 1px; color: var(--ink); }
+}
+
+/* yapışkan şerit başlıkları örtmesin */
+[id] { scroll-margin-top: calc(var(--header-h) + 32px); }
 
 /* ── dikiş: kitabın sırtı ────────────────────────────────────────────────── */
 
@@ -237,6 +252,45 @@ a.link {
   font-size: var(--fs-lede); font-weight: 200; font-style: italic;
   line-height: 1.34; letter-spacing: -.008em; color: var(--ink-2);
   max-width: 22em;
+}
+
+/* ── içindekiler ─────────────────────────────────────────────────────────
+   Bir kitapta navigasyon menü değildir; yarım kapaktan sonra gelen
+   içindekiler sayfasıdır. Site de öyle davranıyor.                        */
+
+#icindekiler { padding-block: var(--s6) var(--s7); }
+#icindekiler .lbl { grid-column: 2 / 14; margin-bottom: var(--s4); }
+#icindekiler .toc { grid-column: 2 / 14; }
+#icindekiler .trow {
+  display: grid; grid-template-columns: 3.2rem 1fr auto; gap: var(--s3);
+  align-items: baseline;
+  border-top: 1px solid var(--rule);
+  padding-block: var(--s3);
+  color: inherit; text-decoration: none;
+}
+#icindekiler .trow:last-child { border-bottom: 1px solid var(--rule); }
+#icindekiler .trow .rn {
+  font-family: var(--mono); font-size: var(--fs-folio);
+  letter-spacing: .14em; color: var(--ink-4);
+}
+#icindekiler .trow .ti {
+  font-size: var(--fs-h3); font-weight: 400; font-style: italic;
+  line-height: 1.22; letter-spacing: -.012em; color: var(--ink);
+  font-variation-settings: "opsz" 40;
+}
+#icindekiler .trow .ti small {
+  display: block; font-family: var(--sans); font-style: normal;
+  font-size: var(--fs-label); letter-spacing: .02em; color: var(--ink-3);
+  margin-top: 2px;
+}
+#icindekiler .trow .pg {
+  font-family: var(--mono); font-size: var(--fs-tomb); color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid transparent;
+  transition: border-color 240ms var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  #icindekiler .trow:hover .pg { border-bottom-color: var(--rule-ink); }
 }
 
 /* ── fasikül açılışı ─────────────────────────────────────────────────────── */
@@ -496,6 +550,7 @@ sup.ref {
 <header id="head">
   <span class="runner" id="runner"></span>
   <div class="tools">
+    <a class="toclink" href="#icindekiler">İçindekiler</a>
     <button id="theme" type="button">Koyu</button>
   </div>
 </header>
@@ -760,6 +815,37 @@ let folio = 0, noteSeq = 0;
   s.appendChild(K.el('p', 'lede', SITE.artist.tagline));
   s.appendChild(K.el('p', 'mono',
     `FASİKÜL I–${ROMAN[SITE.series.length - 1]} · 2018–2024 · ${SITE.artist.based.toUpperCase()}`));
+  frag.appendChild(s);
+}
+
+/* içindekiler — yarım kapağın hemen ardından, kitaptaki yeri neresiyse orada */
+{
+  const s = K.el('section', 'sheet grid');
+  s.id = 'icindekiler';
+  s.appendChild(K.el('p', 'lbl label', 'İçindekiler'));
+  const toc = K.el('div', 'toc');
+
+  let plate = 0;
+  const entries = SITE.series.map((sr, i) => {
+    const first = plate + 1;
+    plate += K.bySeries(sr.key).length;
+    return { href: '#fasikul-' + (i + 1), rn: ROMAN[i], title: sr.title,
+             sub: `${sr.years} · ${K.bySeries(sr.key).length} klişe`, pg: first };
+  });
+  entries.push({ href: '#palet',    rn: '', title: 'Palet',     sub: 'Kullanılan pigmentler', pg: '—' });
+  entries.push({ href: '#katalog',  rn: '', title: 'Katalog',   sub: `${SITE.works.length} eserin dizini`, pg: '—' });
+  entries.push({ href: '#ozgecmis', rn: '', title: 'Özgeçmiş',  sub: 'Biyografi ve sergiler', pg: '—' });
+  entries.push({ href: '#kolofon',  rn: '', title: 'Kolofon',   sub: 'Künye ve iletişim', pg: '—' });
+
+  entries.forEach((e) => {
+    const a = K.el('a', 'trow');
+    a.href = e.href;
+    a.innerHTML = `<span class="rn">${e.rn}</span>` +
+                  `<span class="ti">${e.title}<small>${e.sub}</small></span>` +
+                  `<span class="pg">${e.pg}</span>`;
+    toc.appendChild(a);
+  });
+  s.appendChild(toc);
   frag.appendChild(s);
 }
 
