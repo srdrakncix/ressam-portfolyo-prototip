@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Üç Prototip — Ressam Portfolyosu</title>
-<meta name="description" content="Tek sanatçı yağlı boya portfolyosu için üç tasarım yönü.">
-<meta name="theme-color" content="#EFEFEC">
+<title>Dört Prototip — Ressam Portfolyosu</title>
+<meta name="description" content="Tek sanatçı yağlı boya portfolyosu için dört tasarım yönü.">
+<meta name="theme-color" content="#F4F1EA">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300&display=swap">
 <style>
 :root {
   color-scheme: light dark;
-  --bg:     #EFEFEC;
-  --card:   #F7F7F5;
+  --bg:     #F4F1EA;
+  --card:   #FBF9F4;
   --ink:    #16171A;
   --ink-2:  #4A4D53;
   --ink-3:  #7E828A;
@@ -154,8 +154,7 @@ footer p { font-size: .8125rem; color: var(--ink-3); max-width: 70ch; line-heigh
     ruh karşılaştırıyorsun.
   </p>
   <p class="how">
-    Üçü de gerçek, gezilebilir sitelerdir; tıkla, kaydır, karanlık/aydınlık
-    temayı dene. Ölçü ve ölçek özellikleri gerçek santimetre verisiyle çalışıyor.
+    Dördü de gerçek, gezilebilir sitelerdir; tıkla, kaydır, temayı değiştir. Ölçü ve ölçek özellikleri gerçek santimetre verisiyle çalışıyor.
   </p>
 </div>
 
@@ -178,7 +177,7 @@ footer p { font-size: .8125rem; color: var(--ink-3); max-width: 70ch; line-heigh
     </a>
 
     <a class="card" href="aski.html">
-      <div class="shot"><img src="assets/64754.webp" alt="Karanlık zeminde ay ışığında bir manzara" loading="lazy"></div>
+      <div class="shot"><img src="assets/64732.webp" alt="Fırtına öncesi bastıran gökyüzü" loading="lazy"></div>
       <div class="body">
         <span class="micro">Prototip 1</span>
         <h2>Askı</h2>
@@ -241,7 +240,7 @@ footer p { font-size: .8125rem; color: var(--ink-3); max-width: 70ch; line-heigh
 (function () {
   var root = document.documentElement, btn = document.getElementById('theme');
   var KEY = 'proto-theme';
-  try { var s = localStorage.getItem(KEY); if (s) root.setAttribute('data-theme', s); } catch (e) {}
+  try { var s = localStorage.getItem(KEY); root.setAttribute('data-theme', s || 'light'); } catch (e) { root.setAttribute('data-theme','light'); }
   function cur() {
     return root.getAttribute('data-theme') ||
       (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
