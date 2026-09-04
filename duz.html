@@ -68,7 +68,9 @@ a:hover { color: var(--accent); }
   color: var(--ink); margin-bottom: 30px; display: block;
 }
 #nav .name b { font-weight: 400; }
-#nav ul { display: block; }
+/* `#nav ul { display:block }` YAZMA: özgüllüğü (1,0,1) olur ve mobildeki
+   `#navlist { display:none }` kuralını (1,0,0) ezer — menü hep açık kalır.
+   ul zaten varsayılan olarak block. */
 #nav li { margin-bottom: 9px; }
 #nav a { font-size: 13px; color: var(--ink); }
 #nav a.on { color: var(--accent); }
