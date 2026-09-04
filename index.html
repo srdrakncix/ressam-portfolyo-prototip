@@ -86,8 +86,11 @@ header.top button:hover { border-bottom-color: var(--rule-s); color: var(--ink);
   max-width: 58ch; color: var(--ink-3); font-size: .9375rem;
 }
 
-.cards { display: grid; gap: clamp(32px, 4vw, 56px); padding-bottom: clamp(56px, 8vw, 112px); }
-@media (min-width: 62rem) { .cards { grid-template-columns: repeat(3, 1fr); } }
+.cards {
+  display: grid; gap: clamp(32px, 4vw, 56px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 264px), 1fr));
+  padding-bottom: clamp(56px, 8vw, 112px);
+}
 
 .card {
   display: flex; flex-direction: column;
@@ -143,9 +146,9 @@ footer p { font-size: .8125rem; color: var(--ink-3); max-width: 70ch; line-heigh
 </div>
 
 <div class="wrap lede">
-  <h1>Aynı eserler, üç ayrı dünya.</h1>
+  <h1>Aynı eserler, dört ayrı dünya.</h1>
   <p>
-    Tek bir ressamın yağlı boya portfolyosu için üç tasarım yönü. Üçü de aynı
+    Tek bir ressamın yağlı boya portfolyosu için dört tasarım yönü. Dördü de aynı
     eser setini, aynı ölçüleri ve aynı metinleri kullanıyor — değişen tek şey
     tasarım dili. Kıyas bu yüzden adil: neyi sevdiğini seçerken içerik değil,
     ruh karşılaştırıyorsun.
@@ -158,6 +161,21 @@ footer p { font-size: .8125rem; color: var(--ink-3); max-width: 70ch; line-heigh
 
 <div class="wrap">
   <div class="cards">
+
+    <a class="card" href="duz.html">
+      <div class="shot"><img src="assets/64729.webp" alt="Sabah ışığında bir manzara" loading="lazy"></div>
+      <div class="body">
+        <span class="micro">Prototip 4</span>
+        <h2>Düz</h2>
+        <p class="world">Süslenmeyi reddeden site. Beyaz zemin, Helvetica, devasa resimler, 11 piksellik künye.</p>
+        <ul>
+          <li>Solda sabit, alt alta düz metin menü — şerit yok, logo yok</li>
+          <li>Saç çizgisi, kart, çerçeve, gölge, hover süsü yok</li>
+          <li>Tek renk vurgu: aktif menü ve eser adı, başka hiçbir yerde</li>
+        </ul>
+        <span class="go">Siteyi aç <span>→</span></span>
+      </div>
+    </a>
 
     <a class="card" href="aski.html">
       <div class="shot"><img src="assets/64754.webp" alt="Karanlık zeminde ay ışığında bir manzara" loading="lazy"></div>
