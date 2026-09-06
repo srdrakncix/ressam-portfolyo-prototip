@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<style>img{max-width:100%}[hidden]{display:none!important}</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cemal Sağlam — Resim</title>
+<meta name="description" content="Cemal Sağlam, İstanbul'da çalışan ressam. Tuval üzerine yağlı boya; alacakaranlık, hava ve manzara üzerine seriler.">
+<meta name="theme-color" content="#111111">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cemal Sağlam — Resim">
+<meta property="og:image" content="https://srdrakncix.github.io/ressam-portfolyo-prototip/assets/68388.webp">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   MEKÂN — ressamın kendi boyası zemin, içerik onun üstünde beyaz panel.
+   Menü düğmesi düz bir ikon değil: üç çubuğun her biri gerçek bir tablodan
+   kesilmiş boya şeridi. Menü satırlarının rengi o sayfanın zemininden alınır.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --ink:    #111111;
+  --muted:  #4a4a4a;
+  --soft:   #6a6a6a;
+  --line:   #dcdcdc;
+  --link:   #1B3FCC;
+  --title:  #7a3418;
+  --panel:  #ffffff;
+
+  --pad:    clamp(24px, 4vw, 56px);
+  --sans:   "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ease:   cubic-bezier(.19, 1, .22, 1);
+
+  --t-h1:    clamp(22px, 1.1rem + 1.1vw, 30px);
+  --t-h2:    17px;
+  --t-body:  15px;
+  --t-cap:   12px;
+  --t-micro: 11px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { background: #17161a; }
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font: 400 var(--t-body)/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  min-height: 100vh;
+}
+
+h1, h2, h3, p, figure, ul, li, dl, dd, dt { margin: 0; }
+ul { padding: 0; list-style: none; }
+img { display: block; max-width: 100%; }
+a { color: var(--ink); text-decoration: none; }
+a:hover { color: var(--link); }
+:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
+
+/* ── zemin: ressamın boyası, sabit, sayfa değişince yumuşak geçiş ────────── */
+
+.bg {
+  position: fixed; inset: 0; z-index: 0;
+  background-size: cover; background-position: center;
+  opacity: 0; transition: opacity 900ms var(--ease);
+  pointer-events: none;
+}
+.bg.on { opacity: 1; }
+.bg::after {                      /* okunurluk için hafif koyultma */
+  content: ""; position: absolute; inset: 0;
+  background: rgba(20,18,22,.18);
+}
+
+/* ── eser-hamburger ──────────────────────────────────────────────────────── */
+
+#menubtn {
+  position: fixed; top: clamp(16px, 2.4vw, 30px); left: clamp(16px, 2.4vw, 30px);
+  z-index: 40;
+  width: 62px; height: 62px; border-radius: 50%;
+  border: 0; padding: 13px 12px; cursor: pointer;
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 2px 18px rgba(0,0,0,.28);
+  display: grid; align-content: center; gap: 6px;
+  transition: background 300ms var(--ease), transform 500ms var(--ease);
+}
+#menubtn:hover { transform: scale(1.04); }
+/* Üç çubuk: her biri gerçek bir tablodan kesilmiş boya şeridi. */
+#menubtn i {
+  display: block; height: 5px; border-radius: 1px;
+  background-size: 420px auto;
+  background-repeat: no-repeat;
+  transition: transform 340ms var(--ease), opacity 220ms var(--ease);
+}
+#menubtn i:nth-child(1) { background-position: 12% 22%; }
+#menubtn i:nth-child(2) { background-position: 52% 55%; }
+#menubtn i:nth-child(3) { background-position: 30% 82%; }
+#menubtn[aria-expanded="true"] { background: rgba(255,255,255,.98); }
+#menubtn[aria-expanded="true"] i:nth-child(1) { transform: translateY(11px) rotate(45deg); }
+#menubtn[aria-expanded="true"] i:nth-child(2) { opacity: 0; }
+#menubtn[aria-expanded="true"] i:nth-child(3) { transform: translateY(-11px) rotate(-45deg); }
+
+/* ── siyah menü paneli ───────────────────────────────────────────────────── */
+
+#menu {
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 35;
+  width: min(300px, 82vw);
+  background: #0b0b0d;
+  padding: 108px clamp(20px, 3vw, 34px) 32px;
+  overflow-y: auto;
+  transform: translateX(-102%);
+  transition: transform 520ms var(--ease);
+}
+#menu.open { transform: none; }
+#menu li { margin-bottom: 2px; }
+#menu a, #menu button.nav {
+  display: block; width: 100%; text-align: left;
+  font: inherit; font-size: clamp(17px, 1rem + .3vw, 21px);
+  background: none; border: 0; padding: 9px 0; cursor: pointer;
+  line-height: 1.2;
+  transition: color 600ms ease-in-out, transform 320ms var(--ease);
+}
+@media (hover: hover) { #menu a:hover, #menu button.nav:hover { transform: translateX(5px); } }
+#menu .sep { height: 20px; }
+#menu .grouplbl {
+  font-size: var(--t-micro); letter-spacing: .14em; text-transform: uppercase;
+  color: #5d5d63; margin: 22px 0 8px;
+}
+#menu .scrim-close { position: absolute; inset: 0; }
+
+#scrim {
+  position: fixed; inset: 0; z-index: 30;
+  background: rgba(8,8,10,.5);
+  opacity: 0; pointer-events: none;
+  transition: opacity 420ms var(--ease);
+}
+#scrim.on { opacity: 1; pointer-events: auto; }
+
+/* dil anahtarı menünün dibinde */
+#lang { display: flex; gap: 10px; align-items: baseline; margin-top: 30px; }
+#lang button {
+  font: inherit; font-size: var(--t-micro); letter-spacing: .06em;
+  background: none; border: 0; padding: 6px 0; cursor: pointer; color: #6f6f76;
+}
+#lang button[aria-current="true"] { color: #fff; }
+#lang .sep2 { color: #35353a; font-size: var(--t-micro); }
+
+/* ── içerik paneli ───────────────────────────────────────────────────────── */
+
+#shell {
+  position: relative; z-index: 10;
+  max-width: 1180px;
+  margin: clamp(90px, 11vh, 150px) auto clamp(60px, 10vh, 130px);
+  padding-inline: clamp(12px, 3vw, 28px);
+}
+#panel {
+  background: var(--panel);
+  padding: clamp(28px, 4.4vw, 68px);
+  box-shadow: 0 18px 60px rgba(0,0,0,.22);
+  min-height: 52vh;
+}
+.wordmark {
+  font-size: clamp(20px, 1rem + 1.2vw, 26px); font-weight: 400;
+  letter-spacing: .01em; color: var(--ink); margin-bottom: 34px; display: inline-block;
+}
+.wordmark b { font-weight: 400; }
+
+/* ── eser bloğu ──────────────────────────────────────────────────────────── */
+
+.work { margin-bottom: clamp(56px, 8vw, 104px); }
+.work:last-child { margin-bottom: 0; }
+.k-fig {
+  position: relative; display: block; overflow: hidden;
+  background: var(--tone); aspect-ratio: var(--ratio);
+  width: min(100%, calc(78vh * var(--ratio)));
+}
+.k-lqip, .k-full { width: 100%; height: 100%; object-fit: cover; display: block; }
+.k-full { position: absolute; inset: 0; opacity: 0; transition: opacity 400ms linear; }
+.k-fig.is-loaded .k-full { opacity: 1; }
+
+.cap { margin-top: 13px; font-size: var(--t-cap); line-height: 1.6; color: var(--muted); }
+.cap .t { color: var(--title); text-transform: uppercase; letter-spacing: .02em; }
+.cap .gloss { color: var(--soft); font-style: italic; }
+.cap .avail { margin-top: 10px; color: var(--soft); }
+
+/* ── metin sayfaları ─────────────────────────────────────────────────────── */
+
+.page { max-width: 34em; }
+.page h1, .lede h1 {
+  font-size: var(--t-h1); font-weight: 400; line-height: 1.25; margin-bottom: 24px;
+}
+.page h2 { font-size: var(--t-h2); font-weight: 400; margin: 40px 0 15px; }
+.page h2:first-of-type { margin-top: 0; }
+.page p { margin-bottom: 15px; }
+.page .formula { font-size: var(--t-h2); line-height: 1.5; margin-bottom: 24px; }
+.lede { max-width: 34em; margin-bottom: 38px; }
+.lede h1 { margin-bottom: 9px; }
+.lede .yr { font-size: var(--t-micro); color: var(--soft); margin-bottom: 11px; }
+.lede p { font-size: var(--t-cap); line-height: 1.65; color: var(--muted); }
+
+.rows { margin-bottom: 8px; }
+.row {
+  display: grid; grid-template-columns: 56px 1fr; gap: 16px;
+  font-size: var(--t-cap); line-height: 1.6; color: var(--muted); padding-bottom: 12px;
+}
+.row dt { color: var(--soft); font-variant-numeric: tabular-nums; }
+.row b { font-weight: 400; color: var(--ink); }
+.row span { display: block; }
+.plainlist li { font-size: var(--t-cap); line-height: 1.7; color: var(--muted); }
+.note {
+  margin-top: 44px; font-size: var(--t-micro); line-height: 1.65; color: var(--soft);
+  border-top: 1px solid var(--line); padding-top: 15px;
+}
+
+/* ── galeriye giriş kartı ────────────────────────────────────────────────── */
+
+.enter {
+  display: block; position: relative; overflow: hidden;
+  margin-top: 34px; color: #fff; text-decoration: none;
+  min-height: clamp(200px, 30vw, 320px);
+  background: #0b0b0d;
+}
+.enter img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .52;
+             transition: transform 900ms var(--ease), opacity 600ms var(--ease); }
+.enter:hover img { transform: scale(1.03); opacity: .62; }
+.enter .txt {
+  position: relative; padding: clamp(24px, 3.4vw, 44px);
+  display: grid; gap: 8px; align-content: end; min-height: inherit;
+}
+.enter .lbl { font-size: var(--t-micro); letter-spacing: .16em; text-transform: uppercase; opacity: .8; }
+.enter .big { font-size: clamp(24px, 1.2rem + 1.6vw, 38px); line-height: 1.15; color: #fff; }
+.enter .sub { font-size: var(--t-cap); opacity: .82; max-width: 34em; }
+
+@media (max-width: 760px) {
+  #menubtn { width: 54px; height: 54px; padding: 11px 10px; gap: 5px; }
+  #menubtn i { height: 4px; }
+  #shell { margin-top: 86px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+
+<div class="bg" id="bgA" aria-hidden="true"></div>
+<div class="bg" id="bgB" aria-hidden="true"></div>
+<div id="scrim"></div>
+
+<button id="menubtn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menü">
+  <i></i><i></i><i></i>
+</button>
+
+<nav id="menu" aria-label="Ana menü"></nav>
+
+<div id="shell">
+  <main id="panel"></main>
+</div>
+
+<noscript>
+  <div style="position:relative;z-index:10;max-width:34em;margin:120px auto;background:#fff;padding:40px;font:400 15px/1.55 Helvetica,Arial,sans-serif">
+    <h1 style="font-size:26px;font-weight:400;margin:0 0 18px">Cemal Sağlam — Resim</h1>
+    <p style="margin:0 0 14px">Tuval üzerine yağlı boya. İstanbul Bomonti’deki atölyede üretiliyor.</p>
+    <p style="margin:0">Eserleri görüntülemek için JavaScript gerekiyor. <a href="mailto:atolye@cemalsaglam.com">atolye@cemalsaglam.com</a></p>
+  </div>
+</noscript>
+
+<script>
+const SITE = {"artist":{"name":"Cemal Sağlam","mark":"CEMAL SAĞLAM","role":"Ressam","based":"İstanbul","born":"1987","birthplace":"İzmir","tagline":"Işığın çekildiği anı boyuyorum.","lede":"Tuval üzerine yağlı boya. Katman katman, sabırla — aceleye gelmeyen bir iş.","email":"atolye@cemalsaglam.com","phone":"+90 212 000 00 00","studio":"Bomonti, Şişli · İstanbul","ig":"@cemalsaglam"},"bio":["Cemal Sağlam 1987’de İzmir’de doğdu. Mimar Sinan Güzel Sanatlar Üniversitesi Resim Bölümü’nü bitirdi, ardından Viyana’da iki yıl klasik boya teknikleri üzerine çalıştı.","Yağlı boyayı yavaşlığı için seçtiğini söylüyor. Bir tuval üzerinde aylarca çalışıyor, katmanları kurumaya bırakıyor, üzerine dönüyor. İşin büyük kısmı beklemekle geçiyor.","2016’dan bu yana İstanbul Bomonti’deki atölyesinde üretiyor. Çalışmaları Türkiye, Avusturya ve Hollanda’da özel koleksiyonlarda yer alıyor."],"cv":[["2024","Alacakaranlık","Kişisel sergi · Ardıç Sanat, İstanbul"],["2023","Hava Raporu","Kişisel sergi · Payas Galeri, İstanbul"],["2023","Uzun Pozlama","Karma sergi · Kule Sanat Alanı, Ankara"],["2022","Yeni Manzara","Karma sergi · Liman Kültür Merkezi, İzmir"],["2021","Sessiz Topografya","Kişisel sergi · Ardıç Sanat, İstanbul"],["2020","Katman","Karma sergi · Batı Kanat, İstanbul"],["2019","Slow Paint","Karma sergi · Atelier Nordbahn, Viyana"],["2018","İlk Katman","Kişisel sergi · Payas Galeri, İzmir"]],"collections":["Ardıç Sanat Koleksiyonu, İstanbul","Batı Kanat Çağdaş Sanat Koleksiyonu, İstanbul","Liman Kültür Merkezi, İzmir","Atelier Nordbahn Koleksiyonu, Viyana","Van Doorn Koleksiyonu, Rotterdam","Özel koleksiyonlar · Türkiye, Avusturya, Hollanda"],"publications":[["2024","Alacakaranlık","Sergi kataloğu, 96 sayfa. Metin: Nihal Erkut. Ardıç Sanat."],["2023","Hava Raporu","Sergi kataloğu, 64 sayfa. Payas Galeri."],["2022","Yavaş Boya","Söyleşi · Sanat Dünyamız, sayı 189, s. 44–51."],["2021","Sessiz Topografya","Sergi kataloğu, 72 sayfa. Metin: Kaan Bilen. Ardıç Sanat."],["2019","Katmanın Sabrı","Deneme · Kunstraum Yıllığı, Viyana. Almanca ve İngilizce."]],"press":[["2024","“Işığın çekildiği yerde durmak”","Ayşe Tunca · Cumhuriyet Kitap, Kasım 2024"],["2024","“Bir tuval kaç kış bekler?”","Deniz Aksoy · Argonotlar, Ekim 2024"],["2023","“Manzara değil, basınç”","Selim Arer · Sanat Dünyamız, Mart 2023"],["2021","“Sessiz Topografya üzerine”","Kaan Bilen · e-skop, Aralık 2021"]],"statement":["Bir tuvale başlarken neye benzeyeceğini bilmiyorum. Yalnızca hangi ışığı aradığımı biliyorum: günün bittiği, henüz gece olmadığı o yarım saat. Onu bulana kadar üstünü örtüyorum.","Katmanlar kurudukça renk değişiyor. Bu yüzden acele edilemiyor. Bir resmin üzerinde ortalama dört ay çalışıyorum ve bu sürenin belki üçte biri fiilen boya sürmekle geçiyor. Kalanı bakmak ve beklemek.","Manzara resmi yaptığımı düşünmüyorum. Manzara bahane; asıl mesele havanın ağırlığı. Bir fırtınanın rengi vardır, yağmurdan sonranın başka bir rengi. Onları tarif etmeye çalışıyorum."],"series":[{"key":"alacakaranlik","title":"Alacakaranlık","years":"2021 — 2024","blurb":"Günün bittiği, gecenin başlamadığı o kısa aralığın resimleri. Renk burada bir şeyi tarif etmiyor; bir şeyin kayboluşunu tutuyor."},{"key":"hava","title":"Hava","years":"2019 — 2023","blurb":"Fırtına, yağmur, basınç. Manzaradan çok atmosferin kendisi. Tuvale önce havayı koyuyorum, yeri sonra."},{"key":"topografya","title":"Sessiz Topografya","years":"2018 — 2024","blurb":"İnsansız araziler. İçinde kimsenin olmadığı ama birinin geçtiği belli olan yerler."},{"key":"sabah","title":"Sabah","years":"2020 — 2024","blurb":"Gümüş ışık serisi. Sabahın ilk yarım saati, henüz renk yerine oturmadan."}],"works":[{"id":"64715","no":"01","slug":"yagmurdan-sonra","title":"Yağmurdan Sonra","series":"hava","note":"Islak toprak kokusunun rengi olsaydı.","status":"satilik","statusLabel":"Müsait","year":2023,"medium":"Tuval üzerine yağlı boya","size":"82 × 108 cm","sizeIn":"32¼ × 42½ in","cw":108,"ch":82,"area":8856,"ratio":1.3182,"px":[1686,1279],"portrait":false,"tone":"#767c4c","lqip":"data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAACQAwCdASoUAA8APu1iqU2ppaQiMAgBMB2JYgAAXGG4r8B3PEtiAP6OvUpf9lZh2yJUCDPPfuUnDj+QPf196wRTcae1+CoT60AAAA==","src":"assets/64715.webp","credit":"George Inness, “After a Summer Shower”, 1894 · Art Institute of Chicago, kamu malı"},{"id":"68388","no":"02","slug":"dag-sirti","title":"Dağ Sırtı","series":"topografya","note":"En büyük tuval. Atölyeye zor sığdı.","status":"satilik","statusLabel":"Müsait","year":2024,"medium":"Tuval üzerine yağlı boya","size":"124 × 184 cm","sizeIn":"48⅞ × 72½ in","cw":184,"ch":124,"area":22816,"ratio":1.5054,"px":[1686,1120],"portrait":false,"tone":"#7c6e4d","lqip":"data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAADQAwCdASoUAA0APu1iqk4ppaQiMAgBMB2JQBOgA9gQ/zFdG8xYngAA+2CWSWlGpStOKMYFZPDVWkayuMDn/MIK2u+hzKa222AAAA==","src":"assets/68388.webp","credit":"George Inness, “Catskill Mountains”, 1870 · Art Institute of Chicago, kamu malı"},{"id":"64772","no":"03","slug":"alacakaranlik","title":"Alacakaranlık","series":"alacakaranlik","note":"Seriye adını veren resim.","status":"koleksiyonda","statusLabel":"Özel koleksiyonda","year":2024,"medium":"Tuval üzerine yağlı boya","size":"42 × 66 cm","sizeIn":"16½ × 26 in","cw":66,"ch":42,"area":2772,"ratio":1.5876,"px":[1686,1062],"portrait":false,"tone":"#686c5e","lqip":"data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAACQAwCdASoUAA0APu1mqk2ppaQiMAgBMB2JZQCo9A6tI1Q7hQoAAPnHq5pJ7A7u2vY2DToGC/X8S6As3au1NaoAAAA=","src":"assets/64772.webp","credit":"George Inness, “Twilight in Italy”, 1874 · Art Institute of Chicago, kamu malı"},{"id":"68784","no":"04","slug":"yaz-sabahi","title":"Yaz Sabahı","series":"sabah","note":"Yeşili yeşille değil, sarıyla açtım.","status":"satilik","statusLabel":"Müsait","year":2024,"medium":"Tuval üzerine yağlı boya","size":"51 × 78 cm","sizeIn":"20⅛ × 30¾ in","cw":78,"ch":51,"area":3978,"ratio":1.5108,"px":[1686,1116],"portrait":false,"tone":"#65693a","lqip":"data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAACQAwCdASoUAA0APu1kqk4ppaQiMAgBMB2JZAC06CIZlnKO7c2AAPx9s4U2FGOOBwj+lnlduDVLtz2fYRX5/q5UJAAAAA==","src":"assets/68784.webp","credit":"George Inness, “Summer in the Catskills”, 1867 · Art Institute of Chicago, kamu malı"},{"id":"65353","no":"05","slug":"firtina","title":"Fırtına","series":"hava","note":"Üstünde iki kış çalıştım. İkisi de aralıkta.","status":"satilik","statusLabel":"Müsait","year":2022,"medium":"Tuval üzerine yağlı boya","size":"64 × 97 cm","sizeIn":"25¼ × 38¼ in","cw":97,"ch":64,"area":6208,"ratio":1.5094,"px":[1686,1117],"portrait":false,"tone":"#656651","lqip":"data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAACQAwCdASoUAA0APu1kq04ppaQiMAgBMB2JYwDCgA8OOmNGgJbwAP2XKN2rgwwn9RU/d34qvF+xGqY/VAL5jmFaJaagAA==","src":"assets/65353.webp","credit":"George Inness, “The Storm”, 1876 · Art Institute of Chicago, kamu malı"},{"id":"94127","no":"06","slug":"gecit","title":"Geçit","series":"hava","note":"Suyu geçen figürler sonradan geldi. Önce hava vardı.","status":"koleksiyonda","statusLabel":"Özel koleksiyonda","year":2021,"medium":"Tuval üzerine yağlı boya","size":"57 × 62 cm","sizeIn":"22½ × 24⅜ in","cw":62,"ch":57,"area":3534,"ratio":1.127,"px":[1686,1496],"portrait":false,"tone":"#726146","lqip":"data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAAAwBQCdASoUABIAPu1kq06ppaQiKA1RMB2JYwC7M4CBSUaD2WR4fztBVv4fWqtIsjv7AAD+0dqR3igYW9lq8RxHNUXK94kZ7KKcaX2xJqdNwVUWT3Oywl6+TOnn2NQZatWQAyV/0JnlotzLgAA=","src":"assets/94127.webp","credit":"George Inness, “Crossing the Ford”, 1848 · Art Institute of Chicago, kamu malı"},{"id":"64729","no":"07","slug":"erken-saat","title":"Erken Saat","series":"sabah","note":"Dikey format bu seride tek. Işık yukarıdan geldiği için.","status":"satilik","statusLabel":"Müsait","year":2023,"medium":"Tuval üzerine yağlı boya","size":"107 × 82 cm","sizeIn":"42⅛ × 32¼ in","cw":82,"ch":107,"area":8774,"ratio":0.7643,"px":[1686,2206],"portrait":true,"tone":"#665d51","lqip":"data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAADwBACdASoUABoAPu1kq06ppaQiKA1RMB2JZQC2yBDeux2EVenmJv811V9gUbQ5EAAA/TPas7TRXXdbvMMMNT9d/gyeg0fZUMEORH20LL1aADCh91dSacLy+DQ4yJrWYAA=","src":"assets/64729.webp","credit":"George Inness, “Early Morning, Tarpon Springs”, 1892 · Art Institute of Chicago, kamu malı"},{"id":"110561","no":"08","slug":"gumus-sabah","title":"Gümüş Sabah","series":"sabah","note":"Beyazı karıştırırken toprak eklemeyi öğrendiğim resim.","status":"satilik","statusLabel":"Müsait","year":2022,"medium":"Tuval üzerine yağlı boya","size":"114 × 90 cm","sizeIn":"44⅞ × 35⅜ in","cw":90,"ch":114,"area":10260,"ratio":0.7788,"px":[1686,2165],"portrait":true,"tone":"#715933","lqip":"data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAABQAwCdASoUABoAPu1oqk+ppiOiKA1RMB2JYwC7ABB0LChRAAD9COHQaQWST7Z1S3kardqbe9LXDWFqCiTuh/8S1F8Rgs82nud6xguAdeDUEz2BMF2/gkWWAAA=","src":"assets/110561.webp","credit":"George Inness, “A Silver Morning”, 1886 · Art Institute of Chicago, kamu malı"},{"id":"30701","no":"09","slug":"eski-degirmen","title":"Eski Değirmen","series":"alacakaranlik","note":"Akşamın ilk yarım saati. Gölge henüz mavi değil.","status":"satilik","statusLabel":"Müsait","year":2023,"medium":"Tuval üzerine yağlı boya","size":"76 × 107 cm","sizeIn":"29⅞ × 42⅛ in","cw":107,"ch":76,"area":8132,"ratio":1.4585,"px":[1686,1156],"portrait":false,"tone":"#615b42","lqip":"data:image/webp;base64,UklGRloAAABXRUJQVlA4IE4AAACQAwCdASoUAA4APu1mqk4ppaOiMAgBMB2JYwCdABjpZUe50uNgAP7Z9qNtW3BWOQbD46gyLhNy/v6zS2579GFPEe2Oc5E/CMxfwV4cAAA=","src":"assets/30701.webp","credit":"George Inness, “The Old Mill”, 1849 · Art Institute of Chicago, kamu malı"},{"id":"27777","no":"10","slug":"kardesler","title":"Kardeşler","series":"sabah","note":"Figür nadiren giriyor. Girdiğinde de sırtını dönüyor.","status":"satilik","statusLabel":"Müsait","year":2020,"medium":"Tuval üzerine yağlı boya","size":"51 × 41 cm","sizeIn":"20⅛ × 16⅛ in","cw":41,"ch":51,"area":2091,"ratio":0.7998,"px":[1686,2108],"portrait":true,"tone":"#5c5c40","lqip":"data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAADQBACdASoUABkAPu1aqE2ppKOiN/VYATAdiWMAtsgJ5GqKVRIFvy2pcAdXeyR4AAD99mVnhDyTd8SkDimBW42J7l7X/hV8XCaPJMuXZU8wHW3ehLfmbKvJEyEybhqLJBwpgga2NYAAAA==","src":"assets/27777.webp","credit":"George Inness, “The Sisters”, 1882 · Art Institute of Chicago, kamu malı"},{"id":"151108","no":"11","slug":"degirmen-goleti","title":"Değirmen Göleti","series":"sabah","note":"Yansımayı önce bitirdim, sonra üstündekini.","status":"satilik","statusLabel":"Müsait","year":2024,"medium":"Tuval üzerine yağlı boya","size":"96 × 76 cm","sizeIn":"37¾ × 29⅞ in","cw":76,"ch":96,"area":7296,"ratio":0.7671,"px":[1686,2198],"portrait":true,"tone":"#634a27","lqip":"data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAACwBACdASoUABoAPu1kp02ppaMiMBgMATAdiUAToAINQMbY3CEyCasGsbGZAnAAAP5w4uddaFpp/FR0RFtCugT9upa5z4sO6crc9C1SeKgvRMFn3jkiDuQ+amEUfCwS1G0gAA==","src":"assets/151108.webp","credit":"George Inness, “The Mill Pond”, 1889 · Art Institute of Chicago, kamu malı"},{"id":"47669","no":"12","slug":"hasat-sonu","title":"Hasat Sonu","series":"alacakaranlik","note":"Tarlada kalan son ışık. Figürler bahane.","status":"satilik","statusLabel":"Müsait","year":2023,"medium":"Tuval üzerine yağlı boya","size":"74 × 97 cm","sizeIn":"29⅛ × 38¼ in","cw":97,"ch":74,"area":7178,"ratio":1.3466,"px":[1686,1252],"portrait":false,"tone":"#544b30","lqip":"data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAABwAwCdASoUAA8APu1iqk2ppaQiMAgBMB2JYwCsABABk5/xuAAA/p7F6dXjdLyAnweA551djU6NqDx9PswpY43vWwAAAA==","src":"assets/47669.webp","credit":"George Inness, “Harvest, Montclair, New Jersey”, 1884 · Art Institute of Chicago, kamu malı"},{"id":"64768","no":"13","slug":"vadi","title":"Vadi","series":"topografya","note":"Uzağı yakından daha az doyurmak. Basit ama zor.","status":"satilik","statusLabel":"Müsait","year":2023,"medium":"Tuval üzerine yağlı boya","size":"61 × 83 cm","sizeIn":"24 × 32⅝ in","cw":83,"ch":61,"area":5063,"ratio":1.5597,"px":[1686,1081],"portrait":false,"tone":"#4e442f","lqip":"data:image/webp;base64,UklGRkgAAABXRUJQVlA4IDwAAABwAwCdASoUAA0APu1iqk2ppaQiMAgBMB2JYwCw7DBhpONptAAA/utGfl+lrfFxKAVbVHiRJ1j+7rAAAAA=","src":"assets/64768.webp","credit":"George Inness, “Delaware Valley”, c. 1865–75 · Art Institute of Chicago, kamu malı"},{"id":"69844","no":"14","slug":"issiz-ciftlik","title":"Issız Çiftlik","series":"topografya","note":"Boş bir ev, boş bir arazi. Yine de biri var gibi.","status":"ayrildi","statusLabel":"Ayrıldı","year":2022,"medium":"Tuval üzerine yağlı boya","size":"78 × 116 cm","sizeIn":"30¾ × 45⅝ in","cw":116,"ch":78,"area":9048,"ratio":1.504,"px":[1686,1121],"portrait":false,"tone":"#3e482d","lqip":"data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAABwAwCdASoUAA0APu1kqU2ppaOiMAgBMB2JQBdgA3P5nqcZG5wA/ukdqhMoOZRPdoEL61SGKZbdjc2dCaii5wSeAAA=","src":"assets/69844.webp","credit":"George Inness, “The Lonely Farm, Nantucket”, 1892 · Art Institute of Chicago, kamu malı"},{"id":"64748","no":"15","slug":"isikli-vadi","title":"Işıklı Vadi","series":"topografya","note":"Uzaktaki ışık yakındakinden daha sıcak olmalı.","status":"satilik","statusLabel":"Müsait","year":2020,"medium":"Tuval üzerine yağlı boya","size":"61 × 92 cm","sizeIn":"24 × 36¼ in","cw":92,"ch":61,"area":5612,"ratio":1.5203,"px":[1686,1109],"portrait":false,"tone":"#47422e","lqip":"data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAACwAwCdASoUAA0APu1kqU2ppaOiMAgBMB2JYwC06CG6w4xtIk6FUAD+oHytshUeg06WiApKCsAneJ43eSASAAAA","src":"assets/64748.webp","credit":"George Inness, “Sunlit Valley”, 1893 · Art Institute of Chicago, kamu malı"},{"id":"64736","no":"16","slug":"guz-ormani","title":"Güz Ormanı","series":"topografya","note":"Sonbaharı kırmızıyla anlatmamaya çalıştığım bir deneme.","status":"satilik","statusLabel":"Müsait","year":2018,"medium":"Tuval üzerine yağlı boya","size":"74 × 114 cm","sizeIn":"29⅛ × 44⅞ in","cw":114,"ch":74,"area":8436,"ratio":1.5525,"px":[1686,1086],"portrait":false,"tone":"#593d22","lqip":"data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAABwAwCdASoUAA0APu1iqU2tJaQiMAgBoB2JYwCw7C0H5gGNvgAA/uvqcbE5u9pkTdhpGvT389LxXBAA","src":"assets/64736.webp","credit":"George Inness, “Autumn Woods”, 1891–94 · Art Institute of Chicago, kamu malı"},{"id":"64740","no":"17","slug":"gunbatimi-etudu","title":"Günbatımı Etüdü","series":"alacakaranlik","note":"Etüt olarak başladı, öyle kaldı. Bazen iyi oluyor.","status":"satilik","statusLabel":"Müsait","year":2022,"medium":"Tuval üzerine yağlı boya","size":"56 × 92 cm","sizeIn":"22 × 36¼ in","cw":92,"ch":56,"area":5152,"ratio":1.6306,"px":[1686,1034],"portrait":false,"tone":"#503816","lqip":"data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAAAwAwCdASoUAAwAPu1iqU2ppaQiMAgBMB2JQBOgBDvpiiOwAP7Y4SeARxOc0lYn/RhXoKAoGRbm42HKiXIIAA==","src":"assets/64740.webp","credit":"George Inness, “Landscape, Sunset”, 1887–89 · Art Institute of Chicago, kamu malı"},{"id":"64732","no":"18","slug":"bastiran","title":"Bastıran","series":"hava","note":"Bir saat içinde bitti. Nadiren öyle olur.","status":"satilik","statusLabel":"Müsait","year":2019,"medium":"Tuval üzerine yağlı boya","size":"77 × 116 cm","sizeIn":"30⅜ × 45⅝ in","cw":116,"ch":77,"area":8932,"ratio":1.5067,"px":[1686,1119],"portrait":false,"tone":"#423b1d","lqip":"data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAAAQAwCdASoUAA0APu1iqU2ppaOiMAgBMB2JQBdgBaDwWcAA/u1ZMSgSUUZiMNZ5dqnX1T4x9U+DKqAA","src":"assets/64732.webp","credit":"George Inness, “Threatening”, 1891 · Art Institute of Chicago, kamu malı"}],"notice":"Bu bir tasarım prototipidir. Sanatçı kimliği ve metinler kurgudur; görseller Art Institute of Chicago açık erişim arşivinden alınmış kamu malı George Inness tablolarıdır. Yayına geçmeden önce tümü gerçek eserlerle değiştirilecektir.","i18n":{"tr":{"ui":{"lang_name":"Türkçe","nav_gallery":"Galeri","nav_about_grp":"Sanatçı","gal_exit":"Galeriden çık","gal_label":"Üç boyutlu","gal_title":"Galeriye gir","gal_sub":"Eserler gerçek ölçekte, göz hizasında, sarmal bir rampa boyunca asılı. İnerken karşı taraftaki turları da görürsün.","gal_soon":"Bu bölüm yapım aşamasında.","nav_recent":"Son Resimler","nav_studio":"Atölye Notu","nav_bio":"Biyografi","nav_exh":"Sergiler","nav_coll":"Koleksiyonlar","nav_pub":"Yayınlar","nav_press":"Basın","nav_contact":"İletişim","menu":"Menü","skip":"İçeriğe geç","site_sub":"Resim","recent_lede":"{n} eser, {s} seri. Yeniden eskiye.","exh_solo":"Kişisel Sergiler","exh_group":"Karma Sergiler","coll_record":"Kayıt","coll_sentence":"{n} eserin {h} tanesi koleksiyonlarda. Kalanlar atölyeden temin edilebilir.","bio_born":"{y}’de {p}’de doğdu.","bio_lives":"{c}’da yaşıyor ve çalışıyor.","home_now":"Sürüyor","home_next":"Sırada","contact_body":"Eser talepleri, atölye ziyareti ve sergi önerileri için yazın. Atölye ziyaretleri randevuyla.","avail_studio":"Atölyeden temin edilebilir, İstanbul","avail_private":"Özel koleksiyonda","avail_gone":"Ayrıldı","medium":"Tuval üzerine yağlı boya","noscript":"Eserleri görüntülemek için JavaScript gerekiyor.","meta_desc":"Cemal Sağlam, İstanbul’da çalışan ressam. Tuval üzerine yağlı boya; alacakaranlık, hava ve manzara üzerine seriler."},"bio":["Cemal Sağlam 1987’de İzmir’de doğdu. Mimar Sinan Güzel Sanatlar Üniversitesi Resim Bölümü’nü bitirdi, ardından Viyana’da iki yıl klasik boya teknikleri üzerine çalıştı.","Yağlı boyayı yavaşlığı için seçtiğini söylüyor. Bir tuval üzerinde aylarca çalışıyor, katmanları kurumaya bırakıyor, üzerine dönüyor. İşin büyük kısmı beklemekle geçiyor.","2016’dan bu yana İstanbul Bomonti’deki atölyesinde üretiyor. Çalışmaları Türkiye, Avusturya ve Hollanda’da özel koleksiyonlarda yer alıyor."],"statement":["Bir tuvale başlarken neye benzeyeceğini bilmiyorum. Yalnızca hangi ışığı aradığımı biliyorum: günün bittiği, henüz gece olmadığı o yarım saat. Onu bulana kadar üstünü örtüyorum.","Katmanlar kurudukça renk değişiyor. Bu yüzden acele edilemiyor. Bir resmin üzerinde ortalama dört ay çalışıyorum ve bu sürenin belki üçte biri fiilen boya sürmekle geçiyor. Kalanı bakmak ve beklemek.","Manzara resmi yaptığımı düşünmüyorum. Manzara bahane; asıl mesele havanın ağırlığı. Bir fırtınanın rengi vardır, yağmurdan sonranın başka bir rengi. Onları tarif etmeye çalışıyorum."],"collections":["Ardıç Sanat Koleksiyonu, İstanbul","Batı Kanat Çağdaş Sanat Koleksiyonu, İstanbul","Liman Kültür Merkezi, İzmir","Atelier Nordbahn Koleksiyonu, Viyana","Van Doorn Koleksiyonu, Rotterdam","Özel koleksiyonlar · Türkiye, Avusturya, Hollanda"],"series":{"alacakaranlik":{"title":"Alacakaranlık","blurb":"Günün bittiği, gecenin başlamadığı o kısa aralığın resimleri. Renk burada bir şeyi tarif etmiyor; bir şeyin kayboluşunu tutuyor."},"hava":{"title":"Hava","blurb":"Fırtına, yağmur, basınç. Manzaradan çok atmosferin kendisi. Tuvale önce havayı koyuyorum, yeri sonra."},"topografya":{"title":"Sessiz Topografya","blurb":"İnsansız araziler. İçinde kimsenin olmadığı ama birinin geçtiği belli olan yerler."},"sabah":{"title":"Sabah","blurb":"Gümüş ışık serisi. Sabahın ilk yarım saati, henüz renk yerine oturmadan."}},"works":{"64715":{"gloss":"","note":"Islak toprak kokusunun rengi olsaydı."},"68388":{"gloss":"","note":"En büyük tuval. Atölyeye zor sığdı."},"64772":{"gloss":"","note":"Seriye adını veren resim."},"68784":{"gloss":"","note":"Yeşili yeşille değil, sarıyla açtım."},"65353":{"gloss":"","note":"Üstünde iki kış çalıştım. İkisi de aralıkta."},"94127":{"gloss":"","note":"Suyu geçen figürler sonradan geldi. Önce hava vardı."},"64729":{"gloss":"","note":"Dikey format bu seride tek. Işık yukarıdan geldiği için."},"110561":{"gloss":"","note":"Beyazı karıştırırken toprak eklemeyi öğrendiğim resim."},"30701":{"gloss":"","note":"Akşamın ilk yarım saati. Gölge henüz mavi değil."},"27777":{"gloss":"","note":"Figür nadiren giriyor. Girdiğinde de sırtını dönüyor."},"151108":{"gloss":"","note":"Yansımayı önce bitirdim, sonra üstündekini."},"47669":{"gloss":"","note":"Tarlada kalan son ışık. Figürler bahane."},"64768":{"gloss":"","note":"Uzağı yakından daha az doyurmak. Basit ama zor."},"69844":{"gloss":"","note":"Boş bir ev, boş bir arazi. Yine de biri var gibi."},"64748":{"gloss":"","note":"Uzaktaki ışık yakındakinden daha sıcak olmalı."},"64736":{"gloss":"","note":"Sonbaharı kırmızıyla anlatmamaya çalıştığım bir deneme."},"64740":{"gloss":"","note":"Etüt olarak başladı, öyle kaldı. Bazen iyi oluyor."},"64732":{"gloss":"","note":"Bir saat içinde bitti. Nadiren öyle olur."}},"cv":[["2024","Alacakaranlık","Kişisel sergi · Ardıç Sanat, İstanbul"],["2023","Hava Raporu","Kişisel sergi · Payas Galeri, İstanbul"],["2023","Uzun Pozlama","Karma sergi · Kule Sanat Alanı, Ankara"],["2022","Yeni Manzara","Karma sergi · Liman Kültür Merkezi, İzmir"],["2021","Sessiz Topografya","Kişisel sergi · Ardıç Sanat, İstanbul"],["2020","Katman","Karma sergi · Batı Kanat, İstanbul"],["2019","Slow Paint","Karma sergi · Atelier Nordbahn, Viyana"],["2018","İlk Katman","Kişisel sergi · Payas Galeri, İzmir"]],"publications":[["2024","Alacakaranlık","Sergi kataloğu, 96 sayfa. Metin: Nihal Erkut. Ardıç Sanat."],["2023","Hava Raporu","Sergi kataloğu, 64 sayfa. Payas Galeri."],["2022","Yavaş Boya","Söyleşi · Sanat Dünyamız, sayı 189, s. 44–51."],["2021","Sessiz Topografya","Sergi kataloğu, 72 sayfa. Metin: Kaan Bilen. Ardıç Sanat."],["2019","Katmanın Sabrı","Deneme · Kunstraum Yıllığı, Viyana. Almanca ve İngilizce."]],"press":[["2024","“Işığın çekildiği yerde durmak”","Ayşe Tunca · Cumhuriyet Kitap, Kasım 2024"],["2024","“Bir tuval kaç kış bekler?”","Deniz Aksoy · Argonotlar, Ekim 2024"],["2023","“Manzara değil, basınç”","Selim Arer · Sanat Dünyamız, Mart 2023"],["2021","“Sessiz Topografya üzerine”","Kaan Bilen · e-skop, Aralık 2021"]],"notice":"Bu bir tasarım prototipidir. Sanatçı kimliği ve metinler kurgudur; görseller Art Institute of Chicago açık erişim arşivinden alınmış kamu malı George Inness tablolarıdır. Yayına geçmeden önce tümü gerçek eserlerle değiştirilecektir."},"en":{"ui":{"lang_name":"English","nav_gallery":"Gallery","nav_about_grp":"The artist","gal_exit":"Leave the gallery","gal_label":"Three-dimensional","gal_title":"Enter the gallery","gal_sub":"The works hang at true scale, at eye level, along a descending spiral ramp. As you descend you also see the turns across the void.","gal_soon":"This section is under construction.","nav_recent":"Recent Paintings","nav_studio":"Studio Note","nav_bio":"Biography","nav_exh":"Exhibitions","nav_coll":"Collections","nav_pub":"Publications","nav_press":"Press","nav_contact":"Contact","menu":"Menu","skip":"Skip to content","site_sub":"Painting","recent_lede":"{n} works, {s} series. Newest first.","exh_solo":"Solo Exhibitions","exh_group":"Group Exhibitions","coll_record":"Record","coll_sentence":"{h} of {n} works are held in collections. The remainder are available from the studio.","bio_born":"Born in {p} in {y}.","bio_lives":"Lives and works in {c}.","home_now":"Current","home_next":"Upcoming","contact_body":"For enquiries about available work, studio visits and exhibition proposals, please write. Studio visits by appointment.","avail_studio":"Available from the studio, Istanbul","avail_private":"Private collection","avail_gone":"No longer available","medium":"Oil on canvas","noscript":"JavaScript is required to view the works.","meta_desc":"Cemal Sağlam is a painter working in Istanbul. Oil on canvas; series on twilight, weather and landscape."},"bio":["Cemal Sağlam was born in İzmir in 1987. He completed the painting department at Mimar Sinan Fine Arts University, then spent two years in Vienna studying classical oil technique.","He says he chose oil for its slowness. He works on a single canvas for months, leaves the layers to dry and returns to them. Most of the work is waiting.","Since 2016 he has painted in his studio in Bomonti, Istanbul. His work is held in private collections in Turkey, Austria and the Netherlands."],"statement":["When I begin a canvas I do not know what it will look like. I only know which light I am after: the half hour when the day has ended and night has not yet come. Until I find it, I keep covering the surface over.","Colour shifts as the layers dry, so it cannot be hurried. I spend about four months on a painting, and perhaps a third of that is actually spent applying paint. The rest is looking and waiting.","I do not think I paint landscapes. The landscape is a pretext; what matters is the weight of the air. A storm has a colour, and the aftermath of rain has another. I am trying to describe those."],"collections":["Ardıç Sanat Collection, Istanbul","Batı Kanat Contemporary Art Collection, Istanbul","Liman Cultural Centre, İzmir","Atelier Nordbahn Collection, Vienna","Van Doorn Collection, Rotterdam","Private collections · Turkey, Austria, the Netherlands"],"series":{"alacakaranlik":{"title":"Twilight","blurb":"Paintings of the short interval when the day has ended and night has not begun. Colour here does not describe something; it holds something disappearing."},"hava":{"title":"Weather","blurb":"Storm, rain, pressure. The atmosphere itself rather than the landscape. I put the air on the canvas first, the ground after."},"topografya":{"title":"Quiet Topography","blurb":"Land without people. Places where no one is present but someone clearly passed."},"sabah":{"title":"Morning","blurb":"The silver light series. The first half hour of morning, before colour settles."}},"works":{"64715":{"gloss":"After the Rain","note":"If the smell of wet earth had a colour."},"68388":{"gloss":"The Ridge","note":"The largest canvas. It barely fit into the studio."},"64772":{"gloss":"Twilight","note":"The painting that gave the series its name."},"68784":{"gloss":"Summer Morning","note":"I opened the green with yellow, not with more green."},"65353":{"gloss":"Storm","note":"I worked on it through two winters. Both times in December."},"94127":{"gloss":"The Ford","note":"The figures crossing the water came later. The weather came first."},"64729":{"gloss":"Early Hour","note":"The only vertical format in this series. Because the light comes from above."},"110561":{"gloss":"Silver Morning","note":"The painting where I learned to add earth when mixing white."},"30701":{"gloss":"The Old Mill","note":"The first half hour of evening. The shadow is not yet blue."},"27777":{"gloss":"Sisters","note":"Figures rarely enter. When they do, they turn their backs."},"151108":{"gloss":"Mill Pond","note":"I finished the reflection first, then what was above it."},"47669":{"gloss":"After the Harvest","note":"The last light left in the field. The figures are a pretext."},"64768":{"gloss":"Valley","note":"Saturating the distance less than the foreground. Simple but difficult."},"69844":{"gloss":"The Lonely Farm","note":"An empty house, an empty field. And yet someone seems to be there."},"64748":{"gloss":"Sunlit Valley","note":"Distant light must be warmer than near light."},"64736":{"gloss":"Autumn Wood","note":"An attempt at not explaining autumn with red."},"64740":{"gloss":"Sunset Study","note":"It began as a study and stayed one. Sometimes that is right."},"64732":{"gloss":"Bearing Down","note":"Finished within an hour. That rarely happens."}},"cv":[["2024","Alacakaranlık","Solo exhibition · Ardıç Sanat, İstanbul"],["2023","Hava Raporu","Solo exhibition · Payas Galeri, İstanbul"],["2023","Uzun Pozlama","Group exhibition · Kule Sanat Alanı, Ankara"],["2022","Yeni Manzara","Group exhibition · Liman Kültür Merkezi, İzmir"],["2021","Sessiz Topografya","Solo exhibition · Ardıç Sanat, İstanbul"],["2020","Katman","Group exhibition · Batı Kanat, İstanbul"],["2019","Slow Paint","Group exhibition · Atelier Nordbahn, Viyana"],["2018","İlk Katman","Solo exhibition · Payas Galeri, İzmir"]],"publications":[["2024","Alacakaranlık","Exhibition catalogue, 96 pp. Text: Nihal Erkut. Ardıç Sanat."],["2023","Hava Raporu","Exhibition catalogue, 64 pp. Payas Galeri."],["2022","Yavaş Boya","Interview · Sanat Dünyamız, issue 189, pp. 44–51."],["2021","Sessiz Topografya","Exhibition catalogue, 72 pp. Text: Kaan Bilen. Ardıç Sanat."],["2019","Katmanın Sabrı","Essay · Kunstraum Yearbook, Vienna. In German and English."]],"press":[["2024","“Işığın çekildiği yerde durmak”","Ayşe Tunca · Cumhuriyet Kitap, November 2024"],["2024","“Bir tuval kaç kış bekler?”","Deniz Aksoy · Argonotlar, October 2024"],["2023","“Manzara değil, basınç”","Selim Arer · Sanat Dünyamız, March 2023"],["2021","“Sessiz Topografya üzerine”","Kaan Bilen · e-skop, December 2021"]],"notice":"This is a design prototype. The artist identity and all texts are fictional; the images are public-domain paintings by George Inness from the Art Institute of Chicago open-access archive. All will be replaced with the artist’s own work before launch."},"fr":{"ui":{"lang_name":"Français","nav_gallery":"Galerie","nav_about_grp":"L’artiste","gal_exit":"Quitter la galerie","gal_label":"En trois dimensions","gal_title":"Entrer dans la galerie","gal_sub":"Les œuvres sont accrochées à l’échelle réelle, à hauteur des yeux, le long d’une rampe en spirale. En descendant, vous voyez aussi les niveaux d’en face.","gal_soon":"Cette section est en cours de construction.","nav_recent":"Peintures récentes","nav_studio":"Note d’atelier","nav_bio":"Biographie","nav_exh":"Expositions","nav_coll":"Collections","nav_pub":"Publications","nav_press":"Presse","nav_contact":"Contact","menu":"Menu","skip":"Aller au contenu","site_sub":"Peinture","recent_lede":"{n} œuvres, {s} séries. De la plus récente à la plus ancienne.","exh_solo":"Expositions personnelles","exh_group":"Expositions collectives","coll_record":"Registre","coll_sentence":"{h} des {n} œuvres se trouvent en collection. Les autres sont disponibles à l’atelier.","bio_born":"Né à {p} en {y}.","bio_lives":"Vit et travaille à {c}.","home_now":"En cours","home_next":"À venir","contact_body":"Pour toute demande concernant les œuvres disponibles, les visites d’atelier et les propositions d’exposition, écrivez-nous. Visites d’atelier sur rendez-vous.","avail_studio":"Disponible à l’atelier, Istanbul","avail_private":"Collection privée","avail_gone":"Non disponible","medium":"Huile sur toile","noscript":"JavaScript est nécessaire pour afficher les œuvres.","meta_desc":"Cemal Sağlam est un peintre établi à Istanbul. Huile sur toile ; séries sur le crépuscule, le temps et le paysage."},"bio":["Cemal Sağlam est né à İzmir en 1987. Il est diplômé du département de peinture de l’université des beaux-arts Mimar Sinan, puis a passé deux ans à Vienne à étudier les techniques classiques de la peinture à l’huile.","Il dit avoir choisi l’huile pour sa lenteur. Il travaille des mois sur une même toile, laisse sécher les couches, y revient. L’essentiel du travail consiste à attendre.","Depuis 2016 il peint dans son atelier de Bomonti, à Istanbul. Ses œuvres figurent dans des collections privées en Turquie, en Autriche et aux Pays-Bas."],"statement":["Quand je commence une toile, je ne sais pas à quoi elle ressemblera. Je sais seulement quelle lumière je cherche : la demi-heure où le jour s’achève et où la nuit n’est pas encore venue. Jusqu’à la trouver, je recouvre.","La couleur change à mesure que les couches sèchent : on ne peut donc pas se presser. Je passe environ quatre mois sur un tableau, et le tiers peut-être de ce temps à poser de la peinture. Le reste, à regarder et à attendre.","Je ne crois pas peindre des paysages. Le paysage est un prétexte ; ce qui compte est le poids de l’air. Un orage a une couleur, l’après-pluie en a une autre. J’essaie de les décrire."],"collections":["Collection Ardıç Sanat, Istanbul","Collection d’art contemporain Batı Kanat, Istanbul","Centre culturel Liman, İzmir","Collection Atelier Nordbahn, Vienne","Collection Van Doorn, Rotterdam","Collections privées · Turquie, Autriche, Pays-Bas"],"series":{"alacakaranlik":{"title":"Crépuscule","blurb":"Peintures de ce bref intervalle où le jour s’achève et où la nuit n’a pas commencé. La couleur n’y décrit rien ; elle retient ce qui disparaît."},"hava":{"title":"Temps","blurb":"Orage, pluie, pression. L’atmosphère elle-même plutôt que le paysage. Je pose l’air sur la toile d’abord, le sol ensuite."},"topografya":{"title":"Topographie silencieuse","blurb":"Des terres sans personne. Des lieux où nul n’est présent mais où quelqu’un est manifestement passé."},"sabah":{"title":"Matin","blurb":"La série de la lumière d’argent. La première demi-heure du matin, avant que la couleur ne se fixe."}},"works":{"64715":{"gloss":"Après la pluie","note":"Si l’odeur de la terre mouillée avait une couleur."},"68388":{"gloss":"La crête","note":"La plus grande toile. Elle tenait à peine dans l’atelier."},"64772":{"gloss":"Crépuscule","note":"Le tableau qui a donné son nom à la série."},"68784":{"gloss":"Matin d’été","note":"J’ai ouvert le vert avec du jaune, non avec du vert."},"65353":{"gloss":"Tempête","note":"J’y ai travaillé deux hivers. Les deux fois en décembre."},"94127":{"gloss":"Le gué","note":"Les figures traversant l’eau sont venues après. Le temps d’abord."},"64729":{"gloss":"Heure matinale","note":"Le seul format vertical de la série. Parce que la lumière vient d’en haut."},"110561":{"gloss":"Matin d’argent","note":"Le tableau où j’ai appris à ajouter de la terre en mélangeant le blanc."},"30701":{"gloss":"Le vieux moulin","note":"La première demi-heure du soir. L’ombre n’est pas encore bleue."},"27777":{"gloss":"Sœurs","note":"Les figures entrent rarement. Quand elles le font, elles tournent le dos."},"151108":{"gloss":"Étang du moulin","note":"J’ai terminé le reflet d’abord, puis ce qui le surplombait."},"47669":{"gloss":"Après la moisson","note":"La dernière lumière dans le champ. Les figures sont un prétexte."},"64768":{"gloss":"Vallée","note":"Saturer le lointain moins que le premier plan. Simple mais difficile."},"69844":{"gloss":"La ferme isolée","note":"Une maison vide, un champ vide. Et pourtant quelqu’un semble là."},"64748":{"gloss":"Vallée ensoleillée","note":"La lumière lointaine doit être plus chaude que la proche."},"64736":{"gloss":"Bois d’automne","note":"Une tentative de ne pas dire l’automne avec du rouge."},"64740":{"gloss":"Étude de couchant","note":"Commencé comme une étude, resté une étude. Parfois c’est juste."},"64732":{"gloss":"L’imminence","note":"Achevé en une heure. Cela arrive rarement."}},"cv":[["2024","Alacakaranlık","Exposition personnelle · Ardıç Sanat, İstanbul"],["2023","Hava Raporu","Exposition personnelle · Payas Galeri, İstanbul"],["2023","Uzun Pozlama","Exposition collective · Kule Sanat Alanı, Ankara"],["2022","Yeni Manzara","Exposition collective · Liman Kültür Merkezi, İzmir"],["2021","Sessiz Topografya","Exposition personnelle · Ardıç Sanat, İstanbul"],["2020","Katman","Exposition collective · Batı Kanat, İstanbul"],["2019","Slow Paint","Exposition collective · Atelier Nordbahn, Viyana"],["2018","İlk Katman","Exposition personnelle · Payas Galeri, İzmir"]],"publications":[["2024","Alacakaranlık","Catalogue d’exposition, 96 p. Texte : Nihal Erkut. Ardıç Sanat."],["2023","Hava Raporu","Catalogue d’exposition, 64 p. Payas Galeri."],["2022","Yavaş Boya","Entretien · Sanat Dünyamız, n° 189, p. 44–51."],["2021","Sessiz Topografya","Catalogue d’exposition, 72 p. Texte : Kaan Bilen. Ardıç Sanat."],["2019","Katmanın Sabrı","Essai · Annuaire du Kunstraum, Vienne. En allemand et en anglais."]],"press":[["2024","“Işığın çekildiği yerde durmak”","Ayşe Tunca · Cumhuriyet Kitap, novembre 2024"],["2024","“Bir tuval kaç kış bekler?”","Deniz Aksoy · Argonotlar, octobre 2024"],["2023","“Manzara değil, basınç”","Selim Arer · Sanat Dünyamız, mars 2023"],["2021","“Sessiz Topografya üzerine”","Kaan Bilen · e-skop, décembre 2021"]],"notice":"Ceci est un prototype de conception. L’identité de l’artiste et les textes sont fictifs ; les images sont des tableaux de George Inness du domaine public, issus des archives en libre accès de l’Art Institute of Chicago. Tout sera remplacé par les œuvres de l’artiste avant la mise en ligne."}},"backdrops":{"acilis":{"src":"assets/zemin/acilis.webp","palette":["#e5e7e2","#e7e9e4","#e4e7e2","#e6e7e3","#d2dfc4","#e8eae4","#e7eae4","#e6e9e4","#efeee4"]},"son":{"src":"assets/zemin/son.webp","palette":["#ebe4db","#e2e0db","#ebe5db","#e8e3db","#ddd6c1","#ddd4c0","#ddd3c1","#e3e1da","#e4e1da"]},"seri":{"src":"assets/zemin/seri.webp","palette":["#e8eae0","#e5e6df","#e9eadf","#e4e5df","#e7e8e0","#e0e2df","#e1e2de","#dee0dc","#e6e7e0"]},"atolye":{"src":"assets/zemin/atolye.webp","palette":["#e0d5c5","#e2daca","#e0d6c7","#e8e0d5","#e2d8c9","#e6ded1","#e0dac9","#e3dacc","#dfd7c5"]},"biyografi":{"src":"assets/zemin/biyografi.webp","palette":["#ded2c2","#d4d4d2","#dfd3c4","#d9d5c8","#d2d3d2","#d0d4ce","#d2d4cc","#e0d3c5","#dfd2c3"]},"sergiler":{"src":"assets/zemin/sergiler.webp","palette":["#e0d4c7","#e1d4c8","#e1d5c7","#e2d6c9","#e1d6c7","#e1d3c7","#e0d2c5","#e2d8ca","#e1d7c9"]},"koleksiyon":{"src":"assets/zemin/koleksiyon.webp","palette":["#ded9c5","#e2ddd4","#ddd8c6","#dfdcd4","#e2dcd1","#dedcd4","#e1ded5","#e2ded5","#dfddd5"]},"yayinlar":{"src":"assets/zemin/yayinlar.webp","palette":["#d7d7c8","#dad9c6","#dad8c6","#d9d8c7","#d8d8c8","#d9d7c7","#d8d7c7","#d6d6c8","#d5d5c9"]},"basin":{"src":"assets/zemin/basin.webp","palette":["#dddfe0","#dedfe0","#e4d9ce","#dde0e0","#dce0e1","#e4d6cd","#dcdfe0","#e4d8cd","#d7d9d8"]},"iletisim":{"src":"assets/zemin/iletisim.webp","palette":["#d8dedf","#d7dfe0","#d8dfe0","#d7dedf","#d9dede","#d6dee1","#dbdfde","#e0e1dd","#d9dfe0"]}}};
+/* ── KIT ───────────────────────────────────────────────────────────────────
+   Üç prototipin de paylaştığı davranış katmanı. Tasarımdan bağımsız:
+   burada hiçbir görsel karar yok, sadece mekanik. Görünüm tamamen CSS'te.
+   ────────────────────────────────────────────────────────────────────────── */
+
+const K = (() => {
+
+  /* ── tercihler ─────────────────────────────────────────────────────────── */
+
+  const reduced = () =>
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch { /* yok say */ } },
+  };
+
+  /* ── tema ──────────────────────────────────────────────────────────────────
+     Üç durum: 'light' | 'dark' | null (sistem). Kök öğeye data-theme basar.   */
+
+  const Theme = {
+    KEY: 'da-theme',
+    init() {
+      const saved = store.get(this.KEY);
+      if (saved === 'light' || saved === 'dark') {
+        document.documentElement.dataset.theme = saved;
+      } else {
+        /* Varsayılan AÇIK: sistemi karanlıkta olan ziyaretçi de krem zemin
+           görsün. Sistem tercihine uymak yerine bilinçli bir karar —
+           düğme yine duruyor, isteyen koyuya geçer. */
+        document.documentElement.dataset.theme = 'light';
+      }
+      return this;
+    },
+    current() {
+      return document.documentElement.dataset.theme ||
+        (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    },
+    toggle() {
+      const next = this.current() === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      store.set(this.KEY, next);
+      document.dispatchEvent(new CustomEvent('themechange', { detail: next }));
+      return next;
+    },
+  };
+
+  /* ── ilerlemeli görsel ─────────────────────────────────────────────────────
+     LQIP (20px bulanık) anında görünür, tam çözünürlük görünür alana
+     girince yüklenir ve decode() bittikten SONRA geçiş yapar — böylece
+     yarım boyanmış kare hiç görünmez.                                        */
+
+  const io = 'IntersectionObserver' in window
+    ? new IntersectionObserver((entries, obs) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          obs.unobserve(e.target);
+          load(e.target);
+        }
+      }, { rootMargin: '600px 0px' })
+    : null;
+
+  function load(fig) {
+    const src = fig.dataset.src;
+    if (!src || fig.dataset.loaded) return;
+    fig.dataset.loaded = '1';
+    const img = new Image();
+    img.decoding = 'async';
+    img.alt = fig.dataset.alt || '';
+    img.src = src;
+    const show = () => {
+      img.className = 'k-full';
+      fig.appendChild(img);
+      requestAnimationFrame(() => fig.classList.add('is-loaded'));
+    };
+    (img.decode ? img.decode().then(show).catch(show) : (img.onload = show));
+  }
+
+  /**
+   * Bir eser için <figure> üretir.
+   * @param {object} w   SITE.works elemanı
+   * @param {object} opt {eager:boolean, sizes:string, cls:string}
+   */
+  function figure(w, opt = {}) {
+    const fig = document.createElement('figure');
+    fig.className = 'k-fig ' + (opt.cls || '');
+    fig.style.setProperty('--ratio', w.ratio);
+    fig.style.setProperty('--tone', w.tone);
+    fig.dataset.src = w.src;
+    fig.dataset.alt = `${w.title}, ${w.year} — ${w.medium}, ${w.size}`;
+
+    const lq = document.createElement('img');
+    lq.className = 'k-lqip';
+    lq.src = w.lqip;
+    lq.alt = '';
+    lq.setAttribute('aria-hidden', 'true');
+    fig.appendChild(lq);
+
+    if (opt.eager) load(fig);
+    else if (io) io.observe(fig);
+    else load(fig);
+
+    return fig;
+  }
+
+  /* ── görünüme girince açığa çıkma ─────────────────────────────────────── */
+
+  const revealIO = 'IntersectionObserver' in window
+    ? new IntersectionObserver((entries, obs) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          obs.unobserve(e.target);
+          e.target.classList.add('is-in');
+        }
+      }, { rootMargin: '0px 0px -12% 0px', threshold: 0.05 })
+    : null;
+
+  function reveal(root = document) {
+    const els = root.querySelectorAll('[data-reveal]:not(.is-in)');
+    if (reduced() || !revealIO) {
+      els.forEach(el => el.classList.add('is-in'));
+      return;
+    }
+    els.forEach(el => revealIO.observe(el));
+  }
+
+  /* ── hash yönlendirici ─────────────────────────────────────────────────────
+     #/                 ana sayfa
+     #/seri/<key>       seri
+     #/eser/<slug>      tek eser
+     #/hakkinda #/iletisim                                                    */
+
+  const Router = {
+    routes: [],
+    on(re, fn) { this.routes.push([re, fn]); return this; },
+    parse() {
+      const h = location.hash.replace(/^#/, '') || '/';
+      for (const [re, fn] of this.routes) {
+        const m = h.match(re);
+        if (m) return { fn, args: m.slice(1), path: h };
+      }
+      return { fn: this.routes[0][1], args: [], path: '/' };
+    },
+    go(path, opts = {}) {
+      if (opts.replace) location.replace('#' + path);
+      else location.hash = path;
+    },
+    start() {
+      const run = () => {
+        const { fn, args, path } = this.parse();
+        fn(...args);
+        this.last = path;
+      };
+      addEventListener('hashchange', run);
+      run();
+      return this;
+    },
+  };
+
+  /* ── odak tuzağı (katman/lightbox için) ────────────────────────────────── */
+
+  const SELECTOR =
+    'a[href],button:not([disabled]),input,select,textarea,[tabindex]:not([tabindex="-1"])';
+
+  function trap(node) {
+    const prev = document.activeElement;
+    const onKey = (e) => {
+      if (e.key !== 'Tab') return;
+      const f = [...node.querySelectorAll(SELECTOR)].filter(el => el.offsetParent !== null);
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    node.addEventListener('keydown', onKey);
+    return () => {
+      node.removeEventListener('keydown', onKey);
+      if (prev && prev.focus) prev.focus();
+    };
+  }
+
+  /* ── küçük yardımcılar ─────────────────────────────────────────────────── */
+
+  const el = (tag, cls, html) => {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (html != null) n.innerHTML = html;
+    return n;
+  };
+
+  const bySeries = (key) => SITE.works.filter(w => w.series === key);
+  const seriesOf = (key) => SITE.series.find(s => s.key === key);
+  const workBySlug = (slug) => SITE.works.find(w => w.slug === slug);
+  const neighbours = (w) => {
+    const list = SITE.works;
+    const i = list.indexOf(w);
+    return {
+      prev: list[(i - 1 + list.length) % list.length],
+      next: list[(i + 1) % list.length],
+    };
+  };
+
+  return { reduced, store, Theme, figure, load, reveal, Router, trap, el,
+           bySeries, seriesOf, workBySlug, neighbours };
+})();
+
+
+const panel = document.getElementById('panel');
+
+/* ── dil ─────────────────────────────────────────────────────────────────── */
+
+const LANGS = ['tr', 'en', 'fr'];
+const LANG_KEY = 'cs-lang';
+
+function initialLang() {
+  try { const s = localStorage.getItem(LANG_KEY); if (LANGS.includes(s)) return s; } catch (e) {}
+  const n = (navigator.language || '').slice(0, 2).toLowerCase();
+  return LANGS.includes(n) ? n : 'tr';
+}
+let LANG = initialLang();
+const L = () => SITE.i18n[LANG] || SITE.i18n.tr;
+const t = (k) => (L().ui && L().ui[k]) || SITE.i18n.tr.ui[k] || k;
+const fill = (s, v) => s.replace(/\{(\w+)\}/g, (_, k) => v[k]);
+const upTR = (s) => s.toLocaleUpperCase('tr-TR');
+
+/* ── zemin: iki katman, çapraz geçiş ─────────────────────────────────────── */
+
+const BG = SITE.backdrops || {};
+const bgEls = [document.getElementById('bgA'), document.getElementById('bgB')];
+let bgTurn = 0, bgKey = null;
+
+function setBackdrop(key) {
+  const b = BG[key] || BG.acilis;
+  if (!b || key === bgKey) return;
+  bgKey = key;
+  const next = bgEls[bgTurn % 2], prev = bgEls[(bgTurn + 1) % 2];
+  next.style.backgroundImage = 'url(' + b.src + ')';
+  next.classList.add('on');
+  prev.classList.remove('on');
+  bgTurn++;
+  paintMenu(b.palette || []);
+  paintBurger(b.src);
+}
+
+/* Menü satırlarının rengi o sayfanın zemininden geliyor — her satır ayrı ton. */
+function paintMenu(pal) {
+  document.querySelectorAll('#menu .nav-item').forEach((el, i) => {
+    el.style.color = pal.length ? pal[i % pal.length] : '#e9e9e4';
+  });
+}
+
+/* Hamburger'in üç çubuğu: gerçek boyadan kesilmiş şeritler. */
+function paintBurger(src) {
+  document.querySelectorAll('#menubtn i').forEach((el) => {
+    el.style.backgroundImage = 'url(' + src + ')';
+  });
+}
+
+/* ── menü ────────────────────────────────────────────────────────────────── */
+
+const menuEl = document.getElementById('menu');
+const btn = document.getElementById('menubtn');
+const scrim = document.getElementById('scrim');
+let trapRelease = null;
+
+function menuModel() {
+  const inGallery = location.hash.replace(/^#/, '').indexOf('/galeri') === 0;
+  const items = [];
+  if (inGallery) items.push({ href: '/', label: t('gal_exit'), accent: true });
+  items.push({ href: '/galeri', label: t('nav_gallery'), accent: true });
+  items.push({ sep: true });
+  items.push({ href: '/son', label: t('nav_recent') });
+  SITE.series.forEach(s => items.push({ href: '/seri/' + s.key, label: L().series[s.key].title, indent: true }));
+  items.push({ group: t('nav_about_grp') });
+  items.push({ href: '/atolye', label: t('nav_studio') });
+  items.push({ href: '/biyografi', label: t('nav_bio') });
+  items.push({ href: '/sergiler', label: t('nav_exh') });
+  items.push({ href: '/koleksiyon', label: t('nav_coll') });
+  items.push({ href: '/yayinlar', label: t('nav_pub') });
+  items.push({ href: '/basin', label: t('nav_press') });
+  items.push({ href: '/iletisim', label: t('nav_contact') });
+  return items;
+}
+
+function buildMenu() {
+  menuEl.innerHTML = '';
+  const ul = K.el('ul');
+  menuModel().forEach((it) => {
+    const li = K.el('li');
+    if (it.sep) { li.className = 'sep'; ul.appendChild(li); return; }
+    if (it.group) { li.className = 'grouplbl'; li.textContent = it.group; ul.appendChild(li); return; }
+    const a = K.el('a', 'nav-item', it.label);
+    a.href = '#' + it.href;
+    a.dataset.route = it.href;
+    if (it.indent) a.style.paddingLeft = '14px';
+    if (it.accent) a.style.fontStyle = 'italic';
+    li.appendChild(a);
+    ul.appendChild(li);
+  });
+
+  const lang = K.el('div');
+  lang.id = 'lang';
+  LANGS.forEach((code, i) => {
+    if (i) lang.appendChild(K.el('span', 'sep2', '·'));
+    const b = K.el('button', null, code.toUpperCase());
+    b.type = 'button';
+    b.setAttribute('aria-current', String(code === LANG));
+    b.setAttribute('aria-label', SITE.i18n[code].ui.lang_name);
+    b.addEventListener('click', () => setLang(code));
+    lang.appendChild(b);
+  });
+  menuEl.appendChild(ul);
+  menuEl.appendChild(lang);
+
+  const b = BG[bgKey] || BG.acilis;
+  paintMenu((b && b.palette) || []);
+}
+
+function openMenu() {
+  buildMenu();
+  menuEl.classList.add('open');
+  scrim.classList.add('on');
+  btn.setAttribute('aria-expanded', 'true');
+  trapRelease = K.trap(menuEl);
+  const first = menuEl.querySelector('a');
+  if (first) first.focus({ preventScroll: true });
+}
+function closeMenu() {
+  menuEl.classList.remove('open');
+  scrim.classList.remove('on');
+  btn.setAttribute('aria-expanded', 'false');
+  if (trapRelease) { trapRelease(); trapRelease = null; }
+}
+btn.addEventListener('click', () => menuEl.classList.contains('open') ? closeMenu() : openMenu());
+scrim.addEventListener('click', closeMenu);
+menuEl.addEventListener('click', (e) => { if (e.target.closest('a')) closeMenu(); });
+addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+
+function setLang(next) {
+  if (!LANGS.includes(next) || next === LANG) return;
+  LANG = next;
+  try { localStorage.setItem(LANG_KEY, next); } catch (e) {}
+  document.documentElement.lang = LANG;
+  const d = document.querySelector('meta[name="description"]');
+  if (d) d.setAttribute('content', t('meta_desc'));
+  buildMenu();
+  const r = K.Router.parse();
+  r.fn(...r.args);
+}
+
+/* ── ortak parçalar ──────────────────────────────────────────────────────── */
+
+function availLine(s) {
+  return s === 'satilik' ? t('avail_studio') : s === 'koleksiyonda' ? t('avail_private') : t('avail_gone');
+}
+
+function workBlock(w, opts = {}) {
+  const d = K.el('figure', 'work');
+  const fig = K.figure(w, opts);
+  setTimeout(() => fig.classList.add('is-loaded'), 1200);
+  d.appendChild(fig);
+  const gloss = (L().works[w.id] || {}).gloss || '';
+  const cap = K.el('figcaption', 'cap');
+  cap.innerHTML =
+    '<div class="t">' + w.title + '</div>' +
+    (gloss ? '<div class="gloss">' + gloss + '</div>' : '') +
+    '<div>' + w.year + '</div><div>' + t('medium') + '</div>' +
+    '<div>' + w.size + ' | ' + w.sizeIn + '</div>';
+  const av = K.el('div', 'avail'); av.textContent = availLine(w.status);
+  cap.appendChild(av); d.appendChild(cap);
+  return d;
+}
+
+function head() {
+  const parts = SITE.artist.name.split(' ');
+  const a = K.el('a', 'wordmark');
+  a.href = '#/';
+  a.innerHTML = parts[0] + ' <b>' + upTR(parts.slice(1).join(' ')) + '</b>';
+  return a;
+}
+
+function shell(title) {
+  panel.innerHTML = '';
+  panel.appendChild(head());
+  document.title = title ? title + ' — ' + SITE.artist.name
+                         : SITE.artist.name + ' — ' + t('site_sub');
+  scrollTo(0, 0);
+}
+
+function rowList(items) {
+  const dl = K.el('dl', 'rows');
+  items.forEach(([a, b, c]) => {
+    const r = K.el('div', 'row');
+    r.appendChild(K.el('dt', null, a));
+    r.appendChild(K.el('dd', null, c ? '<b>' + b + '</b><span>' + c + '</span>' : b));
+    dl.appendChild(r);
+  });
+  return dl;
+}
+const venueOf = (s) => s.split(' · ').slice(1).join(' · ') || s;
+
+/* ── görünümler ──────────────────────────────────────────────────────────── */
+
+function viewHome() {
+  setBackdrop('acilis'); shell(null);
+  const w = SITE.works.find(x => x.slug === 'dag-sirti') || SITE.works[0];
+  panel.appendChild(workBlock(w, { eager: true }));
+
+  const a = K.el('a', 'enter');
+  a.href = '#/galeri';
+  const img = new Image(); img.src = w.src; img.alt = '';
+  const txt = K.el('div', 'txt');
+  txt.innerHTML = '<div class="lbl">' + t('gal_label') + '</div>' +
+                  '<div class="big">' + t('gal_title') + '</div>' +
+                  '<div class="sub">' + t('gal_sub') + '</div>';
+  a.append(img, txt);
+  panel.appendChild(a);
+}
+
+function viewSon() {
+  setBackdrop('son'); shell(t('nav_recent'));
+  const lede = K.el('div', 'lede');
+  lede.appendChild(K.el('h1', null, t('nav_recent')));
+  lede.appendChild(K.el('p', null, fill(t('recent_lede'),
+    { n: SITE.works.length, s: SITE.series.length })));
+  panel.appendChild(lede);
+  [...SITE.works].sort((a, b) => b.year - a.year)
+    .forEach((w, i) => panel.appendChild(workBlock(w, { eager: i < 2 })));
+}
+
+function viewSeri(key) {
+  const base = K.seriesOf(key);
+  if (!base) return viewSon();
+  setBackdrop('seri');
+  const s = L().series[key] || base;
+  shell(s.title);
+  const lede = K.el('div', 'lede');
+  lede.appendChild(K.el('h1', null, s.title));
+  lede.appendChild(K.el('div', 'yr', base.years));
+  lede.appendChild(K.el('p', null, s.blurb));
+  panel.appendChild(lede);
+  K.bySeries(key).forEach((w, i) => panel.appendChild(workBlock(w, { eager: i < 2 })));
+}
+
+function textPage(bd, title, build) {
+  setBackdrop(bd); shell(title);
+  const p = K.el('div', 'page');
+  p.appendChild(K.el('h1', null, title));
+  build(p);
+  panel.appendChild(p);
+}
+
+const viewAtolye = () => textPage('atolye', t('nav_studio'), (p) => {
+  L().statement.forEach(x => p.appendChild(K.el('p', null, x)));
+});
+
+const viewBio = () => textPage('biyografi', t('nav_bio'), (p) => {
+  p.appendChild(K.el('div', 'formula',
+    fill(t('bio_born'), { y: SITE.artist.born, p: SITE.artist.birthplace }) + '<br>' +
+    fill(t('bio_lives'), { c: SITE.artist.based })));
+  L().bio.forEach(x => p.appendChild(K.el('p', null, x)));
+});
+
+const viewSergiler = () => textPage('sergiler', t('nav_exh'), (p) => {
+  const solo = [], group = [];
+  SITE.cv.forEach((r, i) => (r[2].startsWith('Kişisel') ? solo : group).push(L().cv[i]));
+  p.appendChild(K.el('h2', null, t('exh_solo')));
+  p.appendChild(rowList(solo.map(r => [r[0], r[1], venueOf(r[2])])));
+  p.appendChild(K.el('h2', null, t('exh_group')));
+  p.appendChild(rowList(group.map(r => [r[0], r[1], venueOf(r[2])])));
+});
+
+const viewKoleksiyon = () => textPage('koleksiyon', t('nav_coll'), (p) => {
+  const ul = K.el('ul', 'plainlist');
+  L().collections.forEach(c => ul.appendChild(K.el('li', null, c)));
+  p.appendChild(ul);
+  const held = SITE.works.filter(w => w.status !== 'satilik');
+  p.appendChild(K.el('h2', null, t('coll_record')));
+  p.appendChild(K.el('p', null, '<span style="font-size:var(--t-cap);color:var(--muted)">' +
+    fill(t('coll_sentence'), { n: SITE.works.length, h: held.length }) + '</span>'));
+  p.appendChild(rowList(held.map(w => [String(w.year), w.title, w.size + ' · ' + availLine(w.status)])));
+});
+
+const viewYayinlar = () => textPage('yayinlar', t('nav_pub'), (p) => p.appendChild(rowList(L().publications)));
+const viewBasin    = () => textPage('basin',    t('nav_press'), (p) => p.appendChild(rowList(L().press)));
+
+const viewIletisim = () => textPage('iletisim', t('nav_contact'), (p) => {
+  p.appendChild(K.el('p', null, '<a href="mailto:' + SITE.artist.email +
+    '" style="color:var(--link)">' + SITE.artist.email + '</a>'));
+  p.appendChild(K.el('p', null, '<span style="color:var(--muted)">' + SITE.artist.studio + '</span>'));
+  p.appendChild(K.el('p', null, t('contact_body')));
+  p.appendChild(K.el('div', 'note', L().notice + ' ' + SITE.works[0].credit));
+});
+
+/* Galeri henüz kurulmadı — yer tutucu, 3B prototip buraya bağlanacak. */
+const viewGaleri = () => textPage('acilis', t('nav_gallery'), (p) => {
+  p.appendChild(K.el('p', null, t('gal_sub')));
+  p.appendChild(K.el('p', null,
+    '<span style="color:var(--soft);font-size:var(--t-cap)">' + t('gal_soon') + '</span>'));
+});
+
+/* ── yönlendirme ─────────────────────────────────────────────────────────── */
+
+document.documentElement.lang = LANG;
+buildMenu();
+
+K.Router
+  .on(/^\/$/,           viewHome)
+  .on(/^\/galeri$/,     viewGaleri)
+  .on(/^\/son$/,        viewSon)
+  .on(/^\/seri\/(.+)$/, viewSeri)
+  .on(/^\/atolye$/,     viewAtolye)
+  .on(/^\/biyografi$/,  viewBio)
+  .on(/^\/sergiler$/,   viewSergiler)
+  .on(/^\/koleksiyon$/, viewKoleksiyon)
+  .on(/^\/yayinlar$/,   viewYayinlar)
+  .on(/^\/basin$/,      viewBasin)
+  .on(/^\/iletisim$/,   viewIletisim)
+  .start();
+</script>
+
+</body>
+</html>
