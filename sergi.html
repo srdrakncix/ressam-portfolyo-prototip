@@ -70,76 +70,17 @@ body {
   will-change: transform;
 }
 
-/* Duvar alanı: GERÇEK fotoğraflanmış ipek dokuma (ambientCG, CC0),
-   Fransız yeşiline boyandı. SVG deseni değil. */
-#yuzey {
-  position: absolute; top: 0; left: 0; height: 100%;
-  background-image:
-    linear-gradient(to bottom,
-      rgba(255,232,186,.16) 0%, rgba(255,230,180,.06) 15%,
-      transparent 38%, rgba(0,0,0,.26) 76%, rgba(0,0,0,.46) 100%),
-    url("assets/duvar/ipek.webp");
-  background-repeat: no-repeat, repeat;
-  background-size: 100% 100%, 190px 190px;
+/* Duvar segmentleri: her biri gerçek bir salon duvarı görseli.
+   Korniş, panel, boiserie, parke — hepsi görselin içinde. */
+.segment {
+  position: absolute; top: 0;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 }
-
-/* ── boiserie: Fransız oymalı krem kaplama + yaldızlı silmeler ──────────
-   İngiliz koyu meşe lambrisi değil. Versailles / hôtel particulier dili. */
-#kornis {
-  position: absolute; top: 0; left: 0; height: 58px;
-  background-image:
-    linear-gradient(to bottom,
-      rgba(255,255,255,.5) 0 2px,
-      rgba(0,0,0,.10) 2px 5px,
-      transparent 5px 42px,
-      rgba(0,0,0,.22) 42px 46px,
-      transparent 46px),
-    url("assets/duvar/boiserie.webp");
-  background-repeat: no-repeat, repeat-x;
-  background-size: 100% 100%, 420px 100%;
-  box-shadow: 0 5px 14px rgba(0,0,0,.5), inset 0 -1px 0 rgba(201,168,106,.55);
-}
-/* korniş altındaki yaldız fileto */
-#kornis::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px;
-  background: linear-gradient(to bottom, #d8bd85, #9b7c3f);
-  box-shadow: 0 1px 3px rgba(0,0,0,.5);
-}
-
-#lambri {
-  position: absolute; bottom: 0; left: 0;
-  height: calc((var(--duvar-h) - 210) * var(--ppc) * 1px);
-  background-image:
-    /* panel çerçeveleri: Louis XVI düz fileto düzeni */
-    repeating-linear-gradient(90deg,
-      transparent 0 30px,
-      rgba(0,0,0,.16) 30px 32px,
-      rgba(255,255,255,.42) 32px 34px,
-      transparent 34px 232px,
-      rgba(255,255,255,.42) 232px 234px,
-      rgba(0,0,0,.16) 234px 236px,
-      transparent 236px 266px),
-    linear-gradient(to bottom,
-      rgba(255,255,255,.34) 0 3px,
-      rgba(0,0,0,.14) 3px 6px,
-      transparent 6px 84%,
-      rgba(0,0,0,.24) 84% 100%),
-    url("assets/duvar/boiserie.webp");
-  background-repeat: repeat-x, no-repeat, repeat;
-  background-size: 266px 100%, 100% 100%, 420px 210px;
-  box-shadow: inset 0 6px 16px rgba(0,0,0,.28);
-}
-/* boiserie üst kenarındaki yaldız fileto */
-#lambri::before {
-  content: ""; position: absolute; left: 0; right: 0; top: -3px; height: 3px;
-  background: linear-gradient(to bottom, #e0c894, #a07f42);
-  box-shadow: 0 -1px 4px rgba(0,0,0,.45);
-}
-
-/* zeminde soluk yansıma — zemin çizmeden yer duygusu */
+/* okunurluk için çok hafif koyultma ve zemin gölgesi */
 #yansima {
-  position: absolute; bottom: 0; left: 0; height: 34%;
-  background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.34));
+  position: absolute; left: 0; right: 0; bottom: 0; height: 26%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.30));
   pointer-events: none;
 }
 
@@ -230,36 +171,40 @@ body {
 #tabela {
   position: fixed; left: 50%; transform: translateX(-50%);
   top: var(--tabela-y, 74%);
-  width: min(760px, 88vw); text-align: center;
+  width: min(700px, 86vw); text-align: center;
   z-index: 12; pointer-events: none;
+  padding: 15px 28px 17px;
+  background: linear-gradient(158deg, rgba(30,34,27,.90), rgba(17,21,16,.94));
+  border: 1px solid rgba(201,168,106,.44);
+  box-shadow: 0 12px 34px rgba(0,0,0,.5),
+              inset 0 1px 0 rgba(255,240,205,.14),
+              inset 0 0 26px rgba(0,0,0,.35);
   transition: opacity 300ms var(--ease);
 }
 #tabela .ad {
   font-family: var(--serif); font-style: italic;
-  font-size: clamp(17px, 1rem + .55vw, 23px); color: #33291c;
-  text-shadow: 0 1px 0 rgba(255,255,255,.55);
+  font-size: clamp(18px, 1rem + .6vw, 24px); color: #f4e9d2;
 }
 #tabela .cev {
   font-family: var(--serif); font-style: italic; font-size: 13px;
-  color: rgba(51,41,28,.66); margin-top: 1px;
+  color: rgba(244,233,210,.60); margin-top: 1px;
 }
 #tabela .sat {
   font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
-  color: rgba(51,41,28,.58); margin-top: 8px;
+  color: rgba(244,233,210,.55); margin-top: 6px;
 }
 #tabela .soz {
   font-family: var(--serif); font-style: italic;
-  font-size: clamp(13px, .82rem + .2vw, 15px); line-height: 1.6;
-  color: rgba(43,34,22,.86); margin: 12px auto 0; max-width: 48ch;
-  text-shadow: 0 1px 0 rgba(255,255,255,.4);
+  font-size: clamp(13px, .82rem + .2vw, 15px); line-height: 1.55;
+  color: rgba(246,236,216,.86); margin: 8px auto 0; max-width: 52ch;
 }
 #tabela .durum {
   font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
-  color: #8a6a2c; margin-top: 10px; opacity: .95;
+  color: #d0ab68; margin-top: 8px;
 }
 #tabela .bos {
   font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
-  color: rgba(51,41,28,.42);
+  color: rgba(244,233,210,.42);
 }
 
 /* ── üst şerit ───────────────────────────────────────────────────────────── */
@@ -351,7 +296,7 @@ body {
 :focus-visible { outline: 2px solid var(--altin); outline-offset: 4px; }
 
 #ipucu {
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 22px; z-index: 15;
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 10px; z-index: 11;
   font-size: 11px; letter-spacing: .13em; text-transform: uppercase;
   color: rgba(239,232,218,.42); pointer-events: none;
   transition: opacity 600ms var(--ease);
@@ -367,9 +312,6 @@ body {
 
 <div id="oda">
   <div id="duvar">
-    <div id="yuzey"></div>
-    <div id="kornis"></div>
-    <div id="lambri"></div>
     <div id="yansima"></div>
   </div>
 </div>
@@ -624,76 +566,133 @@ const t = (k) => (L().ui && L().ui[k]) || SITE.i18n.tr.ui[k] || k;
 document.documentElement.lang = LANG;
 
 const WORKS = SITE.works;
-const N = WORKS.length;
+/* N artık YERLER.length — yerleşim kurulduktan sonra tanımlanıyor. */
 const $ = (s) => document.querySelector(s);
 
-const oda = $('#oda'), duvar = $('#duvar'), yuzey = $('#yuzey');
-const kornis = $('#kornis'), lambri = $('#lambri'), yansima = $('#yansima');
+const oda = $('#oda'), duvar = $('#duvar');
+const yansima = $('#yansima');
 
-/* ── duvarı kur: gerçek santimetre ölçeğinde ─────────────────────────────── */
+/* ── duvar birimleri ──────────────────────────────────────────────────────
+   Duvar artık gerçek bir Fransız salonu görselinden kuruluyor. Panel
+   koordinatları görselden ÖLÇÜLDÜ (dikey silme tespiti), göz kararı değil.
+   Tablolar panellerin tam içine asılıyor.                                */
 
-const DUVAR_CM = 300;     // duvar yüksekliği
-const HAT_CM   = 152;     // asılma hattı (merkez)
-const BOSLUK   = 78;      // eserler arası boşluk, cm
-const KENAR    = 90;      // baştaki/sondaki boşluk, cm
+const BIRIM = {
+  sade: {                                   // Eiffel panosu YOK — çoğunluk bu
+    src: 'assets/duvar/salon-sade.webp', en: 1408, boy: 1000,
+    yuvalar: [ { cx: 0.3913, g: 0.3826 }, { cx: 0.8642, g: 0.1751 } ],
+  },
+  toile: {                                  // Eiffel panolu — seyrek serpiştirilir
+    src: 'assets/duvar/salon-toile.webp', en: 1776, boy: 1000,
+    yuvalar: [ { cx: 0.4202, g: 0.3033 }, { cx: 0.7949, g: 0.1388 } ],
+  },
+};
+const YUVA_CY = 0.452;        // panellerin dikey merkezi (görselden)
+const DOLULUK = 0.80;         // en geniş eser, büyük paneli bu oranda doldurur
 
-let ppc = 2.2, duvarGenisCm = 0;
+/* Toile birimi her 5'te bir: kule tekrar etmesin. */
+const birimTipi = (i) => (i % 5 === 3) ? 'toile' : 'sade';
+
+/* ── yerleşim: hangi eser hangi segmentin hangi yuvasında ─────────────────
+   Ölçek değişmesine karşı dayanıklı: bütün ölçüler segment genişliğinin
+   oranı olduğu için atama bir kez yapılır, yeniden boyutlamada değişmez. */
 
 function yerlesim() {
-  /* Şato salonu düzeni: büyükler hatta, küçük çiftler üst üste.
-     Ölçek kıyası bozulmasın diye çoğunluk tek hatta kalıyor. */
-  const yerler = [];
-  let x = KENAR;
+  const enGenis = Math.max(...WORKS.map(w => w.cw));
+  const N0 = 1000;                                   // nominal segment yüksekliği
+  const segEn = (t) => BIRIM[t].en * (N0 / BIRIM[t].boy);
+  const yuvaEn = (t, j) => BIRIM[t].yuvalar[j].g * segEn(t);
+  const ppc0 = (yuvaEn('sade', 0) * DOLULUK) / enGenis;
+  const sigar = (w, t, j) => (w.cw * ppc0) <= yuvaEn(t, j) * 0.86;
+
+  const kalan = WORKS.slice();
+  const segmentler = [];
   let i = 0;
-  while (i < N) {
-    const w = WORKS[i], n = WORKS[i + 1];
-    const kucuk = (a) => a && a.ch <= 80 && a.cw <= 95;
-    if (kucuk(w) && kucuk(n)) {                       // çift: üst üste
-      const en = Math.max(w.cw, n.cw);
-      yerler.push({ w, x: x + (en - w.cw) / 2, yc: HAT_CM + w.ch / 2 + 26 });
-      yerler.push({ w: n, x: x + (en - n.cw) / 2, yc: HAT_CM - n.ch / 2 - 26 });
-      x += en + BOSLUK; i += 2;
-    } else {
-      yerler.push({ w, x, yc: HAT_CM });
-      x += w.cw + BOSLUK; i += 1;
-    }
+  while (kalan.length) {
+    const tip = birimTipi(i);
+    const seg = { tip, isler: [] };
+    seg.isler.push({ j: 0, w: kalan.shift() });            // büyük panel
+    const k = kalan.findIndex(w => sigar(w, tip, 1));      // küçük panele sığan ilk eser
+    if (k >= 0) seg.isler.push({ j: 1, w: kalan.splice(k, 1)[0] });
+    segmentler.push(seg);
+    i++;
   }
-  duvarGenisCm = x + KENAR;
-  return yerler;
+  return { segmentler, ppc0 };
 }
 
-const YERLER = yerlesim();
+const { segmentler: SEGMENTLER } = yerlesim();
+
+/* düz liste: künye, klavye ve erişilebilirlik bunun üstünden çalışıyor */
+const YERLER = [];
+SEGMENTLER.forEach((seg, si) => seg.isler.forEach(it =>
+  YERLER.push({ w: it.w, si, j: it.j })));
+const N = YERLER.length;
+
+/* ── ölçülendirme ────────────────────────────────────────────────────────── */
+
+let ppc = 2.2, duvarEnPx = 0;
 
 function boyutla() {
   const vh = innerHeight;
-  ppc = (vh * 0.86) / DUVAR_CM;                       // duvar ekranın %86'sı
-  document.documentElement.style.setProperty('--ppc', ppc);
-  const gp = duvarGenisCm * ppc, yp = DUVAR_CM * ppc;
-  [yuzey, kornis, lambri, yansima].forEach(el => { el.style.width = gp + 'px'; });
-  yuzey.style.height = yp + 'px';
-  duvar.style.height = yp + 'px';
-  duvar.style.top = ((vh - yp) / 2) + 'px';
-  document.querySelectorAll('.eser').forEach((el) => {
-    const d = el._d;
-    el.style.width  = (d.w.cw * ppc) + 'px';
-    el.style.height = (d.w.ch * ppc) + 'px';
-    el.style.left   = (d.x * ppc) + 'px';
-    el.style.bottom = ((d.yc - d.w.ch / 2) * ppc) + 'px';
-  });
-  /* etiketi lambri bandının ortasına yerleştir */
-  const lambriCm = DUVAR_CM - 210;
-  const lambriUstPx = (vh - yp) / 2 + yp - lambriCm * ppc;
-  document.documentElement.style.setProperty(
-    '--tabela-y', (lambriUstPx + lambriCm * ppc * 0.34) + 'px');
+  const duvarBoy = Math.round(vh * 0.94);
+  const enGenis = Math.max(...WORKS.map(w => w.cw));
 
-  /* sayfa yüksekliği = duvarın kaydırılacak mesafesi */
-  document.body.style.height = Math.max(innerHeight * 1.2, gp - innerWidth + innerHeight) + 'px';
+  // segment genişlikleri ve konumları
+  let x = 0;
+  const konum = SEGMENTLER.map((seg) => {
+    const b = BIRIM[seg.tip];
+    const en = b.en * (duvarBoy / b.boy);
+    const k = { x, en };
+    x += en;
+    return k;
+  });
+  duvarEnPx = x;
+
+  const buyukYuvaPx = BIRIM.sade.yuvalar[0].g * (BIRIM.sade.en * (duvarBoy / BIRIM.sade.boy));
+  ppc = (buyukYuvaPx * DOLULUK) / enGenis;
+
+  duvar.style.height = duvarBoy + 'px';
+  duvar.style.top = Math.round((vh - duvarBoy) / 2) + 'px';
+  duvar.style.width = duvarEnPx + 'px';
+
+  // segment zeminleri
+  duvar.querySelectorAll('.segment').forEach((el, i) => {
+    const k = konum[i], b = BIRIM[SEGMENTLER[i].tip];
+    el.style.left = k.x + 'px';
+    el.style.width = k.en + 'px';
+    el.style.height = duvarBoy + 'px';
+    el.style.backgroundImage = 'url(' + b.src + ')';
+  });
+
+  // eserler yuvalarının tam ortasına
+  duvar.querySelectorAll('.eser').forEach((el) => {
+    const d = el._d, k = konum[d.si], b = BIRIM[SEGMENTLER[d.si].tip];
+    const yv = b.yuvalar[d.j];
+    const gp = d.w.cw * ppc, yp = d.w.ch * ppc;
+    el.style.width = gp + 'px';
+    el.style.height = yp + 'px';
+    el.style.left = (k.x + yv.cx * k.en - gp / 2) + 'px';
+    el.style.top = (YUVA_CY * duvarBoy - yp / 2) + 'px';
+  });
+
+  // duvar etiketi: lambri bandının üstünde (görselde alt %14)
+  document.documentElement.style.setProperty(
+    '--tabela-y', Math.round((vh - duvarBoy) / 2 + duvarBoy * 0.775) + 'px');
+
+  document.body.style.height =
+    Math.max(innerHeight * 1.2, duvarEnPx - innerWidth + innerHeight) + 'px';
   kaydir();
 }
 
-/* ── eserleri as ─────────────────────────────────────────────────────────── */
+/* ── segmentleri ve eserleri kur ─────────────────────────────────────────── */
 
-const liste = $('#liste');
+SEGMENTLER.forEach(() => {
+  const d = document.createElement('div');
+  d.className = 'segment';
+  duvar.appendChild(d);
+});
+
+const liste = document.getElementById('liste');
 YERLER.forEach((d, idx) => {
   const w = d.w;
   const b = document.createElement('button');
@@ -702,17 +701,13 @@ YERLER.forEach((d, idx) => {
   b.dataset.i = idx;
   b._d = d;
   b.setAttribute('aria-label', w.title + ', ' + w.year + ', ' + w.size);
-
-  const gloss = (L().works[w.id] || {}).gloss || '';
   b.innerHTML =
     '<div class="isik"></div>' +
-    '<div class="cerceve"><img src="' + w.src + '" alt="" loading="lazy"></div>' +
-    '';
+    '<div class="cerceve"><img src="' + w.src + '" alt="" loading="lazy"></div>';
 
   b.addEventListener('click', () => ac(idx));
-  /* Doğrudan bağla: delegasyon bazı tarayıcı/işaretçi durumlarında kaçırıyor.
-     pointerenter kabarcıklanmaz, tam olarak istediğimiz davranış budur. */
-  b.addEventListener('pointerenter', () => { uzerinde = idx; duvar.classList.add('odak'); tabelaTazele(); });
+  b.addEventListener('pointerenter', () => { uzerinde = idx; duvar.classList.add('odak'); tabelaTazele();
+    document.getElementById('ipucu').style.opacity = '0'; });
   b.addEventListener('pointerleave', () => { uzerinde = -1; duvar.classList.remove('odak'); tabelaTazele(); });
   b.addEventListener('mouseenter',  () => { uzerinde = idx; duvar.classList.add('odak'); tabelaTazele(); });
   b.addEventListener('mouseleave',  () => { uzerinde = -1; duvar.classList.remove('odak'); tabelaTazele(); });
