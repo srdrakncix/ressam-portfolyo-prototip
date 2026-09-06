@@ -3,267 +3,158 @@
 <head>
 <style>img{max-width:100%}[hidden]{display:none!important}</style>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cemal Sağlam — Resim</title>
-<meta name="description" content="Cemal Sağlam, İstanbul'da çalışan ressam. Tuval üzerine yağlı boya; alacakaranlık, hava ve manzara üzerine seriler.">
-<meta name="theme-color" content="#111111">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Cemal Sağlam — Resim">
-<meta property="og:image" content="https://srdrakncix.github.io/ressam-portfolyo-prototip/assets/68388.webp">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Galeri — Cemal Sağlam</title>
+<meta name="theme-color" content="#07070a">
+<meta name="description" content="Sarmal rampa galerisi: eserler gerçek santimetre ölçeğinde, 152 cm göz hizasında.">
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.min.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/"
+  }
+}
+</script>
 
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
-   MEKÂN — ressamın kendi boyası zemin, içerik onun üstünde beyaz panel.
-   Menü düğmesi düz bir ikon değil: üç çubuğun her biri gerçek bir tablodan
-   kesilmiş boya şeridi. Menü satırlarının rengi o sayfanın zemininden alınır.
+   SARMAL RAMPA GALERİSİ
+   Kamera bir helis üzerinde iner ve döner. Eserler dış duvarda, gerçek
+   santimetre ölçeğinde, 152 cm göz hizasında. Zemin ve tavan yok —
+   karanlıkta yalnızca aydınlık duvar bandı.
+
+   Konfor kısıtları ölçülmüş değerlerden: yaw ≤ 16°/s, doğrusal ≤ 1.6 m/s,
+   ani savurmada takip DEĞİL kesme. Roll ve pitch sıfır, istisnasız.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-:root {
-  --ink:    #111111;
-  --muted:  #4a4a4a;
-  --soft:   #6a6a6a;
-  --line:   #dcdcdc;
-  --link:   #1B3FCC;
-  --title:  #7a3418;
-  --panel:  #ffffff;
+:root { --ink: #e8e4dc; }
 
-  --pad:    clamp(24px, 4vw, 56px);
-  --sans:   "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --ease:   cubic-bezier(.19, 1, .22, 1);
+html, body {
+  margin: 0; height: 100%;
+  background: #07070a; color: var(--ink);
+  font: 400 14px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  overscroll-behavior: none;
+}
+* { box-sizing: border-box; }
 
-  --t-h1:    clamp(22px, 1.1rem + 1.1vw, 30px);
-  --t-h2:    17px;
-  --t-body:  15px;
-  --t-cap:   12px;
-  --t-micro: 11px;
+#tuval { position: fixed; inset: 0; z-index: 1; display: block; }
+
+/* ── sabit dinlenme çerçevesi ─────────────────────────────────────────────
+   Kaydırmaya HİÇ tepki vermez. Statik referans çerçevesi mide bulantısını
+   ölçülebilir biçimde azaltıyor; dinamik olanı azaltmıyor.               */
+#dinlenme {
+  position: fixed; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(ellipse 78% 68% at 50% 46%,
+    transparent 0%, transparent 46%, rgba(7,7,10,.55) 78%, rgba(7,7,10,.94) 100%);
+}
+#dinlenme::after {
+  content: ""; position: absolute; inset: 18px;
+  border: 1px solid rgba(232,228,220,.055);
 }
 
-*, *::before, *::after { box-sizing: border-box; }
-
-html { background: #17161a; }
-
-body {
-  margin: 0;
-  color: var(--ink);
-  font: 400 var(--t-body)/1.55 var(--sans);
-  -webkit-font-smoothing: antialiased;
-  overflow-x: clip;
-  min-height: 100vh;
+/* ── kesme perdesi ───────────────────────────────────────────────────────── */
+#perde {
+  position: fixed; inset: 0; z-index: 3; pointer-events: none;
+  background: #07070a; opacity: 0;
 }
 
-h1, h2, h3, p, figure, ul, li, dl, dd, dt { margin: 0; }
-ul { padding: 0; list-style: none; }
-img { display: block; max-width: 100%; }
-a { color: var(--ink); text-decoration: none; }
-a:hover { color: var(--link); }
-:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
+/* ── künye ───────────────────────────────────────────────────────────────── */
+#kunye {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 4;
+  padding: 20px clamp(16px, 3vw, 40px) clamp(20px, 3vw, 34px);
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(7,7,10,.86), transparent);
+  display: grid; gap: 3px;
+  transition: opacity 320ms ease;
+}
+#kunye .t { font-size: clamp(15px, 1rem + .5vw, 20px); color: #fff; }
+#kunye .m { font-size: 12px; color: rgba(232,228,220,.62); }
+#kunye .sc { font-size: 11px; color: rgba(232,228,220,.42); letter-spacing: .06em; }
 
-/* ── zemin: ressamın boyası, sabit, sayfa değişince yumuşak geçiş ────────── */
-
-.bg {
-  position: fixed; inset: 0; z-index: 0;
-  background-size: cover; background-position: center;
-  opacity: 0; transition: opacity 900ms var(--ease);
+/* ── üst şerit: çıkış + kip ──────────────────────────────────────────────── */
+#ust {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 6;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; padding: 14px clamp(14px, 2.4vw, 26px);
   pointer-events: none;
 }
-.bg.on { opacity: 1; }
-.bg::after {                      /* okunurluk için hafif koyultma */
-  content: ""; position: absolute; inset: 0;
-  background: rgba(20,18,22,.18);
+#ust > * { pointer-events: auto; }
+#ust a, #ust button {
+  font: inherit; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: rgba(232,228,220,.66); background: rgba(7,7,10,.5); border: 1px solid rgba(232,228,220,.16);
+  padding: 9px 13px; cursor: pointer; text-decoration: none; border-radius: 2px;
+  transition: color 220ms, border-color 220ms;
 }
+#ust a:hover, #ust button:hover { color: #fff; border-color: rgba(232,228,220,.5); }
+#kipler { display: flex; gap: 6px; }
+#kipler button[aria-pressed="true"] { color: #fff; border-color: rgba(232,228,220,.62); }
 
-/* ── eser-hamburger ──────────────────────────────────────────────────────── */
+/* ── kaydırma parkuru = erişilebilirlik ağacı. Tek gerçek kaynak. ────────── */
+#parkur { position: relative; z-index: 5; pointer-events: none; }
+#parkur > section { height: 100svh; scroll-snap-align: start; }
+@supports not (height: 100svh) { #parkur > section { height: 100vh; } }
+html { scroll-snap-type: y proximity; }
+html[data-kip="sakin"] { scroll-snap-type: y mandatory; }
+html[data-kip="liste"] { scroll-snap-type: none; }
 
-#menubtn {
-  position: fixed; top: clamp(16px, 2.4vw, 30px); left: clamp(16px, 2.4vw, 30px);
-  z-index: 40;
-  width: 62px; height: 62px; border-radius: 50%;
-  border: 0; padding: 13px 12px; cursor: pointer;
-  background: rgba(255,255,255,.92);
-  box-shadow: 0 2px 18px rgba(0,0,0,.28);
-  display: grid; align-content: center; gap: 6px;
-  transition: background 300ms var(--ease), transform 500ms var(--ease);
+.gizli, .odakta {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
 }
-#menubtn:hover { transform: scale(1.04); }
-/* Üç çubuk: her biri gerçek bir tablodan kesilmiş boya şeridi. */
-#menubtn i {
-  display: block; height: 5px; border-radius: 1px;
-  background-size: 420px auto;
-  background-repeat: no-repeat;
-  transition: transform 340ms var(--ease), opacity 220ms var(--ease);
+#parkur > section:focus-within .odakta {
+  position: static; width: auto; height: auto; clip-path: none; white-space: normal;
+  background: #07070a; padding: 12px; pointer-events: auto;
 }
-#menubtn i:nth-child(1) { background-position: 12% 22%; }
-#menubtn i:nth-child(2) { background-position: 52% 55%; }
-#menubtn i:nth-child(3) { background-position: 30% 82%; }
-#menubtn[aria-expanded="true"] { background: rgba(255,255,255,.98); }
-#menubtn[aria-expanded="true"] i:nth-child(1) { transform: translateY(11px) rotate(45deg); }
-#menubtn[aria-expanded="true"] i:nth-child(2) { opacity: 0; }
-#menubtn[aria-expanded="true"] i:nth-child(3) { transform: translateY(-11px) rotate(-45deg); }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 
-/* ── siyah menü paneli ───────────────────────────────────────────────────── */
+/* ── liste kipi: WebGL hiç yüklenmez ─────────────────────────────────────── */
+#liste { position: relative; z-index: 7; background: #07070a; padding: 74px clamp(16px, 4vw, 48px) 90px; }
+#liste .w { max-width: 980px; margin: 0 auto 76px; }
+#liste img { width: 100%; height: auto; }
+#liste .c { margin-top: 12px; font-size: 12px; color: rgba(232,228,220,.62); line-height: 1.6; }
+#liste .c b { color: #fff; font-weight: 400; }
 
-#menu {
-  position: fixed; top: 0; left: 0; bottom: 0; z-index: 35;
-  width: min(300px, 82vw);
-  background: #0b0b0d;
-  padding: 108px clamp(20px, 3vw, 34px) 32px;
-  overflow-y: auto;
-  transform: translateX(-102%);
-  transition: transform 520ms var(--ease);
+#yukleniyor {
+  position: fixed; inset: 0; z-index: 8; display: grid; place-items: center;
+  background: #07070a; font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+  color: rgba(232,228,220,.5); transition: opacity 600ms ease;
 }
-#menu.open { transform: none; }
-#menu li { margin-bottom: 2px; }
-#menu a, #menu button.nav {
-  display: block; width: 100%; text-align: left;
-  font: inherit; font-size: clamp(17px, 1rem + .3vw, 21px);
-  background: none; border: 0; padding: 9px 0; cursor: pointer;
-  line-height: 1.2;
-  transition: color 600ms ease-in-out, transform 320ms var(--ease);
-}
-@media (hover: hover) { #menu a:hover, #menu button.nav:hover { transform: translateX(5px); } }
-#menu .sep { height: 20px; }
-#menu .grouplbl {
-  font-size: var(--t-micro); letter-spacing: .14em; text-transform: uppercase;
-  color: #5d5d63; margin: 22px 0 8px;
-}
-#menu .scrim-close { position: absolute; inset: 0; }
+#yukleniyor.bitti { opacity: 0; pointer-events: none; }
 
-#scrim {
-  position: fixed; inset: 0; z-index: 30;
-  background: rgba(8,8,10,.5);
-  opacity: 0; pointer-events: none;
-  transition: opacity 420ms var(--ease);
-}
-#scrim.on { opacity: 1; pointer-events: auto; }
-
-/* dil anahtarı menünün dibinde */
-#lang { display: flex; gap: 10px; align-items: baseline; margin-top: 30px; }
-#lang button {
-  font: inherit; font-size: var(--t-micro); letter-spacing: .06em;
-  background: none; border: 0; padding: 6px 0; cursor: pointer; color: #6f6f76;
-}
-#lang button[aria-current="true"] { color: #fff; }
-#lang .sep2 { color: #35353a; font-size: var(--t-micro); }
-
-/* ── içerik paneli ───────────────────────────────────────────────────────── */
-
-#shell {
-  position: relative; z-index: 10;
-  max-width: 1180px;
-  margin: clamp(90px, 11vh, 150px) auto clamp(60px, 10vh, 130px);
-  padding-inline: clamp(12px, 3vw, 28px);
-}
-#panel {
-  background: var(--panel);
-  padding: clamp(28px, 4.4vw, 68px);
-  box-shadow: 0 18px 60px rgba(0,0,0,.22);
-  min-height: 52vh;
-}
-.wordmark {
-  font-size: clamp(20px, 1rem + 1.2vw, 26px); font-weight: 400;
-  letter-spacing: .01em; color: var(--ink); margin-bottom: 34px; display: inline-block;
-}
-.wordmark b { font-weight: 400; }
-
-/* ── eser bloğu ──────────────────────────────────────────────────────────── */
-
-.work { margin-bottom: clamp(56px, 8vw, 104px); }
-.work:last-child { margin-bottom: 0; }
-.k-fig {
-  position: relative; display: block; overflow: hidden;
-  background: var(--tone); aspect-ratio: var(--ratio);
-  width: min(100%, calc(78vh * var(--ratio)));
-}
-.k-lqip, .k-full { width: 100%; height: 100%; object-fit: cover; display: block; }
-.k-full { position: absolute; inset: 0; opacity: 0; transition: opacity 400ms linear; }
-.k-fig.is-loaded .k-full { opacity: 1; }
-
-.cap { margin-top: 13px; font-size: var(--t-cap); line-height: 1.6; color: var(--muted); }
-.cap .t { color: var(--title); text-transform: uppercase; letter-spacing: .02em; }
-.cap .gloss { color: var(--soft); font-style: italic; }
-.cap .avail { margin-top: 10px; color: var(--soft); }
-
-/* ── metin sayfaları ─────────────────────────────────────────────────────── */
-
-.page { max-width: 34em; }
-.page h1, .lede h1 {
-  font-size: var(--t-h1); font-weight: 400; line-height: 1.25; margin-bottom: 24px;
-}
-.page h2 { font-size: var(--t-h2); font-weight: 400; margin: 40px 0 15px; }
-.page h2:first-of-type { margin-top: 0; }
-.page p { margin-bottom: 15px; }
-.page .formula { font-size: var(--t-h2); line-height: 1.5; margin-bottom: 24px; }
-.lede { max-width: 34em; margin-bottom: 38px; }
-.lede h1 { margin-bottom: 9px; }
-.lede .yr { font-size: var(--t-micro); color: var(--soft); margin-bottom: 11px; }
-.lede p { font-size: var(--t-cap); line-height: 1.65; color: var(--muted); }
-
-.rows { margin-bottom: 8px; }
-.row {
-  display: grid; grid-template-columns: 56px 1fr; gap: 16px;
-  font-size: var(--t-cap); line-height: 1.6; color: var(--muted); padding-bottom: 12px;
-}
-.row dt { color: var(--soft); font-variant-numeric: tabular-nums; }
-.row b { font-weight: 400; color: var(--ink); }
-.row span { display: block; }
-.plainlist li { font-size: var(--t-cap); line-height: 1.7; color: var(--muted); }
-.note {
-  margin-top: 44px; font-size: var(--t-micro); line-height: 1.65; color: var(--soft);
-  border-top: 1px solid var(--line); padding-top: 15px;
-}
-
-/* ── galeriye giriş kartı ────────────────────────────────────────────────── */
-
-.enter {
-  display: block; position: relative; overflow: hidden;
-  margin-top: 34px; color: #fff; text-decoration: none;
-  min-height: clamp(200px, 30vw, 320px);
-  background: #0b0b0d;
-}
-.enter img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .52;
-             transition: transform 900ms var(--ease), opacity 600ms var(--ease); }
-.enter:hover img { transform: scale(1.03); opacity: .62; }
-.enter .txt {
-  position: relative; padding: clamp(24px, 3.4vw, 44px);
-  display: grid; gap: 8px; align-content: end; min-height: inherit;
-}
-.enter .lbl { font-size: var(--t-micro); letter-spacing: .16em; text-transform: uppercase; opacity: .8; }
-.enter .big { font-size: clamp(24px, 1.2rem + 1.6vw, 38px); line-height: 1.15; color: #fff; }
-.enter .sub { font-size: var(--t-cap); opacity: .82; max-width: 34em; }
-
-@media (max-width: 760px) {
-  #menubtn { width: 54px; height: 54px; padding: 11px 10px; gap: 5px; }
-  #menubtn i { height: 4px; }
-  #shell { margin-top: 86px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition-duration: .01ms !important; }
-}
+@media (prefers-reduced-motion: reduce) { * { transition-duration: .01ms !important; } }
 </style>
 </head>
 <body>
 
 
-<div class="bg" id="bgA" aria-hidden="true"></div>
-<div class="bg" id="bgB" aria-hidden="true"></div>
-<div id="scrim"></div>
+<canvas id="tuval" aria-hidden="true" tabindex="-1"></canvas>
+<div id="dinlenme" aria-hidden="true"></div>
+<div id="perde" aria-hidden="true"></div>
 
-<button id="menubtn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menü">
-  <i></i><i></i><i></i>
-</button>
-
-<nav id="menu" aria-label="Ana menü"></nav>
-
-<div id="shell">
-  <main id="panel"></main>
+<div id="ust">
+  <a href="mekan.html" id="cikis">Galeriden çık</a>
+  <div id="kipler" role="group" aria-label="Görüntüleme kipi">
+    <button type="button" data-kip="tam" aria-pressed="true">Gezinti</button>
+    <button type="button" data-kip="sakin" aria-pressed="false">Sakin</button>
+    <button type="button" data-kip="liste" aria-pressed="false">Liste</button>
+  </div>
 </div>
 
+<div id="kunye" aria-hidden="true">
+  <div class="t"></div><div class="m"></div><div class="sc"></div>
+</div>
+
+<main id="parkur"></main>
+<div id="liste" hidden></div>
+<p id="konum" class="gizli" aria-live="polite" aria-atomic="true"></p>
+<div id="yukleniyor">Galeri hazırlanıyor</div>
+
 <noscript>
-  <div style="position:relative;z-index:10;max-width:34em;margin:120px auto;background:#fff;padding:40px;font:400 15px/1.55 Helvetica,Arial,sans-serif">
-    <h1 style="font-size:26px;font-weight:400;margin:0 0 18px">Cemal Sağlam — Resim</h1>
-    <p style="margin:0 0 14px">Tuval üzerine yağlı boya. İstanbul Bomonti’deki atölyede üretiliyor.</p>
-    <p style="margin:0">Eserleri görüntülemek için JavaScript gerekiyor. <a href="mailto:atolye@cemalsaglam.com">atolye@cemalsaglam.com</a></p>
+  <div style="position:relative;z-index:9;padding:60px 24px;max-width:34em;margin:0 auto">
+    <h1 style="font-weight:400">Galeri</h1>
+    <p>Bu bölüm JavaScript ve WebGL gerektiriyor.
+       <a href="mekan.html" style="color:#8ab4ff">Eserlerin listesine dönün</a>.</p>
   </div>
 </noscript>
 
@@ -475,315 +366,323 @@ const K = (() => {
            bySeries, seriesOf, workBySlug, neighbours };
 })();
 
+window.SITE = SITE;
+</script>
 
-const panel = document.getElementById('panel');
+<script type="module">
+import * as THREE from 'three';
 
-/* ── dil ─────────────────────────────────────────────────────────────────── */
+const SITE = window.SITE;
 
-const LANGS = ['tr', 'en', 'fr'];
-const LANG_KEY = 'cs-lang';
+/* Prototip: tek seri, tek tur. Mimari 4 tura ölçeklenecek şekilde yazıldı. */
+const SERI  = 'topografya';
+const WORKS = SITE.works.filter(w => w.series === SERI);
+const N     = WORKS.length;
 
-function initialLang() {
-  try { const s = localStorage.getItem(LANG_KEY); if (LANGS.includes(s)) return s; } catch (e) {}
-  const n = (navigator.language || '').slice(0, 2).toLowerCase();
-  return LANGS.includes(n) ? n : 'tr';
+/* ── ölçüler (metre) ─────────────────────────────────────────────────────── */
+const R_WALL = 9.0;      // duvar yarıçapı
+const DROP   = 4.2;      // tur başına iniş
+const EYE    = 1.52;     // asılma hattı — göz hizası
+const TURNS  = 1;        // prototipte tek tur
+
+const KONF = {
+  maxYawDeg: 16,         // derece/saniye
+  maxLinear: 1.60,       // m/s
+  cutEsigi:  1.5 / N,
+  cutFade:   140,        // ms
+  sakin:     false,
+};
+
+const el = (id) => document.getElementById(id);
+const canvas = el('tuval'), perde = el('perde'), kunye = el('kunye');
+
+/* ── sahne ───────────────────────────────────────────────────────────────── */
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));   // 3× DPR telefonda 9 kat piksel
+renderer.setSize(innerWidth, innerHeight);
+/* r185: outputColorSpace varsayılanı zaten SRGBColorSpace.
+   sRGBEncoding / outputEncoding KALDIRILDI — yazmak sessizce hiçbir şey yapmaz. */
+renderer.toneMapping = THREE.NoToneMapping;   // tablo dosyadaki değerleriyle görünsün
+renderer.setClearColor(0x07070a, 1);
+
+const scene  = new THREE.Scene();
+scene.fog = null;                              // sönümü kendimiz yapıyoruz, çift olmasın
+const camera = new THREE.PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 120);
+camera.up.set(0, 1, 0);
+
+/* Kamera yarıçapı ekrana göre: dar ekranda geri çekil ki geniş eser kadraja sığsın. */
+function camRadius() {
+  const en = Math.max(...WORKS.map(w => w.cw)) / 100;          // en geniş eser, metre
+  const hfov = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.aspect);
+  // görüş alanı genişliği = 2·d·tan(hfov/2); eser bunun %62'sini kaplasın
+  const gerekli = en / (1.24 * Math.tan(hfov / 2));
+  return THREE.MathUtils.clamp(R_WALL - gerekli, 3.2, R_WALL - 1.4);
 }
-let LANG = initialLang();
-const L = () => SITE.i18n[LANG] || SITE.i18n.tr;
-const t = (k) => (L().ui && L().ui[k]) || SITE.i18n.tr.ui[k] || k;
-const fill = (s, v) => s.replace(/\{(\w+)\}/g, (_, k) => v[k]);
-const upTR = (s) => s.toLocaleUpperCase('tr-TR');
+let R_CAM = camRadius();
 
-/* ── zemin: iki katman, çapraz geçiş ─────────────────────────────────────── */
+/* ── ışık havuzu dokusu: duvarda yalnızca eserin çevresi aydınlık ────────── */
 
-const BG = SITE.backdrops || {};
-const bgEls = [document.getElementById('bgA'), document.getElementById('bgB')];
-let bgTurn = 0, bgKey = null;
+function havuzDokusu() {
+  const s = 256, c = document.createElement('canvas');
+  c.width = c.height = s;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(s/2, s/2, s*0.08, s/2, s/2, s*0.5);
+  grd.addColorStop(0.00, 'rgba(255,246,232,0.50)');
+  grd.addColorStop(0.42, 'rgba(255,244,228,0.22)');
+  grd.addColorStop(0.72, 'rgba(255,242,226,0.06)');
+  grd.addColorStop(1.00, 'rgba(255,240,224,0)');
+  g.fillStyle = grd; g.fillRect(0, 0, s, s);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.NoColorSpace;      // bu bir VERİ dokusu, renk değil
+  t.generateMipmaps = false;
+  t.minFilter = THREE.LinearFilter;
+  return t;
+}
+const POOL = havuzDokusu();
 
-function setBackdrop(key) {
-  const b = BG[key] || BG.acilis;
-  if (!b || key === bgKey) return;
-  bgKey = key;
-  const next = bgEls[bgTurn % 2], prev = bgEls[(bgTurn + 1) % 2];
-  next.style.backgroundImage = 'url(' + b.src + ')';
-  next.classList.add('on');
-  prev.classList.remove('on');
-  bgTurn++;
-  paintMenu(b.palette || []);
-  paintBurger(b.src);
+/* ── eserler ─────────────────────────────────────────────────────────────── */
+
+const loader = new THREE.TextureLoader();
+const maxAniso = renderer.capabilities.getMaxAnisotropy();
+const nesneler = [];
+
+WORKS.forEach((w, i) => {
+  const genis = w.cw / 100, yuksek = w.ch / 100;      // GERÇEK ölçek: cm → metre
+  const theta = (i / N) * Math.PI * 2 * TURNS;
+  const y = EYE - (i / N) * DROP * TURNS;
+
+  const grup = new THREE.Group();
+  grup.position.set(Math.sin(theta) * R_WALL, y, Math.cos(theta) * R_WALL);
+  grup.lookAt(0, y, 0);                               // duvar içeri bakar
+
+  /* ışık havuzu — eserden büyük, yumuşak kenarlı */
+  const havuz = new THREE.Mesh(
+    new THREE.PlaneGeometry(Math.max(genis, yuksek) * 3.4, Math.max(genis, yuksek) * 3.4),
+    new THREE.MeshBasicMaterial({
+      map: POOL, transparent: true, depthWrite: false,
+      blending: THREE.AdditiveBlending, toneMapped: false,
+    })
+  );
+  havuz.position.z = -0.02;
+  grup.add(havuz);
+
+  /* tablo */
+  const mat = new THREE.MeshBasicMaterial({ color: 0x000000, toneMapped: false });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(genis, yuksek), mat);
+  grup.add(mesh);
+
+  loader.load(w.src, (tex) => {
+    tex.colorSpace = THREE.SRGBColorSpace;   // ŞART: varsayılan NoColorSpace, atamazsan yıkanır
+    tex.anisotropy = maxAniso;               // 35°'lik açıdan bakılıyor, aksi hâlde bulanır
+    tex.generateMipmaps = true;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    mat.map = tex;
+    mat.color.setHex(0xffffff);
+    mat.needsUpdate = true;
+    renderer.initTexture(tex);                // ilk karede takılma olmasın
+    yuklendi();
+  });
+
+  scene.add(grup);
+  nesneler.push({ w, grup, mat, havuz, theta, y });
+});
+
+/* ── helis üzerinde konum ────────────────────────────────────────────────── */
+
+function poz(u) {
+  const theta = u * Math.PI * 2 * TURNS;
+  const y = EYE - u * DROP * TURNS;
+  camera.position.set(Math.sin(theta) * R_CAM, y, Math.cos(theta) * R_CAM);
+  camera.lookAt(Math.sin(theta) * R_WALL, y, Math.cos(theta) * R_WALL);  // pitch = 0
+  /* camera.rotation.z = 0 YAZMA: lookAt tam bir quaternion kuruyor; Euler'in z
+     bileşenini ezmek, z'nin meşru olarak π olduğu açılarda görüntüyü baş aşağı
+     çeviriyor. up=(0,1,0) ve yatay bakışta roll zaten sıfır. */
+
+  /* uzaklığa göre sönüm — karşı turlar sönük, yaklaşınca açılır */
+  for (const o of nesneler) {
+    if (!o.mat.map) continue;
+    const d = camera.position.distanceTo(o.grup.position);
+    const k = THREE.MathUtils.clamp(1 - (d - 3.0) / 16.0, 0.055, 1);
+    o.mat.color.setScalar(k);
+    o.havuz.material.opacity = THREE.MathUtils.clamp(k * 1.15, 0.05, 1);
+  }
 }
 
-/* Menü satırlarının rengi o sayfanın zemininden geliyor — her satır ayrı ton. */
-function paintMenu(pal) {
-  document.querySelectorAll('#menu .nav-item').forEach((el, i) => {
-    el.style.color = pal.length ? pal[i % pal.length] : '#e9e9e4';
+/* ── kaydırma parkuru + erişilebilirlik ağacı (aynı elemanlar) ───────────── */
+
+const parkur = el('parkur');
+WORKS.forEach((w, i) => {
+  const s = document.createElement('section');
+  s.id = 'eser-' + String(i + 1).padStart(2, '0');
+  s.dataset.i = i;
+  s.setAttribute('aria-labelledby', 'b' + i);
+  s.innerHTML =
+    '<h2 id="b' + i + '" class="odakta" tabindex="-1">' + w.title + '</h2>' +
+    '<p class="odakta">' + w.year + '. ' + w.medium + '. ' +
+    w.cw + ' santimetre genişlik, ' + w.ch + ' santimetre yükseklik.</p>';
+  parkur.appendChild(s);
+});
+{
+  const s = document.createElement('section');
+  s.id = 'cikis-bolum'; s.dataset.i = N;
+  s.innerHTML = '<h2 class="odakta">Sergi sonu</h2>' +
+                '<p class="odakta"><a href="mekan.html">Portfolyoya dön</a></p>';
+  parkur.appendChild(s);
+}
+
+/* ── hareket: hız sınırlı takip, savurmada kesme ─────────────────────────── */
+
+const S = { u: 0, hedef: 0, kesiyor: false };
+const TWO_PI_T = Math.PI * 2 * TURNS;
+
+function scrollOrani() {
+  const max = document.documentElement.scrollHeight - innerHeight;
+  return max > 0 ? THREE.MathUtils.clamp(scrollY / max, 0, 1) : 0;
+}
+addEventListener('scroll', () => { S.hedef = scrollOrani(); }, { passive: true });
+
+function kes() {
+  if (S.kesiyor) return;
+  S.kesiyor = true;
+  perde.style.transition = 'opacity ' + KONF.cutFade + 'ms linear';
+  perde.style.opacity = '1';
+  setTimeout(() => {
+    S.u = S.hedef;                       // karanlığın ortasında ışınlan
+    poz(S.u); renderer.render(scene, camera);
+    perde.style.opacity = '0';
+    setTimeout(() => { S.kesiyor = false; }, KONF.cutFade + 20);
+  }, KONF.cutFade + 10);
+}
+
+let sonZaman = performance.now();
+function dongu() {
+  const now = performance.now();
+  const dt = Math.min((now - sonZaman) / 1000, 0.05);
+  sonZaman = now;
+
+  if (!S.kesiyor) {
+    const fark = S.hedef - S.u;
+    if (KONF.sakin) {
+      if (Math.abs(fark) > 1e-4) kes();               // sakin kip: yumuşak hareket yok
+    } else if (Math.abs(fark) > KONF.cutEsigi) {
+      kes();                                          // savurma → ışınlan, kovalama
+    } else {
+      const wMax = Math.min(THREE.MathUtils.degToRad(KONF.maxYawDeg), KONF.maxLinear / R_CAM);
+      const adim = (wMax / TWO_PI_T) * dt;
+      S.u += THREE.MathUtils.clamp(fark, -adim, adim); // kritik sönümlü, overshoot YOK
+    }
+    poz(S.u);
+  }
+  renderer.render(scene, camera);
+}
+
+/* ── künye + ekran okuyucu duyurusu: yalnızca DURUNCA ────────────────────── */
+
+const konum = el('konum');
+let sonIndeks = -1, bekle;
+const io = new IntersectionObserver((girisler) => {
+  for (const g of girisler) {
+    if (!g.isIntersecting) continue;
+    const i = +g.target.dataset.i;
+    if (i === sonIndeks) continue;
+    sonIndeks = i;
+    clearTimeout(bekle);
+    bekle = setTimeout(() => {
+      const w = WORKS[i];
+      if (!w) { kunye.style.opacity = '0'; konum.textContent = 'Sergi sonu.'; return; }
+      kunye.style.opacity = '1';
+      kunye.querySelector('.t').textContent = w.title;
+      kunye.querySelector('.m').textContent = w.year + ' · ' + w.medium;
+      kunye.querySelector('.sc').textContent = w.size + '  |  ' + w.sizeIn;
+      konum.textContent = (i + 1) + ' / ' + N + '. ' + w.title + '. ' +
+                          w.year + '. ' + w.size + '.';
+    }, 400);
+  }
+}, { threshold: 0.55 });
+parkur.querySelectorAll('section').forEach(s => io.observe(s));
+
+/* ── kipler ──────────────────────────────────────────────────────────────── */
+
+const mq = matchMedia('(prefers-reduced-motion: reduce)');
+let secilmis = null;
+try { secilmis = localStorage.getItem('galeri-kip'); } catch (e) {}
+
+function kipUygula(kip) {
+  document.documentElement.dataset.kip = kip;
+  KONF.sakin = (kip === 'sakin');
+  canvas.hidden = (kip === 'liste');
+  el('dinlenme').hidden = (kip === 'liste');
+  kunye.hidden = (kip === 'liste');
+  el('parkur').hidden = (kip === 'liste');
+  el('liste').hidden = (kip !== 'liste');
+  document.querySelectorAll('#kipler button').forEach(b =>
+    b.setAttribute('aria-pressed', String(b.dataset.kip === kip)));
+  try { localStorage.setItem('galeri-kip', kip); } catch (e) {}
+  if (kip === 'liste') listeKur();
+}
+document.querySelectorAll('#kipler button').forEach(b =>
+  b.addEventListener('click', () => kipUygula(b.dataset.kip)));
+mq.addEventListener('change', (e) => { if (!secilmis) kipUygula(e.matches ? 'sakin' : 'tam'); });
+
+let listeHazir = false;
+function listeKur() {
+  if (listeHazir) return;
+  listeHazir = true;
+  const box = el('liste');
+  WORKS.forEach((w) => {
+    const d = document.createElement('div');
+    d.className = 'w';
+    d.innerHTML = '<img src="' + w.src + '" alt="' + w.title + ', ' + w.year + '" loading="lazy">' +
+      '<div class="c"><b>' + w.title + '</b><br>' + w.year + '<br>' + w.medium +
+      '<br>' + w.size + ' | ' + w.sizeIn + '</div>';
+    box.appendChild(d);
   });
 }
 
-/* Hamburger'in üç çubuğu: gerçek boyadan kesilmiş şeritler. */
-function paintBurger(src) {
-  document.querySelectorAll('#menubtn i').forEach((el) => {
-    el.style.backgroundImage = 'url(' + src + ')';
-  });
+/* ── klavye ──────────────────────────────────────────────────────────────── */
+
+function git(i) {
+  const s = parkur.querySelector('section[data-i="' + i + '"]');
+  if (s) { s.scrollIntoView({ behavior: 'auto' }); s.querySelector('h2').focus(); }
 }
-
-/* ── menü ────────────────────────────────────────────────────────────────── */
-
-const menuEl = document.getElementById('menu');
-const btn = document.getElementById('menubtn');
-const scrim = document.getElementById('scrim');
-let trapRelease = null;
-
-function menuModel() {
-  const inGallery = location.hash.replace(/^#/, '').indexOf('/galeri') === 0;
-  const items = [];
-  if (inGallery) items.push({ href: '/', label: t('gal_exit'), accent: true });
-  items.push({ href: '/galeri', label: t('nav_gallery'), accent: true });
-  items.push({ sep: true });
-  items.push({ href: '/son', label: t('nav_recent') });
-  SITE.series.forEach(s => items.push({ href: '/seri/' + s.key, label: L().series[s.key].title, indent: true }));
-  items.push({ group: t('nav_about_grp') });
-  items.push({ href: '/atolye', label: t('nav_studio') });
-  items.push({ href: '/biyografi', label: t('nav_bio') });
-  items.push({ href: '/sergiler', label: t('nav_exh') });
-  items.push({ href: '/koleksiyon', label: t('nav_coll') });
-  items.push({ href: '/yayinlar', label: t('nav_pub') });
-  items.push({ href: '/basin', label: t('nav_press') });
-  items.push({ href: '/iletisim', label: t('nav_contact') });
-  return items;
-}
-
-function buildMenu() {
-  menuEl.innerHTML = '';
-  const ul = K.el('ul');
-  menuModel().forEach((it) => {
-    const li = K.el('li');
-    if (it.sep) { li.className = 'sep'; ul.appendChild(li); return; }
-    if (it.group) { li.className = 'grouplbl'; li.textContent = it.group; ul.appendChild(li); return; }
-    const a = K.el('a', 'nav-item', it.label);
-    a.href = '#' + it.href;
-    a.dataset.route = it.href;
-    if (it.indent) a.style.paddingLeft = '14px';
-    if (it.accent) a.style.fontStyle = 'italic';
-    li.appendChild(a);
-    ul.appendChild(li);
-  });
-
-  const lang = K.el('div');
-  lang.id = 'lang';
-  LANGS.forEach((code, i) => {
-    if (i) lang.appendChild(K.el('span', 'sep2', '·'));
-    const b = K.el('button', null, code.toUpperCase());
-    b.type = 'button';
-    b.setAttribute('aria-current', String(code === LANG));
-    b.setAttribute('aria-label', SITE.i18n[code].ui.lang_name);
-    b.addEventListener('click', () => setLang(code));
-    lang.appendChild(b);
-  });
-  menuEl.appendChild(ul);
-  menuEl.appendChild(lang);
-
-  const b = BG[bgKey] || BG.acilis;
-  paintMenu((b && b.palette) || []);
-}
-
-function openMenu() {
-  buildMenu();
-  menuEl.classList.add('open');
-  scrim.classList.add('on');
-  btn.setAttribute('aria-expanded', 'true');
-  trapRelease = K.trap(menuEl);
-  const first = menuEl.querySelector('a');
-  if (first) first.focus({ preventScroll: true });
-}
-function closeMenu() {
-  menuEl.classList.remove('open');
-  scrim.classList.remove('on');
-  btn.setAttribute('aria-expanded', 'false');
-  if (trapRelease) { trapRelease(); trapRelease = null; }
-}
-btn.addEventListener('click', () => menuEl.classList.contains('open') ? closeMenu() : openMenu());
-scrim.addEventListener('click', closeMenu);
-menuEl.addEventListener('click', (e) => { if (e.target.closest('a')) closeMenu(); });
-addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
-
-function setLang(next) {
-  if (!LANGS.includes(next) || next === LANG) return;
-  LANG = next;
-  try { localStorage.setItem(LANG_KEY, next); } catch (e) {}
-  document.documentElement.lang = LANG;
-  const d = document.querySelector('meta[name="description"]');
-  if (d) d.setAttribute('content', t('meta_desc'));
-  buildMenu();
-  const r = K.Router.parse();
-  r.fn(...r.args);
-}
-
-/* ── ortak parçalar ──────────────────────────────────────────────────────── */
-
-function availLine(s) {
-  return s === 'satilik' ? t('avail_studio') : s === 'koleksiyonda' ? t('avail_private') : t('avail_gone');
-}
-
-function workBlock(w, opts = {}) {
-  const d = K.el('figure', 'work');
-  const fig = K.figure(w, opts);
-  setTimeout(() => fig.classList.add('is-loaded'), 1200);
-  d.appendChild(fig);
-  const gloss = (L().works[w.id] || {}).gloss || '';
-  const cap = K.el('figcaption', 'cap');
-  cap.innerHTML =
-    '<div class="t">' + w.title + '</div>' +
-    (gloss ? '<div class="gloss">' + gloss + '</div>' : '') +
-    '<div>' + w.year + '</div><div>' + t('medium') + '</div>' +
-    '<div>' + w.size + ' | ' + w.sizeIn + '</div>';
-  const av = K.el('div', 'avail'); av.textContent = availLine(w.status);
-  cap.appendChild(av); d.appendChild(cap);
-  return d;
-}
-
-function head() {
-  const parts = SITE.artist.name.split(' ');
-  const a = K.el('a', 'wordmark');
-  a.href = '#/';
-  a.innerHTML = parts[0] + ' <b>' + upTR(parts.slice(1).join(' ')) + '</b>';
-  return a;
-}
-
-function shell(title) {
-  panel.innerHTML = '';
-  panel.appendChild(head());
-  document.title = title ? title + ' — ' + SITE.artist.name
-                         : SITE.artist.name + ' — ' + t('site_sub');
-  scrollTo(0, 0);
-}
-
-function rowList(items) {
-  const dl = K.el('dl', 'rows');
-  items.forEach(([a, b, c]) => {
-    const r = K.el('div', 'row');
-    r.appendChild(K.el('dt', null, a));
-    r.appendChild(K.el('dd', null, c ? '<b>' + b + '</b><span>' + c + '</span>' : b));
-    dl.appendChild(r);
-  });
-  return dl;
-}
-const venueOf = (s) => s.split(' · ').slice(1).join(' · ') || s;
-
-/* ── görünümler ──────────────────────────────────────────────────────────── */
-
-function viewHome() {
-  setBackdrop('acilis'); shell(null);
-  const w = SITE.works.find(x => x.slug === 'dag-sirti') || SITE.works[0];
-  panel.appendChild(workBlock(w, { eager: true }));
-
-  const a = K.el('a', 'enter');
-  a.href = '#/galeri';
-  const img = new Image(); img.src = w.src; img.alt = '';
-  const txt = K.el('div', 'txt');
-  txt.innerHTML = '<div class="lbl">' + t('gal_label') + '</div>' +
-                  '<div class="big">' + t('gal_title') + '</div>' +
-                  '<div class="sub">' + t('gal_sub') + '</div>';
-  a.append(img, txt);
-  panel.appendChild(a);
-}
-
-function viewSon() {
-  setBackdrop('son'); shell(t('nav_recent'));
-  const lede = K.el('div', 'lede');
-  lede.appendChild(K.el('h1', null, t('nav_recent')));
-  lede.appendChild(K.el('p', null, fill(t('recent_lede'),
-    { n: SITE.works.length, s: SITE.series.length })));
-  panel.appendChild(lede);
-  [...SITE.works].sort((a, b) => b.year - a.year)
-    .forEach((w, i) => panel.appendChild(workBlock(w, { eager: i < 2 })));
-}
-
-function viewSeri(key) {
-  const base = K.seriesOf(key);
-  if (!base) return viewSon();
-  setBackdrop('seri');
-  const s = L().series[key] || base;
-  shell(s.title);
-  const lede = K.el('div', 'lede');
-  lede.appendChild(K.el('h1', null, s.title));
-  lede.appendChild(K.el('div', 'yr', base.years));
-  lede.appendChild(K.el('p', null, s.blurb));
-  panel.appendChild(lede);
-  K.bySeries(key).forEach((w, i) => panel.appendChild(workBlock(w, { eager: i < 2 })));
-}
-
-function textPage(bd, title, build) {
-  setBackdrop(bd); shell(title);
-  const p = K.el('div', 'page');
-  p.appendChild(K.el('h1', null, title));
-  build(p);
-  panel.appendChild(p);
-}
-
-const viewAtolye = () => textPage('atolye', t('nav_studio'), (p) => {
-  L().statement.forEach(x => p.appendChild(K.el('p', null, x)));
+addEventListener('keydown', (e) => {
+  if (e.target.closest('input, textarea, [contenteditable]')) return;
+  if (e.key === 'ArrowRight') git(Math.min(N, sonIndeks + 1));
+  if (e.key === 'ArrowLeft')  git(Math.max(0, sonIndeks - 1));
 });
 
-const viewBio = () => textPage('biyografi', t('nav_bio'), (p) => {
-  p.appendChild(K.el('div', 'formula',
-    fill(t('bio_born'), { y: SITE.artist.born, p: SITE.artist.birthplace }) + '<br>' +
-    fill(t('bio_lives'), { c: SITE.artist.based })));
-  L().bio.forEach(x => p.appendChild(K.el('p', null, x)));
+/* ── boyut ve bağlam kaybı ───────────────────────────────────────────────── */
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  R_CAM = camRadius();
+  poz(S.u);
+}, { passive: true });
+
+canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); renderer.setAnimationLoop(null); });
+canvas.addEventListener('webglcontextrestored', () => { renderer.setAnimationLoop(dongu); });
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) renderer.setAnimationLoop(null);
+  else { sonZaman = performance.now(); renderer.setAnimationLoop(dongu); }
 });
 
-const viewSergiler = () => textPage('sergiler', t('nav_exh'), (p) => {
-  const solo = [], group = [];
-  SITE.cv.forEach((r, i) => (r[2].startsWith('Kişisel') ? solo : group).push(L().cv[i]));
-  p.appendChild(K.el('h2', null, t('exh_solo')));
-  p.appendChild(rowList(solo.map(r => [r[0], r[1], venueOf(r[2])])));
-  p.appendChild(K.el('h2', null, t('exh_group')));
-  p.appendChild(rowList(group.map(r => [r[0], r[1], venueOf(r[2])])));
-});
+/* ── başlat ──────────────────────────────────────────────────────────────── */
 
-const viewKoleksiyon = () => textPage('koleksiyon', t('nav_coll'), (p) => {
-  const ul = K.el('ul', 'plainlist');
-  L().collections.forEach(c => ul.appendChild(K.el('li', null, c)));
-  p.appendChild(ul);
-  const held = SITE.works.filter(w => w.status !== 'satilik');
-  p.appendChild(K.el('h2', null, t('coll_record')));
-  p.appendChild(K.el('p', null, '<span style="font-size:var(--t-cap);color:var(--muted)">' +
-    fill(t('coll_sentence'), { n: SITE.works.length, h: held.length }) + '</span>'));
-  p.appendChild(rowList(held.map(w => [String(w.year), w.title, w.size + ' · ' + availLine(w.status)])));
-});
+let yuklu = 0;
+function yuklendi() {
+  if (++yuklu < N) return;
+  el('yukleniyor').classList.add('bitti');
+  setTimeout(() => { el('yukleniyor').style.display = 'none'; }, 700);
+}
 
-const viewYayinlar = () => textPage('yayinlar', t('nav_pub'), (p) => p.appendChild(rowList(L().publications)));
-const viewBasin    = () => textPage('basin',    t('nav_press'), (p) => p.appendChild(rowList(L().press)));
-
-const viewIletisim = () => textPage('iletisim', t('nav_contact'), (p) => {
-  p.appendChild(K.el('p', null, '<a href="mailto:' + SITE.artist.email +
-    '" style="color:var(--link)">' + SITE.artist.email + '</a>'));
-  p.appendChild(K.el('p', null, '<span style="color:var(--muted)">' + SITE.artist.studio + '</span>'));
-  p.appendChild(K.el('p', null, t('contact_body')));
-  p.appendChild(K.el('div', 'note', L().notice + ' ' + SITE.works[0].credit));
-});
-
-/* Galeri ayrı bir sayfa: WebGL yalnızca oraya girenlere yükleniyor. */
-const viewGaleri = () => { location.href = 'galeri.html'; };
-
-/* ── yönlendirme ─────────────────────────────────────────────────────────── */
-
-document.documentElement.lang = LANG;
-buildMenu();
-
-K.Router
-  .on(/^\/$/,           viewHome)
-  .on(/^\/galeri$/,     viewGaleri)
-  .on(/^\/son$/,        viewSon)
-  .on(/^\/seri\/(.+)$/, viewSeri)
-  .on(/^\/atolye$/,     viewAtolye)
-  .on(/^\/biyografi$/,  viewBio)
-  .on(/^\/sergiler$/,   viewSergiler)
-  .on(/^\/koleksiyon$/, viewKoleksiyon)
-  .on(/^\/yayinlar$/,   viewYayinlar)
-  .on(/^\/basin$/,      viewBasin)
-  .on(/^\/iletisim$/,   viewIletisim)
-  .start();
+kipUygula(secilmis || (mq.matches ? 'sakin' : 'tam'));
+poz(0);
+renderer.setAnimationLoop(dongu);
 </script>
 
 </body>
