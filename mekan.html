@@ -133,32 +133,71 @@ a:hover { color: var(--link); }
 
 /* ── siyah menü paneli ───────────────────────────────────────────────────── */
 
+/* == ANA MENU ==============================================================
+   Menu artik elle yonetilen bir div degil, gercek bir popover: ust katman,
+   Esc, disina tiklayinca kapanma ve odak yonetimi tarayicidan geliyor.
+   Bunlari elle yazmistik (#scrim, K.trap, keydown dinleyicisi) - kalkti.
+
+   HAREKETIN GEREKCESI: bir galeride once isiklar soner, sonra etiketler
+   aydinlanir. Once zemin karartiliyor (::backdrop), sonra satirlar sirayla
+   netlesip geliyor. Panel kati bir blok gibi kaymiyor.
+
+   ILERLEMELI: @starting-style, allow-discrete, view-transition ve
+   :popover-open desteklenmezse menu yine tam calisir - yalniz gecissiz
+   belirir. Hicbir islev bu API'lere bagli degil. */
 #menu {
-  position: fixed; top: 0; left: 0; bottom: 0; z-index: 35;
-  width: min(300px, 82vw);
-  background: #0b0b0d;
-  padding: 108px clamp(20px, 3vw, 34px) 32px;
-  overflow-y: auto;
-  transform: translateX(-102%);
-  transition: transform 520ms var(--ease);
+  position: fixed; inset: 0 auto 0 0; margin: 0; padding: 0;
+  width: min(780px, 94vw); max-width: 100%;
+  border: 0; overflow: visible;
+  background: linear-gradient(126deg, #101013 0%, #0a0a0c 62%, #08080a 100%);
+  color: var(--panel);
+  display: grid; grid-template-columns: minmax(250px, 330px) 1fr;
+  box-shadow: 40px 0 90px -30px rgba(0,0,0,.8);
+
+  opacity: 0; translate: -14px 0;
+  transition: opacity 300ms var(--ease), translate 380ms var(--ease),
+              overlay 380ms allow-discrete, display 380ms allow-discrete;
 }
-#menu.open { transform: none; }
+#menu:popover-open { opacity: 1; translate: none; }
+@starting-style { #menu:popover-open { opacity: 0; translate: -14px 0; } }
+
+#menu::backdrop {
+  background: rgba(6,7,5,0);
+  transition: background 420ms var(--ease),
+              overlay 420ms allow-discrete, display 420ms allow-discrete;
+}
+#menu:popover-open::backdrop { background: rgba(6,7,5,.58); }
+@starting-style { #menu:popover-open::backdrop { background: rgba(6,7,5,0); } }
+
+#msol { padding: 104px clamp(18px, 2.2vw, 30px) 26px; overflow-y: auto; }
+#menu ul { list-style: none; margin: 0; padding: 0; }
 #menu li { margin-bottom: 5px; }
-/* Baloncuk: düz metin tıklanabilir görünmüyordu. */
+
+/* Satirlar sirayla netlesip geliyor: etiketlerin aydinlanmasi. */
+#menu li, #menu .grouplbl, #lang {
+  opacity: 0; translate: 0 9px; filter: blur(2px);
+  transition: opacity 380ms var(--ease), translate 420ms var(--ease),
+              filter 380ms var(--ease);
+}
+#menu:popover-open li, #menu:popover-open .grouplbl, #menu:popover-open #lang {
+  opacity: 1; translate: none; filter: none;
+  transition-delay: var(--d, 0ms);
+}
+
 #menu a {
   display: flex; align-items: center; gap: 10px;
   width: 100%; text-align: left;
-  font: inherit; font-size: clamp(16px, .95rem + .28vw, 19px);
-  padding: 10px 15px; line-height: 1.25;
+  font: inherit; font-size: clamp(15px, .9rem + .26vw, 18px);
+  padding: 11px 15px; line-height: 1.25;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,.075);
   background: rgba(255,255,255,.035);
-  cursor: pointer;
-  transition: background 320ms var(--ease), border-color 320ms var(--ease),
-              transform 320ms var(--ease), color 600ms ease-in-out;
+  cursor: pointer; text-decoration: none;
+  transition: background 300ms var(--ease), border-color 300ms var(--ease),
+              transform 300ms var(--ease), color 600ms ease-in-out;
 }
 @media (hover: hover) {
-  #menu a:hover {
+  #menu a:hover, #menu a:focus-visible {
     background: hsla(var(--h, 40), var(--s, 0%), 40%, .42) !important;
     border-color: hsla(var(--h, 40), var(--s, 0%), 70%, .62) !important;
     transform: translateX(5px);
@@ -168,42 +207,134 @@ a:hover { color: var(--link); }
   background: hsla(var(--h, 40), var(--s, 0%), 44%, .46) !important;
   border-color: hsla(var(--h, 40), var(--s, 0%), 74%, .7) !important;
 }
-
-/* Galeri: bir sayfa değil, bir yer. Diğerlerinden ayrışmalı. */
 #menu a.ozel {
-  font-size: clamp(17px, 1rem + .35vw, 21px);
+  font-size: clamp(16px, .95rem + .33vw, 20px);
   color: #e8cf9a !important;
   border-color: rgba(201,168,106,.5);
   background: linear-gradient(90deg, rgba(201,168,106,.20), rgba(201,168,106,.05));
-  padding-block: 13px;
-  margin-bottom: 4px;
+  padding-block: 13px; margin-bottom: 4px;
 }
 #menu a.ozel::after {
-  content: "→"; margin-left: auto; opacity: .75;
-  transition: transform 320ms var(--ease);
+  content: "\2192"; margin-left: auto; opacity: .75;
+  transition: transform 300ms var(--ease);
 }
 @media (hover: hover) {
-  #menu a.ozel:hover {
-    background: linear-gradient(90deg, rgba(201,168,106,.34), rgba(201,168,106,.10));
-    border-color: rgba(201,168,106,.85);
-  }
+  #menu a.ozel:hover { background: linear-gradient(90deg, rgba(201,168,106,.34), rgba(201,168,106,.10));
+                       border-color: rgba(201,168,106,.85); }
   #menu a.ozel:hover::after { transform: translateX(4px); }
 }
 #menu a.cikis { color: #d9b9a0 !important; border-color: rgba(217,185,160,.4); }
-#menu .sep { height: 20px; }
+#menu .sep { height: 18px; }
 #menu .grouplbl {
   font-size: var(--t-micro); letter-spacing: .14em; text-transform: uppercase;
   color: #5d5d63; margin: 22px 0 8px;
 }
-#menu .scrim-close { position: absolute; inset: 0; }
 
-#scrim {
-  position: fixed; inset: 0; z-index: 30;
-  background: rgba(8,8,10,.34);
-  opacity: 0; pointer-events: none;
-  transition: opacity 420ms var(--ease);
+/* -- karsilik sutunu ------------------------------------------------------
+   Vitrin DEGIL: satirin turune gore karsiligini gosteriyor. Seri satirinda
+   o serinin eseri, Sergiler'de surmekte olan sergi, Iletisim'de atolye
+   satiri. Boylece 7 metin sayfasinda bos kalmiyor, hicbir yerde de dukkan
+   vitrini gibi durmuyor. */
+#mon {
+  position: relative; overflow: hidden;
+  padding: 104px clamp(22px, 2.6vw, 42px) 34px;
+  display: flex; flex-direction: column; gap: 20px;
+  border-left: 1px solid rgba(255,255,255,.07);
+  background: radial-gradient(120% 90% at 30% 0%, rgba(255,244,222,.055), transparent 62%);
 }
-#scrim.on { opacity: 1; pointer-events: auto; }
+#mon-kutu { position: relative; flex: 1 1 auto; min-height: 0; display: grid; place-items: center; }
+#mon-img {
+  max-width: 100%; max-height: 100%; object-fit: contain; display: block;
+  box-shadow: 0 2px 5px rgba(0,0,0,.5), 0 26px 60px -22px rgba(0,0,0,.8);
+  transition: opacity 260ms var(--ease), scale 420ms var(--ease);
+}
+#mon-img[hidden] { display: none; }
+#mon.degisiyor #mon-img { opacity: 0; scale: .985; }
+#mon-yazi { flex: 1 1 auto; min-width: 0; transition: opacity 260ms var(--ease); }
+#mon.degisiyor #mon-yazi { opacity: 0; }
+#mon-ust {
+  font-size: var(--t-micro); letter-spacing: .16em; text-transform: uppercase;
+  color: #8d7c56; margin-bottom: 7px;
+}
+#mon-ad { font-size: clamp(19px, 1.1rem + .5vw, 26px); line-height: 1.2; color: #f2ede2; margin-bottom: 6px; }
+/* Gorseli olmayan satirlarda (biyografi, basin, iletisim...) sutun bos
+   kalmasin: yazi buyuyup alani kendisi tutuyor. */
+#mon.yazi-only #mon-kutu { display: none; }
+#mon.yazi-only { justify-content: center; }
+#mon.yazi-only #mon-ad { font-size: clamp(22px, 1.2rem + .8vw, 32px); }
+#mon.yazi-only #mon-alt { font-size: 15px; max-width: 34ch; }
+#mon-alt { font-size: 13.5px; line-height: 1.6; color: rgba(242,237,226,.62); max-width: 40ch; }
+
+#lang { display: flex; gap: 10px; align-items: baseline; margin-top: 30px; }
+#lang button {
+  font: inherit; font-size: var(--t-micro); letter-spacing: .06em;
+  background: none; border: 0; padding: 8px 4px; cursor: pointer; color: #6f6f76;
+}
+#lang button[aria-current="true"] { color: #fff; }
+
+/* -- TELEFON: perde degil, basparmakla ulasilan alt tabaka ----------------
+   Ekrani kaplayan bir ortu yerine alttan gelen bir tabaka. Satirlar asagida
+   topluyor, karsilik ustte ince bir serit oluyor. */
+@media (max-width: 760px) {
+  #menu {
+    inset: auto 0 0 0; width: 100%;
+    height: min(88dvh, 100%);
+    grid-template-columns: 1fr; grid-template-rows: auto 1fr;
+    border-radius: 16px 16px 0 0;
+    translate: 0 22px;
+    box-shadow: 0 -24px 60px -20px rgba(0,0,0,.8);
+  }
+  @starting-style { #menu:popover-open { translate: 0 22px; } }
+  #menu::before {
+    content: ""; position: absolute; top: 9px; left: 50%; translate: -50% 0;
+    width: 42px; height: 4px; border-radius: 999px;
+    background: rgba(255,255,255,.22);
+  }
+  #mon {
+    order: -1; border-left: 0; border-bottom: 1px solid rgba(255,255,255,.07);
+    padding: 26px 68px 16px 20px;   /* sag: kapatma dugmesine pay */
+    flex-direction: row; align-items: center; gap: 16px; min-height: 118px;
+  }
+  #mon-kutu { flex: 0 0 128px; height: 92px; }
+  #mon-ad { font-size: 18px; }
+  #mon-alt {
+    font-size: 12.5px; max-width: none;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  #mon-ad { overflow-wrap: anywhere; }
+  #msol { padding: 14px 18px calc(22px + env(safe-area-inset-bottom)); }
+  #menu a { padding: 13px 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #menu li, #menu .grouplbl, #lang { filter: none; translate: none; }
+}
+
+/* Menu ust katmanda oldugu icin disaridaki hamburger dugmesi tiklanamaz
+   hale geliyor. Sevilen "eser -> X" jesti kaybolmasin diye ayni yerde,
+   menunun kendi icinde bir kapatma dugmesi duruyor. */
+#mkapat {
+  position: absolute; z-index: 2;
+  top: clamp(16px, 2.4vw, 30px); left: clamp(16px, 2.4vw, 30px);
+  width: 58px; height: 58px; padding: 0;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%; cursor: pointer;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 8px 26px rgba(0,0,0,.45);
+  transition: transform 320ms var(--ease), background 300ms var(--ease);
+}
+#mkapat:hover { transform: scale(1.05); }
+#mkapat i {
+  position: absolute; width: 22px; height: 4px; border-radius: 1px;
+  background: #24241f;
+}
+#mkapat i:nth-child(1) { transform: rotate(45deg); }
+#mkapat i:nth-child(2) { transform: rotate(-45deg); }
+@media (max-width: 760px) {
+  #mkapat { top: 12px; left: auto; right: 14px; width: 44px; height: 44px; }
+  #mkapat i { width: 17px; height: 3px; }
+}
 
 /* dil anahtarı menünün dibinde */
 #lang { display: flex; gap: 10px; align-items: baseline; margin-top: 30px; }
@@ -313,6 +444,43 @@ html.menuacik #shell { --k: clamp(96px, 15vw, 210px); }
 .k-full { position: absolute; inset: 0; opacity: 0; transition: opacity 400ms linear; }
 .k-fig.is-loaded .k-full { opacity: 1; }
 
+/* == ACILIS ================================================================
+   Perde YOK. Giris sekansi koymak, ziyaretciyi esere gelmek icin bekletmek
+   demek; hem alti bagimsiz inceleme hem tasarim olcutu bunu reddediyor.
+   Acilis, icerigin KENDI gelis bicimi:
+
+   1) Panel bir tabaka gibi yerine konuyor (tek ogede, 520 ms).
+   2) Isik ilk tablonun uzerinden BIR KEZ geciyor - galeride isiklarin
+      acilmasi. Menunun hareket dili de bu: once zemin kararir, sonra
+      etiketler aydinlanir.
+
+   Oturum basina BIR KEZ (sessionStorage). Her gezinmede toren olmaz.
+   Hicbir sey opacity:0'da park etmiyor: sinif eklenmezse -JS calismazsa,
+   hareket azaltma acikse- sayfa dogrudan durus halinde. */
+html.acilis #shell {
+  animation: acilisTabaka 560ms cubic-bezier(.2,.9,.25,1) both;
+}
+@keyframes acilisTabaka {
+  /* SADECE yukselme, opaklik YOK. opacity:0'dan baslasaydi animasyon
+     donan bir baglamda (arka plan sekmesi) icerik gorunmez kalirdi;
+     hicbir sey animasyonun calismasina bagli olmamali. */
+  from { translate: 0 16px; }
+}
+html.acilis #panel .k-fig::after {
+  content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: linear-gradient(102deg,
+    transparent 32%, rgba(255,246,224,.34) 48%, transparent 66%);
+  translate: -130% 0;
+  animation: acilisIsik 1400ms 420ms cubic-bezier(.32,0,.2,1) both;
+}
+@keyframes acilisIsik { to { translate: 130% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  html.acilis #shell,
+  html.acilis #panel .k-fig::after { animation: none; }
+  html.acilis #panel .k-fig::after { content: none; }
+}
+
 .cap { margin-top: 13px; font-size: var(--t-cap); line-height: 1.6; color: var(--muted); }
 .cap .t { color: var(--title); text-transform: uppercase; letter-spacing: .02em; }
 .cap .gloss { color: var(--soft); font-style: italic; }
@@ -386,13 +554,21 @@ html.menuacik #shell { --k: clamp(96px, 15vw, 210px); }
 
 <div class="bg" id="bgA" aria-hidden="true"></div>
 <div class="bg" id="bgB" aria-hidden="true"></div>
-<div id="scrim"></div>
 
 <button id="menubtn" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menü">
   <i></i><i></i><i></i>
 </button>
 
-<nav id="menu" aria-label="Ana menü"></nav>
+<nav id="menu" popover aria-label="Ana menü">
+  <button id="mkapat" type="button"><i></i><i></i></button>
+  <div id="msol"></div>
+  <aside id="mon" aria-hidden="true">
+    <div id="mon-kutu"><img id="mon-img" alt=""></div>
+    <div id="mon-yazi">
+      <div id="mon-ust"></div><div id="mon-ad"></div><div id="mon-alt"></div>
+    </div>
+  </aside>
+</nav>
 
 <div id="shell">
   <main id="panel"></main>
@@ -710,7 +886,6 @@ function paintBurger(src) {
 
 const menuEl = document.getElementById('menu');
 const btn = document.getElementById('menubtn');
-const scrim = document.getElementById('scrim');
 let trapRelease = null;
 
 function menuModel() {
@@ -733,7 +908,8 @@ function menuModel() {
 }
 
 function buildMenu() {
-  menuEl.innerHTML = '';
+  const kutu = document.getElementById('msol');
+  kutu.innerHTML = '';
   const ul = K.el('ul');
   menuModel().forEach((it) => {
     const li = K.el('li');
@@ -759,38 +935,186 @@ function buildMenu() {
     b.addEventListener('click', () => setLang(code));
     lang.appendChild(b);
   });
-  menuEl.appendChild(ul);
-  menuEl.appendChild(lang);
+  kutu.appendChild(ul);
+  kutu.appendChild(lang);
+
+  /* Satirlar sirayla netlessin: etiketlerin aydinlanmasi. */
+  let n = 0;
+  kutu.querySelectorAll('li, .grouplbl').forEach((el) => {
+    if (el.classList.contains('sep')) return;
+    el.style.setProperty('--d', (90 + (n++) * 34) + 'ms');
+  });
+  lang.style.setProperty('--d', (90 + n * 34) + 'ms');
+
+  /* satir uzerine gelince karsilik sutunu degissin */
+  kutu.querySelectorAll('a[data-route]').forEach((a) => {
+    a.addEventListener('pointerenter', () => onizYaz(a.dataset.route));
+    a.addEventListener('focus', () => onizYaz(a.dataset.route));
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      menuGit(a.dataset.route);
+    });
+  });
+  kutu.addEventListener('pointerleave', () => onizYaz(null));
 
   const b = BG[bgKey] || BG.acilis;
   paintMenu((b && b.palette) || []);
 }
 
+/* == KARSILIK SUTUNU =======================================================
+   Vitrin degil: her satirin turune gore karsiligini gosteriyor. Seri
+   satirinda o serinin eseri, Sergiler'de surmekte olan sergi, Iletisim'de
+   atolye satiri. 13 satirin 7'si metin sayfasi; saf vitrin yapilsaydi o
+   yedisinde bos kalirdi, saf metin yapilsaydi ressamin isi menude hic
+   gorunmezdi. */
+const monEl = () => document.getElementById('mon');
+
+function kisalt(x, n) {
+  const t = String(x || '');
+  return t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : t;
+}
+
+function seriEserleri(key) { return SITE.works.filter((w) => w.series === key); }
+function yeniEser() { return SITE.works.slice().sort((a, b) => b.year - a.year)[0]; }
+
+function onizlemeIcin(route) {
+  const cv = (L().cv || SITE.cv || []);
+  const yay = (L().publications || SITE.publications || []);
+  const bas = (L().press || SITE.press || []);
+  const yillar = SITE.works.map((w) => w.year);
+  const aralik = Math.min(...yillar) + ' — ' + Math.max(...yillar);
+
+  if (!route) {
+    return { ust: SITE.artist.mark, ad: SITE.artist.name,
+             alt: SITE.works.length + ' eser · ' + SITE.series.length + ' seri · ' + aralik,
+             img: yeniEser() };
+  }
+  if (route === '/galeri') {
+    return { ust: t('gal_label'), ad: t('gal_title'), alt: kisalt(t('gal_sub'), 150), img: yeniEser() };
+  }
+  if (route === '/son') {
+    return { ust: t('nav_recent'), ad: SITE.works.length + ' eser · ' + SITE.series.length + ' seri',
+             alt: aralik + ' · ' + t('medium'), img: yeniEser() };
+  }
+  const m = route.match(/^\/seri\/(.+)$/);
+  if (m) {
+    const key = m[1];
+    const base = K.seriesOf(key) || {};
+    const cev = (L().series || {})[key] || base;
+    const es = seriEserleri(key);
+    return { ust: es.length + ' eser · ' + (base.years || ''), ad: cev.title || base.title,
+             alt: kisalt(cev.blurb || base.blurb, 160), img: es[0] };
+  }
+  if (route === '/atolye')    return { ust: t('nav_studio'),  ad: kisalt((L().statement || SITE.statement || [''])[0], 62),
+                                       alt: kisalt((L().statement || SITE.statement || ['', ''])[1] || '', 150) };
+  if (route === '/biyografi') return { ust: t('nav_bio'), ad: SITE.artist.name,
+                                       alt: kisalt((L().bio || SITE.bio || [''])[0], 165) };
+  if (route === '/sergiler' && cv[0])
+    return { ust: t('nav_exh') + ' · ' + cv[0][0], ad: cv[0][1], alt: cv[0][2] };
+  if (route === '/koleksiyon') {
+    const k = SITE.works.filter((w) => w.status === 'koleksiyonda').length;
+    const kl = (L().collections || SITE.collections || []);
+    return { ust: t('nav_coll'), ad: k + ' / ' + SITE.works.length, alt: kisalt(kl.slice(0, 3).join(' · '), 150) };
+  }
+  if (route === '/yayinlar' && yay[0])
+    return { ust: t('nav_pub') + ' · ' + yay[0][0], ad: yay[0][1], alt: yay[0][2] };
+  if (route === '/basin' && bas[0])
+    return { ust: t('nav_press') + ' · ' + bas[0][0], ad: bas[0][1], alt: bas[0][2] };
+  if (route === '/iletisim')
+    return { ust: t('nav_contact'), ad: SITE.artist.email, alt: SITE.artist.studio };
+  return { ust: SITE.artist.mark, ad: SITE.artist.name, alt: '', img: yeniEser() };
+}
+
+let onizSon = '\u0000';
+function onizYaz(route, hemen) {
+  const mon = monEl();
+  if (!mon || route === onizSon) return;
+  onizSon = route;
+  const d = onizlemeIcin(route);
+  /* Menu acilirken ilk yazim beklemesin: solma gecikmesi orada bosluk
+     olarak goruluyordu. Capraz gecis yalniz satirdan satira gecerken. */
+  const yaz = () => {
+    const img = document.getElementById('mon-img');
+    if (d.img) { img.hidden = false; img.src = d.img.src; img.alt = d.img.title; }
+    else { img.hidden = true; img.removeAttribute('src'); }
+    mon.classList.toggle('yazi-only', !d.img);
+    document.getElementById('mon-ust').textContent = d.ust || '';
+    document.getElementById('mon-ad').textContent = d.ad || '';
+    document.getElementById('mon-alt').textContent = d.alt || '';
+    mon.classList.remove('degisiyor');
+  };
+  if (hemen) return yaz();
+  mon.classList.add('degisiyor');
+  setTimeout(yaz, 170);
+}
+
+/* == GECIS ================================================================
+   Tiklanan satirin gorseli, gidilen sayfanin ilk eserine DONUSEREK geciyor
+   (View Transitions). Bakilan sey sayfanin kendisi oluyor; gecis bir kesme
+   degil, surekli bir hareket. Desteklenmeyen tarayicida ayni gezinme
+   gecissiz calisir. */
+function menuGit(route) {
+  const kaynak = document.getElementById('mon-img');
+  const gorselli = kaynak && !kaynak.hidden;
+  const uygula = () => {
+    closeMenu();
+    history.pushState(null, '', '#' + route);
+    const r = K.Router.parse();
+    r.fn(...r.args);
+    const ilk = panel.querySelector('.k-fig');
+    if (ilk) ilk.style.viewTransitionName = 'eser';
+  };
+  /* GEZINME ANIMASYONA BAGLI KALAMAZ. startViewTransition'in geri cagrisi
+     baslamazsa (arka plan sekmesi, ust uste gecis, olculdu: donmus zaman
+     cizelgesinde hic calismiyor) menu acik kalir ve tiklama hicbir sey
+     yapmaz. Zaman asimi yedegi: 250 ms icinde gecis baslamadiysa gezinme
+     yine de olur, yalnizca animasyon kaybolur. */
+  let calisti = false;
+  const birKez = () => { if (calisti) return; calisti = true; uygula(); };
+
+  if (!document.startViewTransition || K.reduced()) return birKez();
+  if (gorselli) kaynak.style.viewTransitionName = 'eser';
+  let vt;
+  try { vt = document.startViewTransition(birKez); }
+  catch (e) { birKez(); return; }
+  setTimeout(birKez, 250);
+  vt.finished.catch(() => {}).then(() => {
+    if (gorselli) kaynak.style.viewTransitionName = '';
+    const ilk = panel.querySelector('.k-fig');
+    if (ilk) ilk.style.viewTransitionName = '';
+  });
+}
+
 function openMenu() {
   buildMenu();
   document.documentElement.classList.add('menuacik');
-  /* satır gecikmeleri: üstten alta doğru sırayla yükselsinler */
-  menuEl.querySelectorAll('li, .grouplbl').forEach((el, i) => {
-    el.style.setProperty('--d', (150 + i * 36) + 'ms');
-  });
-  menuEl.classList.add('open');
-  scrim.classList.add('on');
+  onizSon = '\u0000';
+  onizYaz(null, true);
+  if (menuEl.showPopover) menuEl.showPopover();
+  else { menuEl.classList.add('open'); trapRelease = K.trap(menuEl); }
   btn.setAttribute('aria-expanded', 'true');
-  trapRelease = K.trap(menuEl);
   const first = menuEl.querySelector('a');
   if (first) first.focus({ preventScroll: true });
 }
 function closeMenu() {
   document.documentElement.classList.remove('menuacik');
+  if (menuEl.hidePopover && menuEl.matches(':popover-open')) menuEl.hidePopover();
   menuEl.classList.remove('open');
-  scrim.classList.remove('on');
   btn.setAttribute('aria-expanded', 'false');
   if (trapRelease) { trapRelease(); trapRelease = null; }
 }
 btn.addEventListener('click', () => menuEl.classList.contains('open') ? closeMenu() : openMenu());
-scrim.addEventListener('click', closeMenu);
-menuEl.addEventListener('click', (e) => { if (e.target.closest('a')) closeMenu(); });
-addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+document.getElementById('mkapat').addEventListener('click', closeMenu);
+/* Esc, disina tiklama ve ust katman popover'dan geliyor; elle yazilmasina
+   gerek yok. Yalnizca popover desteklenmeyen tarayicida yedek gerekiyor. */
+if (!menuEl.showPopover) {
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+}
+menuEl.addEventListener('toggle', (e) => {
+  const acik = e.newState === 'open';
+  btn.setAttribute('aria-expanded', acik ? 'true' : 'false');
+  if (!acik) document.documentElement.classList.remove('menuacik');
+});
 
 function setLang(next) {
   if (!LANGS.includes(next) || next === LANG) return;
@@ -992,6 +1316,16 @@ const viewIletisim = () => textPage('iletisim', t('nav_contact'), (p) => {
 const viewGaleri = () => { location.href = 'sergi.html'; };
 
 /* ── yönlendirme ─────────────────────────────────────────────────────────── */
+
+/* Acilis oturumda bir kez: sekmeyi ilk actiginda. Sayfalar arasi
+   gezinmede tekrarlamiyor. */
+try {
+  if (!sessionStorage.getItem('cs-acildi')) {
+    sessionStorage.setItem('cs-acildi', '1');
+    document.documentElement.classList.add('acilis');
+    setTimeout(() => document.documentElement.classList.remove('acilis'), 2200);
+  }
+} catch (e) { /* gizli sekmede sessionStorage yazilamaz; acilis atlanir */ }
 
 document.documentElement.lang = LANG;
 buildMenu();
