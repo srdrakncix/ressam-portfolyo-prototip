@@ -1,0 +1,642 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cemal Sağlam — Resim</title>
+<meta name="description" content="Cemal Sağlam, İstanbul'da çalışan ressam. Tuval üzerine yağlı boya; alacakaranlık, hava ve manzara üzerine seriler. Eserler, sergiler ve iletişim.">
+<meta name="theme-color" content="#ffffff">
+<link rel="canonical" href="https://srdrakncix.github.io/ressam-portfolyo-prototip/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cemal Sağlam — Resim">
+<meta property="og:description" content="Tuval üzerine yağlı boya. Alacakaranlık, hava ve manzara üzerine seriler.">
+<meta property="og:image" content="https://srdrakncix.github.io/ressam-portfolyo-prototip/assets/68388.webp">
+<meta property="og:locale" content="tr_TR">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   CEMAL SAĞLAM — resim.
+   Süslenmeyi reddeden site: beyaz zemin, Helvetica, devasa resimler,
+   solda düz metin menü, altında küçük künye. Saç çizgisi, kart, çerçeve,
+   gölge, hover süsü yok. Tek tema: beyaz.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg:      #ffffff;
+  --ink:     #111111;
+  --muted:   #4a4a4a;   /* 8.9:1 — künye gövdesi */
+  --soft:    #6a6a6a;   /* 5.7:1 — ikincil satırlar; eski #8e8e8e 3.3:1'di */
+  --line:    #dcdcdc;
+  --link:    #5f5326;   /* gezinme ve bağlantılar — eski #1B3FCC ham mavisiydi */
+  --title:   #7a3418;   /* eser adı — bağlantı mavisiyle KARIŞMASIN */
+
+  --nav-w:  232px;
+  --pad:    40px;
+  --sans:   "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  /* Tipografik ölçek: gerçek basamaklar. Öncesinde 21/13/11 vardı ve
+     başlıklar gövdeyle aynı boydaydı. */
+  --t-name:  21px;
+  --t-nav:   13px;
+  --t-h1:    26px;
+  --t-h2:    17px;
+  --t-body:  15px;
+  --t-cap:   12px;
+  --t-micro: 11px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { background: var(--bg); }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 var(--t-body)/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+h1, h2, h3, p, figure, ul, li, dl, dd, dt { margin: 0; }
+ul { padding: 0; list-style: none; }
+img { display: block; max-width: 100%; }
+
+a, a:visited { color: var(--ink); text-decoration: none; }
+a:hover { color: var(--link); }
+:focus-visible { outline: 2px solid var(--link); outline-offset: 3px; }
+
+.skip {
+  position: fixed; top: 8px; left: 8px; z-index: 30;
+  background: #fff; color: var(--ink); border: 1px solid var(--ink);
+  padding: 10px 14px; font-size: var(--t-cap); transform: translateY(-200%);
+}
+.skip:focus-visible { transform: none; }
+
+/* ── solda sabit metin menü ──────────────────────────────────────────────── */
+
+#nav {
+  position: fixed; top: 0; left: 0; bottom: 0; width: var(--nav-w);
+  padding: var(--pad) 20px var(--pad) var(--pad);
+  overflow-y: auto; background: var(--bg);
+}
+#nav .name {
+  font-size: var(--t-name); font-weight: 400; line-height: 1.2;
+  color: var(--ink); margin-bottom: 30px; display: block;
+}
+#nav .name b { font-weight: 400; }
+#nav li { margin-bottom: 9px; }
+#nav a { font-size: var(--t-nav); color: var(--ink); }
+#nav a.on { color: var(--link); }
+#nav .gap { height: 18px; }
+#burger { display: none; }
+
+/* dil anahtarı — menünün altında, düz metin. Açılır kutu yok. */
+#lang { display: flex; gap: 9px; margin-top: 24px; align-items: baseline; }
+#lang button {
+  font: inherit; font-size: var(--t-micro); letter-spacing: .04em;
+  background: none; border: 0; padding: 0; cursor: pointer; color: var(--soft);
+}
+#lang button[aria-current="true"] { color: var(--ink); }
+#lang button:hover { color: var(--link); }
+#lang .sep { font-size: var(--t-micro); color: var(--line); }
+
+/* eser adının altındaki çeviri — adın yerine geçmez, altına düşer */
+.cap .gloss { color: var(--soft); font-style: italic; }
+
+/* ── içerik ──────────────────────────────────────────────────────────────── */
+
+#main {
+  margin-left: var(--nav-w);
+  padding: var(--pad) var(--pad) 200px var(--pad);
+  min-height: 100vh;
+}
+
+/* ── eser bloğu ──────────────────────────────────────────────────────────── */
+
+.work { margin-bottom: 116px; }
+.work:last-child { margin-bottom: 0; }
+
+.k-fig {
+  position: relative; display: block; overflow: hidden;
+  background: var(--tone);
+  aspect-ratio: var(--ratio);
+  width: min(100%, calc(84vh * var(--ratio)));
+}
+.k-lqip, .k-full { width: 100%; height: 100%; object-fit: cover; display: block; }
+.k-full { position: absolute; inset: 0; opacity: 0; transition: opacity 400ms linear; }
+.k-fig.is-loaded .k-full { opacity: 1; }
+
+.cap { margin-top: 14px; font-size: var(--t-cap); line-height: 1.6; color: var(--muted); }
+.cap .t { color: var(--title); text-transform: uppercase; letter-spacing: .02em; }
+.cap .avail { margin-top: 11px; color: var(--soft); }
+
+/* ── ana sayfa ───────────────────────────────────────────────────────────── */
+
+#home { display: grid; grid-template-columns: 1fr; gap: 40px; align-items: start; }
+@media (min-width: 1000px) {
+  #home { grid-template-columns: minmax(0, 1fr) 250px; }
+}
+#home .lead { padding-top: 8vh; }
+#home .lead .k-fig { width: min(100%, calc(66vh * var(--ratio))); }
+#home .side { font-size: var(--t-cap); line-height: 1.6; color: var(--muted); padding-top: 8vh; }
+#home .side .blk { margin-bottom: 22px; }
+#home .side .blk b { font-weight: 400; color: var(--ink); }
+#home .side .lbl {
+  font-size: var(--t-micro); color: var(--soft); margin-bottom: 6px;
+}
+@media (min-width: 1000px) {
+  #home .side { text-align: right; }
+  #home .lead .cap { text-align: right; }
+}
+
+/* ── metin sayfaları ─────────────────────────────────────────────────────── */
+
+.page { max-width: 34em; }          /* ~66 karakter; öncesi 620px/13px ≈ 95'ti */
+.page h1 {
+  font-size: var(--t-h1); font-weight: 400; line-height: 1.25;
+  color: var(--ink); margin-bottom: 26px;
+}
+.page h2 {
+  font-size: var(--t-h2); font-weight: 400; color: var(--ink);
+  margin: 42px 0 16px;
+}
+.page h2:first-of-type { margin-top: 0; }
+.page p { margin-bottom: 15px; }
+.page p:last-child { margin-bottom: 0; }
+.page .formula { font-size: var(--t-h2); line-height: 1.5; margin-bottom: 26px; }
+
+.rows { margin-bottom: 8px; }
+.row {
+  display: grid; grid-template-columns: 56px 1fr; gap: 16px;
+  font-size: var(--t-cap); line-height: 1.6; color: var(--muted);
+  padding-bottom: 12px;
+}
+.row dt { color: var(--soft); font-variant-numeric: tabular-nums; }
+.row b { font-weight: 400; color: var(--ink); }
+.row span { display: block; }
+
+.plainlist li { font-size: var(--t-cap); line-height: 1.7; color: var(--muted); }
+
+.note {
+  margin-top: 48px; font-size: var(--t-micro); line-height: 1.65; color: var(--soft);
+  max-width: 40em; border-top: 1px solid var(--line); padding-top: 16px;
+}
+
+/* ── seri başlığı ────────────────────────────────────────────────────────── */
+
+.lede { max-width: 34em; margin-bottom: 40px; }
+.lede h1 { font-size: var(--t-h1); font-weight: 400; margin-bottom: 10px; }
+.lede .yr { font-size: var(--t-micro); color: var(--soft); margin-bottom: 12px; }
+.lede p { font-size: var(--t-cap); line-height: 1.65; color: var(--muted); }
+
+/* ── mobil: sol sütun kaybolur, sağ üstte hamburger ──────────────────────── */
+
+@media (max-width: 760px) {
+  #nav {
+    position: sticky; top: 0; z-index: 10;
+    width: auto; height: auto; bottom: auto;
+    padding: 18px 20px; background: var(--bg);
+    display: flex; flex-wrap: wrap;
+    align-items: flex-start; justify-content: space-between; gap: 16px;
+  }
+  #nav .name { font-size: 20px; margin-bottom: 0; }
+
+  #burger {
+    display: block; flex: none;
+    width: 44px; height: 44px; margin: -10px -10px 0 0;
+    background: none; border: 0; padding: 10px; cursor: pointer;
+  }
+  #burger i {
+    display: block; height: 2px; background: var(--ink);
+    margin: 5px 0; transition: transform 220ms ease, opacity 180ms ease;
+  }
+  #burger[aria-expanded="true"] i:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  #burger[aria-expanded="true"] i:nth-child(2) { opacity: 0; }
+  #burger[aria-expanded="true"] i:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* `#nav ul` YAZMA — özgüllüğü (1,0,1) olur ve aşağıdaki (1,0,0) kuralı ezer,
+     menü kapalıyken de açık kalır. Bu hata bir kez yapıldı. */
+  #navlist { display: none; flex-basis: 100%; width: 100%;
+             padding: 4px 0 14px; border-bottom: 1px solid var(--line); }
+  #navlist.is-open { display: block; }
+  #nav li { margin-bottom: 0; }
+  #nav a { font-size: 16px; display: flex; align-items: center; min-height: 46px; }
+  #lang { margin-top: 14px; }
+  #lang button { font-size: 14px; min-height: 44px; display: inline-flex; align-items: center; }
+
+  #main { margin-left: 0; padding: 22px 20px 110px; }
+  .cap { font-size: 13px; margin-top: 12px; }
+  .work { margin-bottom: 68px; }
+  #home .lead, #home .side { padding-top: 0; }
+  #home .side { text-align: left; font-size: 13px; }
+  #home .lead .cap { text-align: left; }
+  #home .lead .k-fig { width: 100%; }
+  .page, .lede { max-width: none; }
+}
+
+/* Dokunmatikte hedefler parmak boyunda. 760 px kuralından SONRA gelmemeli,
+   yoksa oradaki 46 px'i eziyor — bu yüzden yalnızca menü dışını hedefler. */
+@media (pointer: coarse) {
+  .page a, .cap a, .note a { display: inline-block; padding-block: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: .01ms !important; }
+}
+</style>
+
+<a class="skip" href="#main">İçeriğe geç</a>
+
+<nav id="nav">
+  <a class="name" href="#/" id="navname"></a>
+  <button id="burger" type="button" aria-expanded="false" aria-controls="navlist" aria-label="Menü">
+    <i></i><i></i><i></i>
+  </button>
+  <ul id="navlist"></ul>
+</nav>
+
+<main id="main"></main>
+
+<noscript>
+  <div style="margin-left:232px;padding:40px;max-width:34em;font:400 15px/1.55 Helvetica,Arial,sans-serif">
+    <h1 style="font-size:26px;font-weight:400;margin:0 0 20px">Cemal Sağlam — Resim</h1>
+    <p style="margin:0 0 14px">
+      Tuval üzerine yağlı boya. Alacakaranlık, hava ve manzara üzerine seriler.
+      İstanbul Bomonti’deki atölyede üretiliyor.
+    </p>
+    <p style="margin:0 0 14px">
+      Eserleri görüntülemek için JavaScript gerekiyor.
+      Doğrudan iletişim: <a href="mailto:atolye@cemalsaglam.com">atolye@cemalsaglam.com</a>
+    </p>
+  </div>
+</noscript>
+
+<script>
+/*__SITE_DATA__*/
+/*__KIT__*/
+
+const main = document.getElementById('main');
+
+/* ── dil ─────────────────────────────────────────────────────────────────── */
+
+const LANGS = ['tr', 'en', 'fr'];
+const LANG_KEY = 'cs-lang';
+
+function initialLang() {
+  try {
+    const saved = localStorage.getItem(LANG_KEY);
+    if (LANGS.includes(saved)) return saved;
+  } catch (e) { /* yok say */ }
+  const nav = (navigator.language || '').slice(0, 2).toLowerCase();
+  return LANGS.includes(nav) ? nav : 'tr';
+}
+
+let LANG = initialLang();
+
+/* L(): o dilin içerik paketi. t(): arayüz dizgesi, eksikse Türkçeye düşer. */
+const L = () => SITE.i18n[LANG] || SITE.i18n.tr;
+const t = (k) => (L().ui && L().ui[k]) || SITE.i18n.tr.ui[k] || k;
+const fill = (s, vals) => s.replace(/\{(\w+)\}/g, (_, k) => vals[k]);
+
+/* Türkçe büyük harf: JS'in toUpperCase()'i i → I veriyor, İ değil. */
+const upTR = (s) => s.toLocaleUpperCase('tr-TR');
+
+function applyLang() {
+  document.documentElement.lang = LANG;
+  const d = document.querySelector('meta[name="description"]');
+  if (d) d.setAttribute('content', t('meta_desc'));
+  document.querySelector('.skip').textContent = t('skip');
+  burger.setAttribute('aria-label', t('menu'));
+  buildNav();
+  document.querySelectorAll('#lang button').forEach((b) => {
+    b.setAttribute('aria-current', String(b.dataset.lang === LANG));
+  });
+}
+
+function setLang(next) {
+  if (!LANGS.includes(next) || next === LANG) return;
+  LANG = next;
+  try { localStorage.setItem(LANG_KEY, next); } catch (e) { /* yok say */ }
+  applyLang();
+  K.Router.parse().fn(...K.Router.parse().args);   /* aynı sayfayı yeniden çiz */
+}
+
+{
+  const parts = SITE.artist.name.split(' ');
+  document.getElementById('navname').innerHTML =
+    parts[0] + ' <b>' + upTR(parts.slice(1).join(' ')) + '</b>';
+}
+
+/* ── menü ────────────────────────────────────────────────────────────────── */
+
+const navlistEl = document.getElementById('navlist');
+
+function navItems() {
+  return [
+    { href: '/son', label: t('nav_recent') },
+    ...SITE.series.map(s => ({ href: '/seri/' + s.key, label: L().series[s.key].title })),
+    { gap: true },
+    { href: '/atolye',     label: t('nav_studio') },
+    { href: '/biyografi',  label: t('nav_bio') },
+    { href: '/sergiler',   label: t('nav_exh') },
+    { href: '/koleksiyon', label: t('nav_coll') },
+    { href: '/yayinlar',   label: t('nav_pub') },
+    { href: '/basin',      label: t('nav_press') },
+    { gap: true },
+    { href: '/iletisim',   label: t('nav_contact') },
+  ];
+}
+
+function buildNav() {
+  navlistEl.innerHTML = '';
+  navItems().forEach((n) => {
+    const li = K.el('li');
+    if (n.gap) { li.className = 'gap'; navlistEl.appendChild(li); return; }
+    const a = K.el('a', null, n.label);
+    a.href = '#' + n.href;
+    a.dataset.route = n.href;
+    li.appendChild(a);
+    navlistEl.appendChild(li);
+  });
+
+  const li = K.el('li');
+  const box = K.el('div');
+  box.id = 'lang';
+  LANGS.forEach((code, i) => {
+    if (i) box.appendChild(K.el('span', 'sep', '·'));
+    const b = K.el('button', null, code.toUpperCase());
+    b.type = 'button';
+    b.dataset.lang = code;
+    b.setAttribute('aria-current', String(code === LANG));
+    b.setAttribute('aria-label', SITE.i18n[code].ui.lang_name);
+    b.addEventListener('click', () => setLang(code));
+    box.appendChild(b);
+  });
+  li.appendChild(box);
+  navlistEl.appendChild(li);
+}
+
+function markNav(path) {
+  document.querySelectorAll('#navlist a').forEach((a) => {
+    const on = a.dataset.route === path;
+    a.classList.toggle('on', on);
+    if (on) a.setAttribute('aria-current', 'page');
+    else a.removeAttribute('aria-current');
+  });
+}
+
+const burger = document.getElementById('burger');
+
+function closeNav() {
+  navlistEl.classList.remove('is-open');
+  burger.setAttribute('aria-expanded', 'false');
+}
+burger.addEventListener('click', () => {
+  const open = !navlistEl.classList.contains('is-open');
+  navlistEl.classList.toggle('is-open', open);
+  burger.setAttribute('aria-expanded', String(open));
+  if (open) navlistEl.querySelector('a').focus({ preventScroll: true });
+});
+navlistEl.addEventListener('click', (e) => { if (e.target.closest('a')) closeNav(); });
+document.getElementById('navname').addEventListener('click', closeNav);
+addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNav(); });
+
+/* ── eser bloğu ──────────────────────────────────────────────────────────── */
+
+function availLine(status) {
+  return status === 'satilik' ? t('avail_studio')
+       : status === 'koleksiyonda' ? t('avail_private')
+       : t('avail_gone');
+}
+
+function workBlock(w, opts = {}) {
+  const d = K.el('figure', 'work');
+  const fig = K.figure(w, opts);
+
+  /* LQIP güvenlik ağı: decode() takılırsa tablonun yerinde kalıcı olarak
+     bulanık bir dikdörtgen kalıyordu. Yağlı boyada "yüklenmedi" ile
+     "eser bu" ayırt edilemez — 1200 ms sonra koşulsuz göster. */
+  setTimeout(() => fig.classList.add('is-loaded'), 1200);
+  d.appendChild(fig);
+
+  /* Eser ADI çevrilmez: bir isimdir. Çevirisi altına, küçük ve italik düşer. */
+  const gloss = (L().works[w.id] || {}).gloss || '';
+  const note  = (L().works[w.id] || {}).note || w.note;
+
+  const cap = K.el('figcaption', 'cap');
+  cap.innerHTML =
+    '<div class="t">' + w.title + '</div>' +
+    (gloss ? '<div class="gloss">' + gloss + '</div>' : '') +
+    '<div>' + w.year + '</div>' +
+    '<div>' + t('medium') + '</div>' +
+    '<div>' + w.size + ' | ' + w.sizeIn + '</div>';
+
+  const av = K.el('div', 'avail');
+  av.textContent = availLine(w.status);
+  cap.appendChild(av);
+
+  d.appendChild(cap);
+  return d;
+}
+
+function setTitle(sec) {
+  document.title = sec ? sec + ' — ' + SITE.artist.name
+                       : SITE.artist.name + ' — ' + t('site_sub');
+}
+
+function listView(works, lede, title) {
+  main.innerHTML = '';
+  if (lede) main.appendChild(lede);
+  works.forEach((w, i) => main.appendChild(workBlock(w, { eager: i < 2 })));
+  setTitle(title);
+  scrollTo(0, 0);
+}
+
+function pageShell(h1) {
+  const p = K.el('div', 'page');
+  p.appendChild(K.el('h1', null, h1));
+  return p;
+}
+
+function rowList(items) {
+  const dl = K.el('dl', 'rows');
+  items.forEach(([a, b, c]) => {
+    const r = K.el('div', 'row');
+    r.appendChild(K.el('dt', null, a));
+    r.appendChild(K.el('dd', null, c ? '<b>' + b + '</b><span>' + c + '</span>' : b));
+    dl.appendChild(r);
+  });
+  return dl;
+}
+
+/* mekân adı: "Kişisel sergi · Ardıç Sanat" -> "Ardıç Sanat". Dilden bağımsız. */
+const venueOf = (s) => s.split(' · ').slice(1).join(' · ') || s;
+
+/* ── görünümler ──────────────────────────────────────────────────────────── */
+
+function viewHome() {
+  markNav(null);
+  main.innerHTML = '';
+  const wrap = K.el('div');
+  wrap.id = 'home';
+
+  const w = SITE.works.find(x => x.slug === 'dag-sirti') || SITE.works[0];
+  const lead = K.el('div', 'lead');
+  const h1 = K.el('h1', null, SITE.artist.name + ' — ' + t('site_sub'));
+  h1.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)';
+  lead.appendChild(h1);
+  lead.appendChild(workBlock(w, { eager: true }));
+  wrap.appendChild(lead);
+
+  const cv = L().cv;
+  const side = K.el('div', 'side');
+  side.innerHTML =
+    '<div class="blk"><div class="lbl">' + t('home_now') + '</div>' +
+    '<b>' + cv[0][1] + '</b><br>' + venueOf(cv[0][2]) + '<br>2024</div>' +
+    '<div class="blk"><div class="lbl">' + t('home_next') + '</div>' +
+    '<b>' + cv[1][1] + '</b><br>' + venueOf(cv[1][2]) + '<br>2025</div>';
+  wrap.appendChild(side);
+
+  main.appendChild(wrap);
+  setTitle(null);
+  scrollTo(0, 0);
+}
+
+function viewSon() {
+  markNav('/son');
+  const lede = K.el('div', 'lede');
+  lede.appendChild(K.el('h1', null, t('nav_recent')));
+  lede.appendChild(K.el('p', null,
+    fill(t('recent_lede'), { n: SITE.works.length, s: SITE.series.length })));
+  listView([...SITE.works].sort((a, b) => b.year - a.year), lede, t('nav_recent'));
+}
+
+function viewSeri(key) {
+  const base = K.seriesOf(key);
+  if (!base) return viewSon();
+  const s = L().series[key] || { title: base.title, blurb: base.blurb };
+  markNav('/seri/' + key);
+  const lede = K.el('div', 'lede');
+  lede.appendChild(K.el('h1', null, s.title));
+  lede.appendChild(K.el('div', 'yr', base.years));
+  lede.appendChild(K.el('p', null, s.blurb));
+  listView(K.bySeries(key), lede, s.title);
+}
+
+function viewAtolye() {
+  markNav('/atolye');
+  main.innerHTML = '';
+  const p = pageShell(t('nav_studio'));
+  L().statement.forEach(x => p.appendChild(K.el('p', null, x)));
+  p.appendChild(K.el('p', null,
+    '<span style="color:var(--soft)">' + SITE.artist.name + ', ' + SITE.artist.studio + '</span>'));
+  main.appendChild(p);
+  setTitle(t('nav_studio'));
+  scrollTo(0, 0);
+}
+
+function viewBio() {
+  markNav('/biyografi');
+  main.innerHTML = '';
+  const p = pageShell(t('nav_bio'));
+  p.appendChild(K.el('div', 'formula',
+    fill(t('bio_born'), { y: SITE.artist.born, p: SITE.artist.birthplace }) + '<br>' +
+    fill(t('bio_lives'), { c: SITE.artist.based })));
+  L().bio.forEach(x => p.appendChild(K.el('p', null, x)));
+  main.appendChild(p);
+  setTitle(t('nav_bio'));
+  scrollTo(0, 0);
+}
+
+function viewSergiler() {
+  markNav('/sergiler');
+  main.innerHTML = '';
+  const p = pageShell(t('nav_exh'));
+  /* Tür ayrımı Türkçe kaynaktan yapılır, gösterim seçili dilden. */
+  const solo = [], group = [];
+  SITE.cv.forEach((row, i) => {
+    (row[2].startsWith('Kişisel') ? solo : group).push(L().cv[i]);
+  });
+  p.appendChild(K.el('h2', null, t('exh_solo')));
+  p.appendChild(rowList(solo.map(r => [r[0], r[1], venueOf(r[2])])));
+  p.appendChild(K.el('h2', null, t('exh_group')));
+  p.appendChild(rowList(group.map(r => [r[0], r[1], venueOf(r[2])])));
+  main.appendChild(p);
+  setTitle(t('nav_exh'));
+  scrollTo(0, 0);
+}
+
+function viewKoleksiyon() {
+  markNav('/koleksiyon');
+  main.innerHTML = '';
+  const p = pageShell(t('nav_coll'));
+  const ul = K.el('ul', 'plainlist');
+  L().collections.forEach(c => ul.appendChild(K.el('li', null, c)));
+  p.appendChild(ul);
+
+  const held = SITE.works.filter(w => w.status !== 'satilik');
+  p.appendChild(K.el('h2', null, t('coll_record')));
+  p.appendChild(K.el('p', null,
+    '<span style="font-size:var(--t-cap);color:var(--muted)">' +
+    fill(t('coll_sentence'), { n: SITE.works.length, h: held.length }) + '</span>'));
+  p.appendChild(rowList(held.map(w =>
+    [String(w.year), w.title, w.size + ' · ' + availLine(w.status)])));
+  main.appendChild(p);
+  setTitle(t('nav_coll'));
+  scrollTo(0, 0);
+}
+
+function viewYayinlar() {
+  markNav('/yayinlar');
+  main.innerHTML = '';
+  const p = pageShell(t('nav_pub'));
+  p.appendChild(rowList(L().publications));
+  main.appendChild(p);
+  setTitle(t('nav_pub'));
+  scrollTo(0, 0);
+}
+
+function viewBasin() {
+  markNav('/basin');
+  main.innerHTML = '';
+  const p = pageShell(t('nav_press'));
+  p.appendChild(rowList(L().press));
+  main.appendChild(p);
+  setTitle(t('nav_press'));
+  scrollTo(0, 0);
+}
+
+function viewIletisim() {
+  markNav('/iletisim');
+  main.innerHTML = '';
+  const p = pageShell(t('nav_contact'));
+  p.appendChild(K.el('p', null,
+    '<a href="mailto:' + SITE.artist.email + '" style="color:var(--link)">' +
+    SITE.artist.email + '</a>'));
+  p.appendChild(K.el('p', null,
+    '<span style="color:var(--muted)">' + SITE.artist.studio + '</span>'));
+  p.appendChild(K.el('p', null, t('contact_body')));
+  p.appendChild(K.el('div', 'note', L().notice + ' ' + SITE.works[0].credit));
+  main.appendChild(p);
+  setTitle(t('nav_contact'));
+  scrollTo(0, 0);
+}
+
+/* ── yönlendirme ─────────────────────────────────────────────────────────── */
+
+applyLang();
+
+K.Router
+  .on(/^\/$/,             viewHome)
+  .on(/^\/son$/,          viewSon)
+  .on(/^\/seri\/(.+)$/,   viewSeri)
+  .on(/^\/atolye$/,       viewAtolye)
+  .on(/^\/biyografi$/,    viewBio)
+  .on(/^\/sergiler$/,     viewSergiler)
+  .on(/^\/koleksiyon$/,   viewKoleksiyon)
+  .on(/^\/yayinlar$/,     viewYayinlar)
+  .on(/^\/basin$/,        viewBasin)
+  .on(/^\/iletisim$/,     viewIletisim)
+  .start();
+</script>

@@ -1,0 +1,142 @@
+{
+ "acilis": {
+  "src": "assets/zemin/acilis.webp",
+  "palette": [
+   "#e5e7e2",
+   "#e7e9e4",
+   "#e4e7e2",
+   "#e6e7e3",
+   "#d2dfc4",
+   "#e8eae4",
+   "#e7eae4",
+   "#e6e9e4",
+   "#efeee4"
+  ]
+ },
+ "son": {
+  "src": "assets/zemin/son.webp",
+  "palette": [
+   "#ebe4db",
+   "#e2e0db",
+   "#ebe5db",
+   "#e8e3db",
+   "#ddd6c1",
+   "#ddd4c0",
+   "#ddd3c1",
+   "#e3e1da",
+   "#e4e1da"
+  ]
+ },
+ "seri": {
+  "src": "assets/zemin/seri.webp",
+  "palette": [
+   "#e8eae0",
+   "#e5e6df",
+   "#e9eadf",
+   "#e4e5df",
+   "#e7e8e0",
+   "#e0e2df",
+   "#e1e2de",
+   "#dee0dc",
+   "#e6e7e0"
+  ]
+ },
+ "atolye": {
+  "src": "assets/zemin/atolye.webp",
+  "palette": [
+   "#e0d5c5",
+   "#e2daca",
+   "#e0d6c7",
+   "#e8e0d5",
+   "#e2d8c9",
+   "#e6ded1",
+   "#e0dac9",
+   "#e3dacc",
+   "#dfd7c5"
+  ]
+ },
+ "biyografi": {
+  "src": "assets/zemin/biyografi.webp",
+  "palette": [
+   "#ded2c2",
+   "#d4d4d2",
+   "#dfd3c4",
+   "#d9d5c8",
+   "#d2d3d2",
+   "#d0d4ce",
+   "#d2d4cc",
+   "#e0d3c5",
+   "#dfd2c3"
+  ]
+ },
+ "sergiler": {
+  "src": "assets/zemin/sergiler.webp",
+  "palette": [
+   "#e0d4c7",
+   "#e1d4c8",
+   "#e1d5c7",
+   "#e2d6c9",
+   "#e1d6c7",
+   "#e1d3c7",
+   "#e0d2c5",
+   "#e2d8ca",
+   "#e1d7c9"
+  ]
+ },
+ "koleksiyon": {
+  "src": "assets/zemin/koleksiyon.webp",
+  "palette": [
+   "#ded9c5",
+   "#e2ddd4",
+   "#ddd8c6",
+   "#dfdcd4",
+   "#e2dcd1",
+   "#dedcd4",
+   "#e1ded5",
+   "#e2ded5",
+   "#dfddd5"
+  ]
+ },
+ "yayinlar": {
+  "src": "assets/zemin/yayinlar.webp",
+  "palette": [
+   "#d7d7c8",
+   "#dad9c6",
+   "#dad8c6",
+   "#d9d8c7",
+   "#d8d8c8",
+   "#d9d7c7",
+   "#d8d7c7",
+   "#d6d6c8",
+   "#d5d5c9"
+  ]
+ },
+ "basin": {
+  "src": "assets/zemin/basin.webp",
+  "palette": [
+   "#dddfe0",
+   "#dedfe0",
+   "#e4d9ce",
+   "#dde0e0",
+   "#dce0e1",
+   "#e4d6cd",
+   "#dcdfe0",
+   "#e4d8cd",
+   "#d7d9d8"
+  ]
+ },
+ "iletisim": {
+  "src": "assets/zemin/iletisim.webp",
+  "palette": [
+   "#d8dedf",
+   "#d7dfe0",
+   "#d8dfe0",
+   "#d7dedf",
+   "#d9dede",
+   "#d6dee1",
+   "#dbdfde",
+   "#e0e1dd",
+   "#d9dfe0"
+  ]
+ }
+}

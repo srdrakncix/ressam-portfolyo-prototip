@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://srdrakncix.github.io/ressam-portfolyo-prototip/sitemap.xml

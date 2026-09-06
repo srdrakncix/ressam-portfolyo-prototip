@@ -1,0 +1,15 @@
+# Uretilmis cikti - depoya girmez, GitHub Actions her seferinde uretir.
+site/
+
+# Yer tutucu donemin ham indirmeleri (20 MB). Islenmis hali images.json'da.
+cache/
+
+# Calisma klasoru: ekran goruntuleri, kaynak fotograflar, olcum ciktilari (47 MB).
+kaynak/
+
+# Emekli prototipler
+arsiv/
+
+__pycache__/
+*.pyc
+YEDEK-*.bundle
