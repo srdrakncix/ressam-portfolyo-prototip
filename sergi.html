@@ -43,6 +43,12 @@
 * { box-sizing: border-box; }
 
 html { background: var(--yesil-koyu); }
+html.kilitli, html.kilitli body {
+  height: 100%; overflow: hidden;         /* dar ekranda dikey kaydırma yok */
+  overscroll-behavior: none;
+}
+html.kilitli body { touch-action: none; } /* her hareket duvarı sürükler */
+
 body {
   touch-action: pan-y;
   margin: 0; color: var(--krem);
@@ -593,46 +599,27 @@ const yansima = $('#yansima');
    Tablolar panellerin tam içine asılıyor.                                */
 
 const BIRIM = {
-  sade: {                                   // Eiffel panosu YOK — çoğunluk bu
-    src: 'assets/duvar/salon-sade.webp', en: 1408, boy: 1000,
-    yuvalar: [ { cx: 0.3913, g: 0.3826 }, { cx: 0.8642, g: 0.1751 } ],
-  },
-  toile: {                                  // Eiffel panolu — seyrek serpiştirilir
-    src: 'assets/duvar/salon-toile.webp', en: 1776, boy: 1000,
-    yuvalar: [ { cx: 0.4202, g: 0.3033 }, { cx: 0.7949, g: 0.1388 } ],
+  /* Tek karo, dikişi ölçülmüş.
+     Karo duvardan rastgele bir x'ten kesilirse karonun sağ kenarı bir sonraki
+     karonun sol kenarının devamı olmuyor: silmeler karşıya geçmiyor, süs
+     motifleri ikiye bölünüyor, parke kırılıyordu. Ton eşitlemek bunu gizlemez.
+     duvar.py karoyu düz duvardan kesiyor ve sağ ucuna sol ucun hemen solundaki
+     şeridi kopyalıyor; böylece karo_N'in son sütunu ile karo_N+1'in ilk sütunu
+     kaynakta yan yana iki piksel oluyor. Ölçülen ek farkı 0.94, duvarın kendi
+     sütun farkının ortancası 1.67 — ek, dokunun içinde kayboluyor.
+     ÖLÇÜLERİ ELLE DEĞİŞTİRME: duvar.py yeniden çalıştırılınca oradan gelir. */
+  salon: {
+    src: 'assets/duvar/salon.webp', en: 777, boy: 941,
+    yuvalar: [ { cx: 0.3578, g: 0.6589 } ],
   },
 };
-const YUVA_CY = 0.452;        // panellerin dikey merkezi (görselden)
-const DOLULUK = 0.70;         // en geniş eser, büyük paneli bu oranda doldurur
+const YUVA_CY = 0.4352;       // büyük panonun dikey merkezi (silmelerden ölçüldü)
+const DOLULUK = 0.70;         // en geniş eser, panoyu bu oranda doldurur
 
-/* Toile birimi her 5'te bir: kule tekrar etmesin. */
-const birimTipi = (i) => (i % 5 === 3) ? 'toile' : 'sade';
-
-/* ── yerleşim: hangi eser hangi segmentin hangi yuvasında ─────────────────
-   Ölçek değişmesine karşı dayanıklı: bütün ölçüler segment genişliğinin
-   oranı olduğu için atama bir kez yapılır, yeniden boyutlamada değişmez. */
-
+/* Her karoda bir pano, her panoda bir eser. Şato galerisinde ritim düzenlidir;
+   panoyu iki eserle bölmek duvarı kalabalık gösteriyordu. */
 function yerlesim() {
-  const enGenis = Math.max(...WORKS.map(w => w.cw));
-  const N0 = 1000;                                   // nominal segment yüksekliği
-  const segEn = (t) => BIRIM[t].en * (N0 / BIRIM[t].boy);
-  const yuvaEn = (t, j) => BIRIM[t].yuvalar[j].g * segEn(t);
-  const ppc0 = (yuvaEn('sade', 0) * DOLULUK) / enGenis;
-  const sigar = (w, t, j) => (w.cw * ppc0) <= yuvaEn(t, j) * 0.86;
-
-  const kalan = WORKS.slice();
-  const segmentler = [];
-  let i = 0;
-  while (kalan.length) {
-    const tip = birimTipi(i);
-    const seg = { tip, isler: [] };
-    seg.isler.push({ j: 0, w: kalan.shift() });            // büyük panel
-    const k = kalan.findIndex(w => sigar(w, tip, 1));      // küçük panele sığan ilk eser
-    if (k >= 0) seg.isler.push({ j: 1, w: kalan.splice(k, 1)[0] });
-    segmentler.push(seg);
-    i++;
-  }
-  return { segmentler, ppc0 };
+  return { segmentler: WORKS.map((w) => ({ tip: 'salon', isler: [{ j: 0, w }] })) };
 }
 
 const { segmentler: SEGMENTLER } = yerlesim();
@@ -649,7 +636,7 @@ let ppc = 2.2, duvarEnPx = 0;
 
 function boyutla() {
   const vh = innerHeight, vw = innerWidth;
-  const dar = vw < 720;                       // telefon ve dar tablet
+  dar = vw < 720;                             // telefon ve dar tablet
 
   /* ÖLÇEK DAR EKRANDA GENİŞLİKTEN KURULUR.
      Duvarın yüksekliği aynı zamanda karonun genişliğini belirliyor; yükseklik
@@ -657,7 +644,7 @@ function boyutla() {
      pilastra burnunu dayamış gibi oluyordu. Dar ekranda büyük paneli ekranın
      ~%84'ü yapacak yüksekliği seçiyoruz; duvar üste yaslanıyor ve künye
      altında kalan boşluğa oturuyor (kullanıcının istediği alt bant). */
-  const yuvaOran = BIRIM.sade.yuvalar[0].g * (BIRIM.sade.en / BIRIM.sade.boy);
+  const yuvaOran = BIRIM.salon.yuvalar[0].g * (BIRIM.salon.en / BIRIM.salon.boy);
   const duvarBoy = dar
     ? Math.round(Math.min(vh * 0.72, (vw * 0.78) / yuvaOran))
     : Math.round(vh * 0.94);
@@ -676,7 +663,7 @@ function boyutla() {
   });
   duvarEnPx = x;
 
-  const buyukYuvaPx = BIRIM.sade.yuvalar[0].g * (BIRIM.sade.en * (duvarBoy / BIRIM.sade.boy));
+  const buyukYuvaPx = BIRIM.salon.yuvalar[0].g * (BIRIM.salon.en * (duvarBoy / BIRIM.salon.boy));
   ppc = (buyukYuvaPx * DOLULUK) / enGenis;
 
   duvar.style.height = duvarBoy + 'px';
@@ -715,12 +702,20 @@ function boyutla() {
                    : ustBosluk + duvarBoy * 0.775) + 'px');
   document.documentElement.style.setProperty('--duvar-boy', duvarBoy + 'px');
 
-  document.body.style.height =
-    Math.max(innerHeight * 1.2, duvarEnPx - innerWidth + innerHeight) + 'px';
-  kaydir();
+  /* DAR EKRANDA DİKEY KAYDIRMA YOK.
+     Duvarı sürmek için sayfayı dikey kaydırmak telefonda yanlış bir his
+     veriyordu: parmağını yukarı çekince duvar yana gidiyordu. Artık gövde
+     tam ekran boyunda, sayfa hiç kaymıyor; duvarı yalnız yatay parmak
+     hareketi sürüyor. Geniş ekranda tekerlek çalışmaya devam ediyor. */
+  document.documentElement.classList.toggle('kilitli', dar);
+  document.body.style.height = dar
+    ? '100%'
+    : Math.max(vh * 1.2, duvarEnPx - vw + vh) + 'px';
 
-  /* Dar ekranda duvar sıfır noktasında pilastra denk geliyor, kişi eser
-     yerine boş panel görüyordu. İlk açılışta ilk eseri kadraja alıyoruz. */
+  if (dar) guncelle(); else kaydir();
+
+  /* Duvar sıfır noktasında pilastra denk geliyor, kişi eser yerine boş panel
+     görüyordu. İlk açılışta ilk eseri kadraja alıyoruz. */
   if (ilkKurulum) { ilkKurulum = false; if (dar) merkezeAl(0); }
 }
 
@@ -729,12 +724,7 @@ let ilkKurulum = true;
 function merkezeAl(idx) {
   const el = duvar.querySelector('.eser[data-i="' + idx + '"]');
   if (!el) return;
-  const max = Math.max(0, duvarEnPx - innerWidth);
-  const oran = document.body.scrollHeight - innerHeight;
-  if (max <= 0 || oran <= 0) return;
-  const solPx = parseFloat(el.style.left), enPx = parseFloat(el.style.width);
-  const istenen = Math.min(max, Math.max(0, solPx - innerWidth / 2 + enPx / 2));
-  scrollTo({ top: (istenen / max) * oran, behavior: 'auto' });
+  konumaGit(parseFloat(el.style.left) - innerWidth / 2 + parseFloat(el.style.width) / 2);
 }
 
 /* ── segmentleri ve eserleri kur ─────────────────────────────────────────── */
@@ -826,40 +816,60 @@ function merkeziBul() {
 
 let hedefX = 0, suanX = 0, fareEgim = 0, hedefEgim = 0;
 
-function kaydir() {
-  /* duvarGenisCm eski düzenin değişkeniydi; undefined * ppc = NaN veriyor
-     ve duvar hiç kıpırdamıyordu. Artık duvarEnPx kullanılıyor. */
-  const max = Math.max(0, duvarEnPx - innerWidth);
-  const oran = document.body.scrollHeight - innerHeight;
-  const p = oran > 0 ? Math.min(1, Math.max(0, scrollY / oran)) : 0;
-  hedefX = -p * max;
+/* DUVARIN YATAY KONUMU TEK DEĞİŞKENDE: konum (0 .. enFazla piksel).
+   Önce dikey scroll tek kaynaktı; telefonda bu, olmaması gereken bir dikey
+   kaydırma yaratıyordu — parmağını yukarı sürükleyince duvar yana kayıyor,
+   sayfa da kendi başına oynuyordu. Artık dar ekranda sayfa hiç kaymıyor
+   (gövde yüksekliği ekran kadar), duvarı yalnızca yatay parmak hareketi
+   sürüyor. Geniş ekranda tekerlek/scroll aynı konumu besliyor. */
+let konum = 0, dar = false;
+
+const enFazla = () => Math.max(0, duvarEnPx - innerWidth);
+const scrollPayi = () => document.body.scrollHeight - innerHeight;
+
+function guncelle() {
+  const max = enFazla();
+  konum = Math.min(max, Math.max(0, konum));
+  const p = max > 0 ? konum / max : 0;
+  hedefX = -konum;
   $('#ilerleme').style.width = (p * 100) + '%';
   if (p > 0.02) $('#ipucu').style.opacity = '0';
   merkeziBul();
 }
+
+/* Konumu yaz. Geniş ekranda scroll da senkron kalsın diye sayfa kaydırılır;
+   dar ekranda scroll yok, doğrudan konum yazılır. */
+function konumaGit(px) {
+  konum = Math.min(enFazla(), Math.max(0, px));
+  if (!dar) {
+    const max = enFazla(), oran = scrollPayi();
+    if (max > 0 && oran > 0) scrollTo({ top: (konum / max) * oran, behavior: 'auto' });
+  }
+  guncelle();
+}
+
+function kaydir() {
+  if (dar) return;                       // dar ekranda scroll kaynağı değil
+  const max = enFazla(), oran = scrollPayi();
+  konum = oran > 0 ? Math.min(1, Math.max(0, scrollY / oran)) * max : 0;
+  guncelle();
+}
 addEventListener('scroll', kaydir, { passive: true });
 
 /* ── DOKUNMATİK: yatay parmak hareketi ───────────────────────────────────
-   Duvar yanal, sayfa dikey kayıyordu; telefonda parmağını sağa sola
-   sürüklemek hiçbir şey yapmıyor, kişi duvarı gezmek için dikey kaydırmak
-   zorunda kalıyordu. Artık yatay sürükleme duvarı birebir sürüklüyor.
-   Tek doğruluk kaynağı yine scrollY — ilerleme çubuğu, git() ve merkeziBul()
-   olduğu gibi çalışmaya devam etsin diye ayrı bir konum değişkeni tutulmuyor.
-   touch-action:pan-y sayesinde dikey kaydırmayı tarayıcı yapmayı sürdürüyor,
-   yatay hareket bize cancelable geliyor. */
+   Parmak duvarı birebir sürüklüyor; bırakınca atalet devam ediyor.
+   Dar ekranda sayfanın dikey kaydırması kapalı olduğu için (boyutla()
+   gövde yüksekliğini ekrana eşitliyor) burada scroll'a hiç dokunulmuyor. */
 (function () {
-  const max = () => Math.max(0, duvarEnPx - innerWidth);
-  const oran = () => document.body.scrollHeight - innerHeight;
-  const katsayi = () => (max() > 0 ? oran() / max() : 0);   // parmak px -> scroll px
-
-  let x0 = 0, y0 = 0, top0 = 0, yon = null, sonX = 0, sonT = 0, hiz = 0, atalet = 0;
+  let x0 = 0, y0 = 0, k0 = 0, yon = null, sonX = 0, sonT = 0, hiz = 0, atalet = 0;
+  let kaydi = false;
 
   addEventListener('touchstart', (e) => {
     if (acikIdx >= 0 || e.touches.length !== 1) return;
-    atalet = 0;
+    atalet = 0; kaydi = false;
     const t = e.touches[0];
     x0 = sonX = t.clientX; y0 = t.clientY;
-    top0 = scrollY; yon = null; hiz = 0; sonT = e.timeStamp;
+    k0 = konum; yon = null; hiz = 0; sonT = e.timeStamp;
   }, { passive: true });
 
   addEventListener('touchmove', (e) => {
@@ -868,14 +878,18 @@ addEventListener('scroll', kaydir, { passive: true });
     const dx = x0 - t.clientX, dy = y0 - t.clientY;
     if (yon === null) {
       if (Math.abs(dx) < 9 && Math.abs(dy) < 9) return;
-      yon = Math.abs(dx) > Math.abs(dy) ? 'yatay' : 'dikey';
+      /* Dar ekranda dikey kaydırma diye bir şey yok: her hareket duvarı
+         sürüklesin, kişi parmağını hafif eğik kaydırınca hiçbir şey
+         olmaması sinir bozucu oluyordu. */
+      yon = (dar || Math.abs(dx) > Math.abs(dy)) ? 'yatay' : 'dikey';
     }
     if (yon !== 'yatay') return;
     if (e.cancelable) e.preventDefault();
+    kaydi = true;
     const dt = e.timeStamp - sonT;
     if (dt > 0) hiz = (sonX - t.clientX) / dt;          // px/ms
     sonX = t.clientX; sonT = e.timeStamp;
-    scrollTo({ top: top0 + dx * katsayi(), behavior: 'auto' });
+    konumaGit(k0 + dx);
   }, { passive: false });
 
   addEventListener('touchend', () => {
@@ -884,7 +898,9 @@ addEventListener('scroll', kaydir, { passive: true });
     atalet = hiz * 16;                                  // kare başına px
     const sur = () => {
       if (Math.abs(atalet) < 0.35) return;
-      scrollTo({ top: scrollY + atalet * katsayi(), behavior: 'auto' });
+      const onceki = konum;
+      konumaGit(konum + atalet);
+      if (konum === onceki) return;                     // uca dayandı
       atalet *= 0.94;
       requestAnimationFrame(sur);
     };
@@ -892,12 +908,9 @@ addEventListener('scroll', kaydir, { passive: true });
   }, { passive: true });
 
   /* sürükleme bittiğinde tabloyu açma; parmak kaydırmak tıklamak değildir */
-  let kaydi = false;
-  addEventListener('touchmove', () => { if (yon === 'yatay') kaydi = true; }, { passive: true });
   duvar.addEventListener('click', (e) => {
     if (kaydi) { e.stopPropagation(); e.preventDefault(); kaydi = false; }
   }, true);
-  addEventListener('touchstart', () => { kaydi = false; }, { passive: true });
 })();
 
 if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
@@ -1014,13 +1027,7 @@ function git(yon) {
   if (acikIdx < 0) return;
   const y = (acikIdx + yon + N) % N;
   /* hedef eseri kadraja getir ki geri dönüş doğru yere olsun */
-  const hedefEl = duvar.querySelector('.eser[data-i="' + y + '"]');
-  const max = Math.max(0, duvarEnPx - innerWidth);
-  const solPx = hedefEl ? parseFloat(hedefEl.style.left) : 0;
-  const enPx = hedefEl ? parseFloat(hedefEl.style.width) : 0;
-  const istenen = Math.min(max, Math.max(0, solPx - innerWidth / 2 + enPx / 2));
-  const oran = document.body.scrollHeight - innerHeight;
-  if (max > 0) scrollTo({ top: (istenen / max) * oran, behavior: 'auto' });
+  merkezeAl(y);
   const eski = duvar.querySelector('.eser[data-i="' + acikIdx + '"]');
   if (eski) eski.style.visibility = '';
   requestAnimationFrame(() => requestAnimationFrame(() => ac(y)));
@@ -1037,7 +1044,7 @@ addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') git(1);
   }
 });
-$('#hepsi').addEventListener('click', () => scrollTo({ top: 0, behavior: 'auto' }));
+$('#hepsi').addEventListener('click', () => konumaGit(0));
 
 /* ── başlat ──────────────────────────────────────────────────────────────── */
 
