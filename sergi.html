@@ -173,6 +173,44 @@ body {
 .etiket .o { font-size: 11px; color: var(--krem-sol); letter-spacing: .04em; margin-top: 2px; }
 .eser:hover .etiket, .eser:focus-visible .etiket { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* ── duvar etiketi: lambrinin üstünde, pirinç levhaya kazınmış gibi ───────
+   O kahverengi bant boştu. Müzede tam oraya yorum panosu konur.          */
+
+#tabela {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  top: var(--tabela-y, 74%);
+  width: min(760px, 88vw); text-align: center;
+  z-index: 12; pointer-events: none;
+  transition: opacity 300ms var(--ease);
+}
+#tabela .ad {
+  font-family: var(--serif); font-style: italic;
+  font-size: clamp(17px, 1rem + .55vw, 23px); color: #f2e6cb;
+  text-shadow: 0 1px 0 rgba(255,228,178,.14), 0 -1px 2px rgba(0,0,0,.8);
+}
+#tabela .cev {
+  font-family: var(--serif); font-style: italic; font-size: 13px;
+  color: rgba(233,214,180,.62); margin-top: 1px;
+}
+#tabela .sat {
+  font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  color: rgba(233,214,180,.5); margin-top: 8px;
+}
+#tabela .soz {
+  font-family: var(--serif); font-style: italic;
+  font-size: clamp(13px, .82rem + .2vw, 15px); line-height: 1.6;
+  color: rgba(240,228,205,.82); margin: 12px auto 0; max-width: 48ch;
+  text-shadow: 0 -1px 2px rgba(0,0,0,.7);
+}
+#tabela .durum {
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--altin); margin-top: 10px; opacity: .82;
+}
+#tabela .bos {
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(233,214,180,.34);
+}
+
 /* ── üst şerit ───────────────────────────────────────────────────────────── */
 
 #ust {
@@ -285,6 +323,7 @@ body {
   </div>
 </div>
 
+<div id="tabela" aria-hidden="true"></div>
 <div id="ilerleme"></div>
 
 <div id="ust">
@@ -590,6 +629,12 @@ function boyutla() {
     el.style.left   = (d.x * ppc) + 'px';
     el.style.bottom = ((d.yc - d.w.ch / 2) * ppc) + 'px';
   });
+  /* etiketi lambri bandının ortasına yerleştir */
+  const lambriCm = DUVAR_CM - 210;
+  const lambriUstPx = (vh - yp) / 2 + yp - lambriCm * ppc;
+  document.documentElement.style.setProperty(
+    '--tabela-y', (lambriUstPx + lambriCm * ppc * 0.34) + 'px');
+
   /* sayfa yüksekliği = duvarın kaydırılacak mesafesi */
   document.body.style.height = Math.max(innerHeight * 1.2, gp - innerWidth + innerHeight) + 'px';
   kaydir();
@@ -611,8 +656,7 @@ YERLER.forEach((d, idx) => {
   b.innerHTML =
     '<div class="isik"></div>' +
     '<div class="cerceve"><img src="' + w.src + '" alt="" loading="lazy"></div>' +
-    '<div class="etiket"><div class="a">' + w.title + '</div>' +
-    '<div class="o">' + w.year + ' · ' + w.size + '</div></div>';
+    '';
 
   b.addEventListener('click', () => ac(idx));
   duvar.appendChild(b);
@@ -623,13 +667,69 @@ YERLER.forEach((d, idx) => {
   liste.appendChild(li);
 });
 
+/* ── duvar etiketi ───────────────────────────────────────────────────────
+   Fare bir tablonun üstündeyse onun bilgisi; değilse ekranın ortasına en
+   yakın eserinki. Dokunmatikte hover olmadığı için panel hiç boş kalmıyor. */
+
+const tabela = document.getElementById('tabela');
+let uzerinde = -1, merkezde = -1;
+
+function tabelaYaz(idx) {
+  if (idx < 0 || !YERLER[idx]) {
+    tabela.innerHTML = '<div class="bos">' + t('nav_gallery') + ' · ' +
+                       SITE.artist.name + '</div>';
+    return;
+  }
+  const w = YERLER[idx].w;
+  const gloss = (L().works[w.id] || {}).gloss || '';
+  const soz = (L().works[w.id] || {}).note || w.note;
+  const durum = w.status === 'satilik' ? t('avail_studio')
+              : w.status === 'koleksiyonda' ? t('avail_private') : t('avail_gone');
+  tabela.innerHTML =
+    '<div class="ad">' + w.title + '</div>' +
+    (gloss ? '<div class="cev">' + gloss + '</div>' : '') +
+    '<div class="sat">' + w.year + ' · ' + t('medium') + ' · ' +
+    w.size + ' | ' + w.sizeIn + '</div>' +
+    '<div class="soz">“' + soz + '”</div>' +
+    '<div class="durum">' + durum + '</div>';
+}
+
+function tabelaTazele() {
+  tabelaYaz(uzerinde >= 0 ? uzerinde : merkezde);
+}
+
+/* ekranın ortasına en yakın eser */
+function merkeziBul() {
+  const orta = innerWidth / 2;
+  let en = Infinity, k = -1;
+  duvar.querySelectorAll('.eser').forEach((el) => {
+    const r = el.getBoundingClientRect();
+    if (r.right < 0 || r.left > innerWidth) return;
+    const d = Math.abs((r.left + r.width / 2) - orta);
+    if (d < en) { en = d; k = +el.dataset.i; }
+  });
+  if (k !== merkezde) { merkezde = k; if (uzerinde < 0) tabelaTazele(); }
+}
+
 duvar.addEventListener('pointerover', (e) => {
-  if (e.target.closest('.eser')) duvar.classList.add('odak');
+  const el = e.target.closest('.eser');
+  if (!el) return;
+  duvar.classList.add('odak');
+  uzerinde = +el.dataset.i;
+  tabelaTazele();
 });
 duvar.addEventListener('pointerout', (e) => {
-  if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest('.eser'))
+  if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest('.eser')) {
     duvar.classList.remove('odak');
+    uzerinde = -1;
+    tabelaTazele();
+  }
 });
+duvar.addEventListener('focusin', (e) => {
+  const el = e.target.closest('.eser');
+  if (el) { uzerinde = +el.dataset.i; tabelaTazele(); }
+});
+duvar.addEventListener('focusout', () => { uzerinde = -1; tabelaTazele(); });
 
 /* ── yanal hareket + hafif paralaks. Dönme YOK. ──────────────────────────── */
 
@@ -643,6 +743,7 @@ function kaydir() {
   hedefX = -p * max;
   $('#ilerleme').style.width = (p * 100) + '%';
   if (p > 0.02) $('#ipucu').style.opacity = '0';
+  merkeziBul();
 }
 addEventListener('scroll', kaydir, { passive: true });
 
@@ -727,6 +828,7 @@ function ac(idx) {
   detay.style.opacity = '1';
   detay.style.visibility = 'visible';
 
+  tabela.style.opacity = '0';
   duyuru.textContent = (idx + 1) + ' / ' + N + '. ' + w.title + '. ' + w.year + '. ' + w.size + '.';
   $('#kapat').focus({ preventScroll: true });
 }
@@ -741,6 +843,7 @@ function kapat() {
   ucan.style.height = r.height + 'px';
   detay.classList.remove('acik');
   detay.setAttribute('aria-hidden', 'true');
+  tabela.style.opacity = '';
   kunyeEl.style.opacity = '';
   kunyeEl.style.transform = '';
   detay.style.opacity = '';
@@ -786,6 +889,8 @@ $('#hepsi').addEventListener('click', () => scrollTo({ top: 0, behavior: 'auto' 
 
 addEventListener('resize', boyutla, { passive: true });
 boyutla();
+merkeziBul();
+tabelaTazele();
 requestAnimationFrame(dongu);
 </script>
 
