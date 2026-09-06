@@ -166,6 +166,11 @@ body {
     inset 0 0 14px rgba(0,0,0,.35);
   transition: box-shadow 420ms var(--ease);
 }
+.cerceve::before {                               /* kenarsız sıcak hâle */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  box-shadow: 0 0 60px 26px rgba(255,226,175,.14);
+  opacity: 0; transition: opacity 420ms var(--ease);
+}
 .cerceve::after {                                /* iç pah */
   content: ""; position: absolute; inset: clamp(5px, .55vw, 11px);
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.55), inset 0 1px 3px rgba(0,0,0,.5);
@@ -173,12 +178,19 @@ body {
 }
 .eser img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
-/* tablonun üstüne düşen sıcak ışık */
+/* Tablonun üstüne düşen sıcak ışık.
+   KUTU KENARI GÖRÜNMEMELİ: gradyan öğenin sınırına varmadan tamamen
+   saydamlaşmalı, yoksa duvarda dikdörtgen bir leke belirir. Öğe büyük,
+   gradyan %52'de biter. */
 .isik {
-  position: absolute; inset: -12% -14% -6%;
-  background: radial-gradient(ellipse 70% 62% at 50% 4%,
-    rgba(255,232,186,.30), rgba(255,226,175,.10) 46%, transparent 72%);
-  opacity: .5; pointer-events: none;
+  position: absolute; inset: -58% -52% -34%;
+  background: radial-gradient(ellipse 46% 42% at 50% 30%,
+    rgba(255,233,190,.26) 0%,
+    rgba(255,228,180,.13) 22%,
+    rgba(255,226,175,.045) 36%,
+    rgba(255,226,175,0) 52%);
+  opacity: .62; pointer-events: none;
+  mix-blend-mode: soft-light;
   transition: opacity 420ms var(--ease);
 }
 
@@ -194,6 +206,8 @@ body {
       inset 0 0 14px rgba(0,0,0,.3);
   }
   .eser:hover .isik, .eser:focus-visible .isik { opacity: 1; }
+  /* çerçeveye sıcak bir hâle: kenarı olmayan gerçek ışık */
+  .eser:hover .cerceve::before, .eser:focus-visible .cerceve::before { opacity: 1; }
   /* komşular sönsün, dikkat toplansın */
   #duvar.odak .eser:not(:hover):not(:focus-visible) { filter: brightness(.62) saturate(.85); }
 }
