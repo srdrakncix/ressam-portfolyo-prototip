@@ -43,6 +43,7 @@
 html { background: #17161a; }
 
 body {
+  overscroll-behavior-y: none;   /* lastik-bant sabit zemini oynatmasın */
   margin: 0;
   color: var(--ink);
   font: 400 var(--t-body)/1.55 var(--sans);
@@ -60,11 +61,24 @@ a:hover { color: var(--link); }
 
 /* ── zemin: ressamın boyası, sabit, sayfa değişince yumuşak geçiş ────────── */
 
+/* Zemin tablosu sayfayla BİRLİKTE GELMEMELİ.
+   inset:0 tek başına yetmiyordu: mobilde adres çubuğu açılıp kapandıkça
+   100vh değişiyor, background-size:cover yeniden hesaplanıyor ve görsel
+   her kaydırmada yeniden çözülüyordu (gereksiz yükleme + takılma).
+   Çözüm: yüksekliği kaydırmayla değişmeyen 100lvh'ye sabitlemek, katmanı
+   kendi compositor katmanına almak ve lastik-bant esnemesini kapatmak. */
 .bg {
-  position: fixed; inset: 0; z-index: 0;
+  position: fixed; top: 0; left: 0; z-index: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100lvh;                 /* adres çubuğu gizlenince değişmez */
   background-size: cover; background-position: center;
+  background-repeat: no-repeat;
   opacity: 0; transition: opacity 900ms var(--ease);
   pointer-events: none;
+  transform: translateZ(0);       /* kendi katmanı: kaydırmada yeniden boyanmaz */
+  will-change: opacity;
+  backface-visibility: hidden;
 }
 .bg.on { opacity: 1; }
 .bg::after {                      /* okunurluk için hafif koyultma */
@@ -185,7 +199,17 @@ a:hover { color: var(--link); }
 
 /* ── içerik paneli ───────────────────────────────────────────────────────── */
 
+/* ── MENÜ AÇILIŞI: "tuval askıdan alınıyor" ──────────────────────────────
+   von Kaufmann'da içerik sayfası KÂĞIT gibi çevriliyor — ince, tek yüzlü,
+   arkası yok. Bizim sayfamız kâğıt değil TUVAL olmalı; sitenin sahibi
+   ressam. Menü açılınca panel sol kenarındaki menteşeden salınıyor, bu
+   sırada ŞASİ KENARI ortaya çıkıyor (kâğıdın olmayan şeyi: kalınlık) ve
+   panel siyah menünün üstüne kendi gölgesini düşürüyor. Aynı jest, ama
+   malzemesi doğru. Dönüş 14° — depoda tabloyu askıdan çekmek kadar,
+   mide bulandıracak kadar değil. */
 #shell {
+  perspective: 2400px;
+  perspective-origin: 10% 44%;
   position: relative; z-index: 10;
   max-width: 1180px;
   margin: clamp(90px, 11vh, 150px) auto clamp(60px, 10vh, 130px);
@@ -196,6 +220,43 @@ a:hover { color: var(--link); }
   padding: clamp(28px, 4.4vw, 68px);
   box-shadow: 0 18px 60px rgba(0,0,0,.22);
   min-height: 52vh;
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transition: transform 620ms cubic-bezier(.33,.02,.16,1),
+              box-shadow 620ms var(--ease);
+}
+html.menuacik #panel {
+  /* Menteşe siyah menünün SAĞINA düşmeli, yoksa şasi kenarı menünün altında
+     kalıyor ve bütün fikir görünmez oluyor. Panel bir adım geri çekilip
+     sağa kayıyor: tuval duvardan alınmış, elde tutuluyor gibi. */
+  transform: translateX(clamp(0px, 12vw, 176px)) rotateY(13deg) scale(.9);
+  /* ŞASİ KENARI: sola kaydırılmış katmanlı gölgelerden kabartma. Kâğıdın
+     olmayan şeyi — kalınlık. Gölgeler öğenin kendi eksenine bağlı olduğu
+     için panelle birlikte dönüyor, kenara yapışık kalıyor. */
+  box-shadow:
+     -2px 0 0 #dfc79e,  -4px 0 0 #cdb083,  -6px 0 0 #b99a6c,
+     -8px 0 0 #a5855a,  -10px 0 0 #8f7149, -12px 0 0 #785d3a,
+     -14px 0 0 #614a2d,  -16px 0 0 #4a3821,
+     -26px 34px 100px rgba(0,0,0,.46);
+}
+
+/* Panelin siyah menü üstüne düşen gölgesi — hareketi fiziksel kılan ayrıntı */
+#menugolge {
+  position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: linear-gradient(90deg, rgba(0,0,0,0) 26%, rgba(0,0,0,.16) 62%,
+                                     rgba(0,0,0,.5) 100%);
+  opacity: 0; transform: translateX(-18%);
+  transition: opacity 700ms var(--ease), transform 700ms var(--ease);
+}
+#menu.open #menugolge { opacity: 1; transform: none; }
+
+/* menü satırları sırayla yükselsin */
+#menu li, #menu .grouplbl {
+  opacity: 0; transform: translateY(9px); transition-delay: 0ms;
+  transition: opacity 420ms var(--ease), transform 420ms var(--ease);
+}
+#menu.open li, #menu.open .grouplbl {
+  opacity: 1; transform: none; transition-delay: var(--d, 0ms);
 }
 .wordmark {
   font-size: clamp(20px, 1rem + 1.2vw, 26px); font-weight: 400;
@@ -273,6 +334,11 @@ a:hover { color: var(--link); }
   #menubtn { width: 54px; height: 54px; padding: 11px 10px; gap: 5px; }
   #menubtn i { height: 4px; }
   #shell { margin-top: 86px; }
+}
+
+@media (max-width: 720px) {
+  /* dar ekranda panel neredeyse tüm eni kaplıyor; salınım daha ölçülü */
+  html.menuacik #panel { transform: translateX(12px) rotateY(8deg) scale(.99); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -623,6 +689,11 @@ function menuModel() {
 
 function buildMenu() {
   menuEl.innerHTML = '';
+  /* innerHTML temizliği gölge katmanını da siliyordu — yeniden kuruyoruz. */
+  const golge = K.el('div');
+  golge.id = 'menugolge';
+  golge.setAttribute('aria-hidden', 'true');
+  menuEl.appendChild(golge);
   const ul = K.el('ul');
   menuModel().forEach((it) => {
     const li = K.el('li');
@@ -657,6 +728,11 @@ function buildMenu() {
 
 function openMenu() {
   buildMenu();
+  /* satır gecikmeleri: üstten alta doğru sırayla yükselsinler */
+  menuEl.querySelectorAll('li, .grouplbl').forEach((el, i) => {
+    el.style.setProperty('--d', (150 + i * 36) + 'ms');
+  });
+  document.documentElement.classList.add('menuacik');
   menuEl.classList.add('open');
   scrim.classList.add('on');
   btn.setAttribute('aria-expanded', 'true');
@@ -665,6 +741,7 @@ function openMenu() {
   if (first) first.focus({ preventScroll: true });
 }
 function closeMenu() {
+  document.documentElement.classList.remove('menuacik');
   menuEl.classList.remove('open');
   scrim.classList.remove('on');
   btn.setAttribute('aria-expanded', 'false');
