@@ -12,6 +12,11 @@
 <meta property="og:image" content="https://srdrakncix.github.io/ressam-portfolyo-prototip/assets/68388.webp">
 
 <style>
+@property --k {          /* kayıtsız özel değişken geçişlenemez */
+  syntax: '<length>';
+  inherits: true;
+  initial-value: 0px;
+}
 /* ═══════════════════════════════════════════════════════════════════════════
    MEKÂN — ressamın kendi boyası zemin, içerik onun üstünde beyaz panel.
    Menü düğmesi düz bir ikon değil: üç çubuğun her biri gerçek bir tablodan
@@ -19,6 +24,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
+  --shell-pad: clamp(12px, 3vw, 28px);
   --ink:    #111111;
   --muted:  #4a4a4a;
   --soft:   #6a6a6a;
@@ -182,7 +188,7 @@ a:hover { color: var(--link); }
 
 #scrim {
   position: fixed; inset: 0; z-index: 30;
-  background: rgba(8,8,10,.5);
+  background: rgba(8,8,10,.34);
   opacity: 0; pointer-events: none;
   transition: opacity 420ms var(--ease);
 }
@@ -200,58 +206,74 @@ a:hover { color: var(--link); }
 /* ── içerik paneli ───────────────────────────────────────────────────────── */
 
 #shell {
+  --k: 0px;                          /* katlanan köşenin boyu */
+  transition: --k 640ms cubic-bezier(.2,.86,.24,1);
+  /* Sayfa gölgesi panelde box-shadow olarak duramaz: clip-path onu da
+     kırpar. drop-shadow kesilmiş silueti takip ediyor. */
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,.16))
+          drop-shadow(0 16px 26px rgba(0,0,0,.20));
   position: relative; z-index: 10;
   max-width: 1180px;
   margin: clamp(90px, 11vh, 150px) auto clamp(60px, 10vh, 130px);
-  padding-inline: clamp(12px, 3vw, 28px);
+  padding-inline: var(--shell-pad);
 }
 #panel {
   background: var(--panel);
   padding: clamp(28px, 4.4vw, 68px);
-  box-shadow: 0 18px 60px rgba(0,0,0,.22);
   min-height: 52vh;
 
-  /* ── MENÜ AÇILIŞI: sayfa yerinden sökülüyor ────────────────────────────
-     Menüyü açmak "bu sayfadan çıkıyorum" demektir. O yüzden açık menüde
-     içerik sayfası yerinde duran bir zemin değil, yerinden kaldırılmış bir
-     yaprak olmalı: sol kenarı kıvrılıyor, sayfa hafifçe yamulup duvardan
-     kalkıyor ve menünün önünden çekiliyor.
+  /* ── MENÜ AÇILIŞI: sayfanın SAĞ ÜST KÖŞESİ çevriliyor ──────────────────
+     Menüyü açmak "bu sayfadan çıkıyorum" demek. Kitap sayfası da sağ üst
+     köşesinden tutulup çevrilir — jest budur, başka bir yeri değil.
 
-     İlk denemede sayfa menteşeden KAPI GİBİ arkaya dönüyordu. Jest kendini
-     açıklamıyordu — bir sayfanın neden kapı gibi döndüğünün cevabı yok.
-     Düzlem içinde eğilmek (rotate) + kenarın kıvrılması ise doğrudan
-     "bu yaprak söküldü" diyor; yön de belli, menüden uzağa. */
-  transform-origin: 0 50%;          /* sol kenar çapa: kaydırma miktarı ölçülebilir */
-  transition: transform 640ms cubic-bezier(.2,.86,.24,1),
-              box-shadow 640ms var(--ease);
+     İki deneme çöpe gitti, ikisi de aynı sebepten: hareketin fiziksel
+     karşılığı yoktu. Önce sayfa menteşeden KAPI GİBİ arkaya dönüyordu;
+     sonra sol kenarında gradyanla bir "kıvrım" beliriyordu. İkisi de
+     boyanmış görünüyordu, katlanmış değil.
+
+     Bu sefer geometri gerçek: köşedeki üçgen sayfadan KESİLİYOR (clip-path),
+     altındaki tablo görünüyor. Katlanan parça o üçgenin kat çizgisine göre
+     TAM AYNA görüntüsü — rotate(45deg) scaleY(-1) rotate(-45deg) birleşimi
+     45°'lik doğruya göre yansımanın kendisidir, yaklaşık bir taklit değil:
+     (W,0) köşesi tam olarak (W−k, k) noktasına düşer, kat çizgisi üstündeki
+     iki nokta yerinde kalır. Bu yüzden kesik kenarla katlanan parçanın ağzı
+     piksel piksel çakışır.
+
+     Yüzeyi de boyalı değil: kagit.webp gerçek lif dokusu (frekans uzayında
+     üretildiği için kusursuz döşenir), üstüne kat çizgisinde parlayıp uca
+     doğru sönen ışık çarpılıyor. Gölge box-shadow olamazdı — clip-path onu
+     kırpardı; drop-shadow kesilmiş şeklin kendisini takip ediyor. */
+  clip-path: polygon(0 0, calc(100% - var(--k)) 0, 100% var(--k), 100% 100%, 0 100%);
 }
 
-/* kıvrılan sol kenar: yaprağın kalkmış ağzı */
-#panel::before {
-  content: ""; position: absolute; z-index: 2; pointer-events: none;
-  top: -1px; bottom: -1px; left: 0; width: 0;
-  background: linear-gradient(90deg,
-      #b4ac9d 0%, #cdc6b8 22%, #e6e1d8 58%, #f6f4f0 88%, var(--panel) 100%);
-  border-radius: 13px 0 0 13px / 30px 0 0 30px;
-  box-shadow: 9px 0 20px -5px rgba(0,0,0,.26);   /* kıvrımın sayfaya düşen gölgesi */
-  transition: width 640ms cubic-bezier(.2,.86,.24,1);
+/* katlanan köşe: kâğıdın arka yüzü */
+#kivrim {
+  position: absolute; top: 0; right: var(--shell-pad);
+  width: var(--k); height: var(--k);
+  z-index: 3; pointer-events: none;
+  /* İki gölge: sıkı temas gölgesi + yumuşak ortam gölgesi. Tek gölge düz
+     bir yapıştırma gibi duruyordu. */
+  filter: drop-shadow(-3px 4px 4px rgba(0,0,0,.34))
+          drop-shadow(-11px 14px 18px rgba(0,0,0,.24));
+}
+#kivrim i {
+  position: absolute; inset: 0; display: block;
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  transform-origin: 0 0;
+  transform: rotate(45deg) scaleY(-1) rotate(-45deg);   /* kat çizgisine göre yansıma */
+  background-image:
+    /* Kat çizgisinde ışığın yakaladığı sırt (%50 tam kat yeridir), sonra
+       kâğıdın arka yüzüne doğru hızlanan düşüş. Ölçülen eski düşüş 252→200
+       idi; kâğıt gibi değil boyalı karton gibi duruyordu. */
+    linear-gradient(45deg,
+      #ffffff 50%, #fffdf6 53%, #f6f1e6 61%,
+      #e2dac8 74%, #c3b9a1 87%, #a2977c 96%, #90856b 100%),
+    url('assets/kagit.webp');
+  background-size: 100% 100%, 128px 128px;
+  background-blend-mode: multiply;
 }
 
-/* --sokme'yi openMenu ölçüyor: panelin sol kenarı menüyü tam geçsin diye
-   gereken kaydırma. Sabit bir değer her ekran genişliğinde tutmuyordu —
-   dar pencerede panel neredeyse tüm eni kaplıyor ve kıvrım menünün altında
-   kalıyordu, yani bütün fikir görünmez oluyordu. */
-html.menuacik #panel {
-  transform: translateX(var(--sokme, 40px)) rotate(.7deg) scale(.965);
-  box-shadow: 0 36px 92px rgba(0,0,0,.4);
-}
-html.menuacik #panel::before { width: 26px; }
-
-@media (max-width: 720px) {
-  /* dar ekranda menü sayfanın neredeyse tamamını örtüyor: yalnız kalkma kalsın */
-  html.menuacik #panel { transform: rotate(.5deg) scale(.982); }
-  html.menuacik #panel::before { width: 16px; }
-}
+html.menuacik #shell { --k: clamp(96px, 15vw, 210px); }
 
 /* menü satırları sırayla yükselsin */
 #menu li, #menu .grouplbl {
@@ -359,6 +381,7 @@ html.menuacik #panel::before { width: 26px; }
 
 <div id="shell">
   <main id="panel"></main>
+  <div id="kivrim" aria-hidden="true"><i></i></div>
 </div>
 
 <noscript>
@@ -721,11 +744,6 @@ function buildMenu() {
 
 function openMenu() {
   buildMenu();
-  /* Sayfanın sol kenarı menünün sağına çıkmalı ki kıvrılan ağzı görünsün. */
-  const pr = panel.getBoundingClientRect();
-  const mw = Math.min(300, innerWidth * 0.82);
-  document.documentElement.style.setProperty(
-    '--sokme', Math.max(24, Math.round(mw + 12 - pr.left)) + 'px');
   document.documentElement.classList.add('menuacik');
   /* satır gecikmeleri: üstten alta doğru sırayla yükselsinler */
   menuEl.querySelectorAll('li, .grouplbl').forEach((el, i) => {
