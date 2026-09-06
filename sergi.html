@@ -6,7 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sergi Duvarı — Cemal Sağlam</title>
 <meta name="theme-color" content="#14211c">
-<meta name="description" content="Eserler bir şato galerisi duvarında, gerçek santimetre ölçeğinde asılı.">
+<meta name="description" content="Eserler bir Fransız salonu duvarında, gerçek santimetre ölçeğinde asılı.">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap">
 
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -30,7 +32,7 @@
   --krem-sol:    rgba(239,232,218,.62);
 
   --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --serif: Georgia, "Times New Roman", serif;
+  --serif: "Cormorant Garamond", Garamond, "EB Garamond", Georgia, serif;
   --ease: cubic-bezier(.19, 1, .22, 1);
 
   --duvar-h: 300;   /* duvarın gerçek yüksekliği, cm */
@@ -68,41 +70,76 @@ body {
   will-change: transform;
 }
 
-/* damask: SVG desen + katmanlı gradyan. Şato hissini desen değil ışık verir. */
+/* Duvar alanı: GERÇEK fotoğraflanmış ipek dokuma (ambientCG, CC0),
+   Fransız yeşiline boyandı. SVG deseni değil. */
 #yuzey {
   position: absolute; top: 0; left: 0; height: 100%;
-  background-color: var(--yesil);
   background-image:
-    /* üstten gelen sıcak ışık */
     linear-gradient(to bottom,
-      rgba(255,226,170,.13) 0%, rgba(255,226,170,.05) 14%,
-      transparent 34%, rgba(0,0,0,.30) 78%, rgba(0,0,0,.55) 100%),
-    /* damask */
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='168' viewBox='0 0 120 168'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.055' stroke-width='1.4'%3E%3Cpath d='M60 8c14 18 26 26 26 42S72 78 60 96C48 78 34 66 34 50S46 26 60 8z'/%3E%3Cpath d='M60 96c14 18 26 26 26 42s-14 26-26 44c-12-18-26-26-26-44s12-24 26-42z'/%3E%3Ccircle cx='60' cy='50' r='7'/%3E%3Ccircle cx='60' cy='138' r='7'/%3E%3Cpath d='M0 92c14 10 22 10 34 0M86 92c12 10 20 10 34 0'/%3E%3C/g%3E%3C/svg%3E");
+      rgba(255,232,186,.16) 0%, rgba(255,230,180,.06) 15%,
+      transparent 38%, rgba(0,0,0,.26) 76%, rgba(0,0,0,.46) 100%),
+    url("assets/duvar/ipek.webp");
   background-repeat: no-repeat, repeat;
-  background-size: 100% 100%, 120px 168px;
+  background-size: 100% 100%, 190px 190px;
 }
 
-/* kornis (üst silme) ve lambri (alt ahşap) */
+/* ── boiserie: Fransız oymalı krem kaplama + yaldızlı silmeler ──────────
+   İngiliz koyu meşe lambrisi değil. Versailles / hôtel particulier dili. */
 #kornis {
-  position: absolute; top: 0; left: 0; height: 46px;
-  background:
-    linear-gradient(to bottom, #3d2c1d, #6a4e33 22%, #2a1d14 60%, #17100b);
-  box-shadow: 0 6px 16px rgba(0,0,0,.55);
+  position: absolute; top: 0; left: 0; height: 58px;
+  background-image:
+    linear-gradient(to bottom,
+      rgba(255,255,255,.5) 0 2px,
+      rgba(0,0,0,.10) 2px 5px,
+      transparent 5px 42px,
+      rgba(0,0,0,.22) 42px 46px,
+      transparent 46px),
+    url("assets/duvar/boiserie.webp");
+  background-repeat: no-repeat, repeat-x;
+  background-size: 100% 100%, 420px 100%;
+  box-shadow: 0 5px 14px rgba(0,0,0,.5), inset 0 -1px 0 rgba(201,168,106,.55);
 }
+/* korniş altındaki yaldız fileto */
+#kornis::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px;
+  background: linear-gradient(to bottom, #d8bd85, #9b7c3f);
+  box-shadow: 0 1px 3px rgba(0,0,0,.5);
+}
+
 #lambri {
   position: absolute; bottom: 0; left: 0;
   height: calc((var(--duvar-h) - 210) * var(--ppc) * 1px);
-  background:
-    linear-gradient(to bottom, #241811, var(--ahsap) 8%, #1b120c 72%, #0c0805),
-    repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 2px, transparent 2px 118px);
-  border-top: 2px solid #55402c;
-  box-shadow: inset 0 8px 20px rgba(0,0,0,.5);
+  background-image:
+    /* panel çerçeveleri: Louis XVI düz fileto düzeni */
+    repeating-linear-gradient(90deg,
+      transparent 0 30px,
+      rgba(0,0,0,.16) 30px 32px,
+      rgba(255,255,255,.42) 32px 34px,
+      transparent 34px 232px,
+      rgba(255,255,255,.42) 232px 234px,
+      rgba(0,0,0,.16) 234px 236px,
+      transparent 236px 266px),
+    linear-gradient(to bottom,
+      rgba(255,255,255,.34) 0 3px,
+      rgba(0,0,0,.14) 3px 6px,
+      transparent 6px 84%,
+      rgba(0,0,0,.24) 84% 100%),
+    url("assets/duvar/boiserie.webp");
+  background-repeat: repeat-x, no-repeat, repeat;
+  background-size: 266px 100%, 100% 100%, 420px 210px;
+  box-shadow: inset 0 6px 16px rgba(0,0,0,.28);
 }
+/* boiserie üst kenarındaki yaldız fileto */
+#lambri::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -3px; height: 3px;
+  background: linear-gradient(to bottom, #e0c894, #a07f42);
+  box-shadow: 0 -1px 4px rgba(0,0,0,.45);
+}
+
 /* zeminde soluk yansıma — zemin çizmeden yer duygusu */
 #yansima {
   position: absolute; bottom: 0; left: 0; height: 34%;
-  background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.62));
+  background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.34));
   pointer-events: none;
 }
 
@@ -185,30 +222,30 @@ body {
 }
 #tabela .ad {
   font-family: var(--serif); font-style: italic;
-  font-size: clamp(17px, 1rem + .55vw, 23px); color: #f2e6cb;
-  text-shadow: 0 1px 0 rgba(255,228,178,.14), 0 -1px 2px rgba(0,0,0,.8);
+  font-size: clamp(17px, 1rem + .55vw, 23px); color: #33291c;
+  text-shadow: 0 1px 0 rgba(255,255,255,.55);
 }
 #tabela .cev {
   font-family: var(--serif); font-style: italic; font-size: 13px;
-  color: rgba(233,214,180,.62); margin-top: 1px;
+  color: rgba(51,41,28,.66); margin-top: 1px;
 }
 #tabela .sat {
   font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
-  color: rgba(233,214,180,.5); margin-top: 8px;
+  color: rgba(51,41,28,.58); margin-top: 8px;
 }
 #tabela .soz {
   font-family: var(--serif); font-style: italic;
   font-size: clamp(13px, .82rem + .2vw, 15px); line-height: 1.6;
-  color: rgba(240,228,205,.82); margin: 12px auto 0; max-width: 48ch;
-  text-shadow: 0 -1px 2px rgba(0,0,0,.7);
+  color: rgba(43,34,22,.86); margin: 12px auto 0; max-width: 48ch;
+  text-shadow: 0 1px 0 rgba(255,255,255,.4);
 }
 #tabela .durum {
   font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
-  color: var(--altin); margin-top: 10px; opacity: .82;
+  color: #8a6a2c; margin-top: 10px; opacity: .95;
 }
 #tabela .bos {
   font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
-  color: rgba(233,214,180,.34);
+  color: rgba(51,41,28,.42);
 }
 
 /* ── üst şerit ───────────────────────────────────────────────────────────── */
@@ -659,6 +696,14 @@ YERLER.forEach((d, idx) => {
     '';
 
   b.addEventListener('click', () => ac(idx));
+  /* Doğrudan bağla: delegasyon bazı tarayıcı/işaretçi durumlarında kaçırıyor.
+     pointerenter kabarcıklanmaz, tam olarak istediğimiz davranış budur. */
+  b.addEventListener('pointerenter', () => { uzerinde = idx; duvar.classList.add('odak'); tabelaTazele(); });
+  b.addEventListener('pointerleave', () => { uzerinde = -1; duvar.classList.remove('odak'); tabelaTazele(); });
+  b.addEventListener('mouseenter',  () => { uzerinde = idx; duvar.classList.add('odak'); tabelaTazele(); });
+  b.addEventListener('mouseleave',  () => { uzerinde = -1; duvar.classList.remove('odak'); tabelaTazele(); });
+  b.addEventListener('focus', () => { uzerinde = idx; tabelaTazele(); });
+  b.addEventListener('blur',  () => { uzerinde = -1; tabelaTazele(); });
   duvar.appendChild(b);
 
   const li = document.createElement('li');
@@ -711,25 +756,7 @@ function merkeziBul() {
   if (k !== merkezde) { merkezde = k; if (uzerinde < 0) tabelaTazele(); }
 }
 
-duvar.addEventListener('pointerover', (e) => {
-  const el = e.target.closest('.eser');
-  if (!el) return;
-  duvar.classList.add('odak');
-  uzerinde = +el.dataset.i;
-  tabelaTazele();
-});
-duvar.addEventListener('pointerout', (e) => {
-  if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest('.eser')) {
-    duvar.classList.remove('odak');
-    uzerinde = -1;
-    tabelaTazele();
-  }
-});
-duvar.addEventListener('focusin', (e) => {
-  const el = e.target.closest('.eser');
-  if (el) { uzerinde = +el.dataset.i; tabelaTazele(); }
-});
-duvar.addEventListener('focusout', () => { uzerinde = -1; tabelaTazele(); });
+/* Delegasyon kaldırıldı: dinleyiciler doğrudan eserlerde. */
 
 /* ── yanal hareket + hafif paralaks. Dönme YOK. ──────────────────────────── */
 
