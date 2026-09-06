@@ -184,7 +184,7 @@ body {
   top: var(--tabela-y, 74%);
   width: min(700px, 86vw); text-align: center;
   z-index: 12; pointer-events: none;
-  padding: 15px 28px 17px;
+  padding: 15px 68px 17px;               /* okların yeri */
   background: linear-gradient(158deg, rgba(30,34,27,.90), rgba(17,21,16,.94));
   border: 1px solid rgba(201,168,106,.44);
   box-shadow: 0 12px 34px rgba(0,0,0,.5),
@@ -192,6 +192,34 @@ body {
               inset 0 0 26px rgba(0,0,0,.35);
   transition: opacity 300ms var(--ease);
 }
+/* Künyenin iki yanındaki gezinme okları. Pirinç kartelin kendi diliyle:
+   ince altın çerçeve, koyu dolgu, sıcak altın ok. */
+.gezok {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  pointer-events: auto;                  /* künye tıklanmaz, oklar tıklanır */
+  width: 38px; height: 38px; padding: 0;
+  display: grid; place-items: center;
+  font: 400 17px/1 var(--sans); color: #d9bd7f;
+  background: rgba(12,16,11,.55);
+  border: 1px solid rgba(201,168,106,.42);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 260ms var(--ease), border-color 260ms var(--ease),
+              color 260ms var(--ease), transform 260ms var(--ease);
+}
+.gezok[data-yon="-1"] { left: 15px; }
+.gezok[data-yon="1"]  { right: 15px; }
+@media (hover: hover) {
+  .gezok:hover {
+    background: rgba(201,168,106,.20);
+    border-color: rgba(201,168,106,.85);
+    color: #f6e7c4;
+  }
+  .gezok[data-yon="-1"]:hover { transform: translateY(-50%) translateX(-2px); }
+  .gezok[data-yon="1"]:hover  { transform: translateY(-50%) translateX(2px); }
+}
+.gezok:active { background: rgba(201,168,106,.32); }
+
 #tabela .ad {
   font-family: var(--serif); font-style: italic;
   font-size: clamp(18px, 1rem + .6vw, 24px); color: #f4e9d2;
@@ -307,7 +335,10 @@ body {
 :focus-visible { outline: 2px solid var(--altin); outline-offset: 4px; }
 
 @media (max-width: 720px) {
-  #tabela { width: 94vw; padding: 11px 14px 12px; }
+  #tabela { width: 94vw; padding: 11px 50px 12px; }
+  .gezok { width: 34px; height: 34px; font-size: 16px; }
+  .gezok[data-yon="-1"] { left: 9px; }
+  .gezok[data-yon="1"]  { right: 9px; }
   #tabela .ad  { font-size: 19px; }
   #tabela .sat { font-size: 10.5px; letter-spacing: .07em; }
   #tabela .soz { font-size: 12.5px; }
@@ -337,7 +368,11 @@ body {
   </div>
 </div>
 
-<div id="tabela" aria-hidden="true"></div>
+<div id="tabela">
+  <button class="gezok" type="button" data-yon="-1" aria-label="Önceki eser">←</button>
+  <div id="tabelaic" aria-hidden="true"></div>
+  <button class="gezok" type="button" data-yon="1" aria-label="Sonraki eser">→</button>
+</div>
 <div id="ilerleme"></div>
 
 <div id="ust">
@@ -633,6 +668,7 @@ const N = YERLER.length;
 /* ── ölçülendirme ────────────────────────────────────────────────────────── */
 
 let ppc = 2.2, duvarEnPx = 0;
+const MERKEZLER = [];        // her eserin duvar üstündeki yatay merkezi
 
 function boyutla() {
   const vh = innerHeight, vw = innerWidth;
@@ -693,6 +729,7 @@ function boyutla() {
     el.style.left = (k.x + yv.cx * k.en - tg / 2) + 'px';
     el.style.top = (YUVA_CY * duvarBoy - ty / 2) + 'px';
     el.querySelector('.cerceve').style.setProperty('--bw', bw.toFixed(1) + 'px');
+    MERKEZLER[+el.dataset.i] = k.x + yv.cx * k.en;   // duvar koordinatında merkez
   });
 
   /* Künye: geniş ekranda duvarın lambri bandı hizasında; dar ekranda duvarın
@@ -771,11 +808,12 @@ YERLER.forEach((d, idx) => {
    yakın eserinki. Dokunmatikte hover olmadığı için panel hiç boş kalmıyor. */
 
 const tabela = document.getElementById('tabela');
+const tabelaIc = document.getElementById('tabelaic');
 let uzerinde = -1, merkezde = -1;
 
 function tabelaYaz(idx) {
   if (idx < 0 || !YERLER[idx]) {
-    tabela.innerHTML = '<div class="bos">' + t('nav_gallery') + ' · ' +
+    tabelaIc.innerHTML = '<div class="bos">' + t('nav_gallery') + ' · ' +
                        SITE.artist.name + '</div>';
     return;
   }
@@ -784,7 +822,7 @@ function tabelaYaz(idx) {
   const soz = (L().works[w.id] || {}).note || w.note;
   const durum = w.status === 'satilik' ? t('avail_studio')
               : w.status === 'koleksiyonda' ? t('avail_private') : t('avail_gone');
-  tabela.innerHTML =
+  tabelaIc.innerHTML =
     '<div class="ad">' + w.title + '</div>' +
     (gloss ? '<div class="cev">' + gloss + '</div>' : '') +
     '<div class="sat">' + w.year + ' · ' + t('medium') + ' · ' +
@@ -797,18 +835,37 @@ function tabelaTazele() {
   tabelaYaz(uzerinde >= 0 ? uzerinde : merkezde);
 }
 
-/* ekranın ortasına en yakın eser */
+/* Ekranın ortasına en yakın eser.
+   Eskiden her eserin getBoundingClientRect'i okunuyordu. İki sorunu vardı:
+   (1) her kaydırma olayında 18 kaplama ölçümü — gereksiz yerleşim hesabı;
+   (2) duvar hedefine YUMUŞAK gittiği için ölçüm o anki (eski) konumu
+       veriyordu, yani ok tuşuna basınca künye eski eserde kalıyordu.
+   Artık merkezler boyutla() içinde önbelleğe alınıyor ve karşılaştırma
+   HEDEF konuma göre yapılıyor: künye anında doğru esere geçiyor. */
 function merkeziBul() {
-  const orta = innerWidth / 2;
+  const hedef = konum + innerWidth / 2;
   let en = Infinity, k = -1;
-  duvar.querySelectorAll('.eser').forEach((el) => {
-    const r = el.getBoundingClientRect();
-    if (r.right < 0 || r.left > innerWidth) return;
-    const d = Math.abs((r.left + r.width / 2) - orta);
-    if (d < en) { en = d; k = +el.dataset.i; }
-  });
+  for (let i = 0; i < MERKEZLER.length; i++) {
+    const d = Math.abs(MERKEZLER[i] - hedef);
+    if (d < en) { en = d; k = i; }
+  }
   if (k !== merkezde) { merkezde = k; if (uzerinde < 0) tabelaTazele(); }
 }
+
+/* Künyedeki oklar: o an gösterilen eserden bir önceki/sonrakine geç. */
+function gez(yon) {
+  const su = uzerinde >= 0 ? uzerinde : merkezde;
+  const y = su < 0 ? (yon > 0 ? 0 : N - 1) : (su + yon + N) % N;
+  uzerinde = -1;
+  duvar.classList.remove('odak');
+  merkezeAl(y);
+  merkezde = y;                 /* duvar yumuşak giderken künye beklemesin */
+  tabelaTazele();
+}
+
+document.querySelectorAll('.gezok').forEach((b) => {
+  b.addEventListener('click', () => gez(+b.dataset.yon));
+});
 
 /* Delegasyon kaldırıldı: dinleyiciler doğrudan eserlerde. */
 
@@ -1042,7 +1099,11 @@ addEventListener('keydown', (e) => {
     if (e.key === 'Escape') kapat();
     if (e.key === 'ArrowLeft') git(-1);
     if (e.key === 'ArrowRight') git(1);
+    return;
   }
+  /* duvarda gezinirken de aynı oklar çalışsın */
+  if (e.key === 'ArrowLeft')  { e.preventDefault(); gez(-1); }
+  if (e.key === 'ArrowRight') { e.preventDefault(); gez(1); }
 });
 $('#hepsi').addEventListener('click', () => konumaGit(0));
 
