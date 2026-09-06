@@ -772,8 +772,9 @@ function merkeziBul() {
 let hedefX = 0, suanX = 0, fareEgim = 0, hedefEgim = 0;
 
 function kaydir() {
-  const gp = duvarGenisCm * ppc;
-  const max = Math.max(0, gp - innerWidth);
+  /* duvarGenisCm eski düzenin değişkeniydi; undefined * ppc = NaN veriyor
+     ve duvar hiç kıpırdamıyordu. Artık duvarEnPx kullanılıyor. */
+  const max = Math.max(0, duvarEnPx - innerWidth);
   const oran = document.body.scrollHeight - innerHeight;
   const p = oran > 0 ? Math.min(1, Math.max(0, scrollY / oran)) : 0;
   hedefX = -p * max;
@@ -897,10 +898,11 @@ function git(yon) {
   if (acikIdx < 0) return;
   const y = (acikIdx + yon + N) % N;
   /* hedef eseri kadraja getir ki geri dönüş doğru yere olsun */
-  const d = YERLER[y];
-  const gp = duvarGenisCm * ppc;
-  const max = Math.max(0, gp - innerWidth);
-  const istenen = Math.min(max, Math.max(0, d.x * ppc - innerWidth / 2 + (d.w.cw * ppc) / 2));
+  const hedefEl = duvar.querySelector('.eser[data-i="' + y + '"]');
+  const max = Math.max(0, duvarEnPx - innerWidth);
+  const solPx = hedefEl ? parseFloat(hedefEl.style.left) : 0;
+  const enPx = hedefEl ? parseFloat(hedefEl.style.width) : 0;
+  const istenen = Math.min(max, Math.max(0, solPx - innerWidth / 2 + enPx / 2));
   const oran = document.body.scrollHeight - innerHeight;
   if (max > 0) scrollTo({ top: (istenen / max) * oran, behavior: 'auto' });
   const eski = duvar.querySelector('.eser[data-i="' + acikIdx + '"]');
