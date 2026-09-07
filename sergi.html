@@ -377,10 +377,10 @@ body {
    Panelden yüklenen "ortam görseli" burada görünür: eserin bir evin
    duvarindaki hali. Tek görsel varsa serit BOS kalir ve :empty ile
    tümüyle kaybolur -- bos bir yer tutucu birakmiyor. */
-#kareler { display: flex; gap: 12px; margin-top: 24px; }
+#kareler { display: flex; align-items: flex-start; gap: 12px; margin-top: 24px; }
 #kareler:empty { display: none; }
 #kareler button {
-  flex: 0 0 84px; padding: 0; border: 0; background: none;
+  flex: 0 0 92px; padding: 0; border: 0; background: none;
   font: inherit; text-align: left; cursor: pointer;
 }
 #kareler img {
@@ -395,8 +395,8 @@ body {
 }
 #kareler span {
   display: block; margin-top: 7px;
-  font-size: 9.5px; letter-spacing: .13em; text-transform: uppercase;
-  color: rgba(28,33,26,.5);
+  font-size: 9.5px; letter-spacing: .11em; text-transform: uppercase;
+  white-space: nowrap; color: rgba(28,33,26,.5);
 }
 #kareler button[aria-current="true"] span { color: #8a6d2e; }
 
@@ -1041,7 +1041,7 @@ function ac(idx) {
   if (w.ortam) kareler.push({ src: w.ortam, ad: t('kare_ortam') });
   karelerEl.innerHTML = kareler.length < 2 ? '' : kareler.map((k, i) =>
     '<button type="button" data-src="' + k.src + '" aria-current="' + (i === 0) + '">' +
-    '<img src="' + k.src + '" alt="" loading="lazy"><span>' + k.ad + '</span></button>').join('');
+    '<img src="' + k.src + '" alt=""><span>' + k.ad + '</span></button>').join('');
 
   yakinlastir(false);                 // eser değişince yakınlaştırma sıfırlansın
   detay.classList.add('acik');

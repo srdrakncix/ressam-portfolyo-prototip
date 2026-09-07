@@ -13,3 +13,6 @@ arsiv/
 __pycache__/
 *.pyc
 YEDEK-*.bundle
+
+# gecici sozdizimi denetimi
+.tmpjs/

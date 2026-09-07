@@ -62,7 +62,7 @@ UI = {
         'lbl_year': 'Yıl', 'lbl_medium': 'Teknik', 'lbl_size': 'Ölçü',
         'lbl_series': 'Seri',
         # detaydaki iki kare: duz reprodüksiyon / ev ortami maketi
-        'kare_eser': 'Eser', 'kare_ortam': 'Ev ortamında',
+        'kare_eser': 'Eser', 'kare_ortam': 'Ev ortamı',
         'noscript': 'Eserleri görüntülemek için JavaScript gerekiyor.',
         'meta_desc': 'Cemal Sağlam, İstanbul’da çalışan ressam. Tuval üzerine yağlı boya; '
                      'alacakaranlık, hava ve manzara üzerine seriler.',
