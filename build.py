@@ -184,7 +184,6 @@ def build_data():
         'series':       seriler,
         'works':        works,
         'notice':       C.PLACEHOLDER_NOTICE,
-        'salon':        getattr(C, 'SANAL_SALON', ''),
     }
     data['i18n'] = build_i18n(works)
 

@@ -23,15 +23,6 @@ UI = {
         # katalog sayfasının sabit metinleri
         'gal_close': 'Kapat',
         'gal_all': 'Tümü',
-        # sanal salon (360Artwork) — sergi sayfasının sonundaki kart
-        'salon_lbl': 'Sanal salon',
-        'salon_bas': 'Eserleri bir sergi salonunda gezin',
-        'salon_alt': 'Duvarlar arasında yürüyün, bir esere yaklaşın, künyesini açın. '
-                     'Ayrı bir pencerede açılır; sayfayı yavaşlatmaz.',
-        'salon_ac': 'Salonu aç',
-        'salon_yeni': 'Yeni sekmede aç',
-        'salon_yuk': 'Sanal salon hazırlanıyor',
-        'salon_gec': 'Geç',
         'gal_room': 'Üzerine gelin: eser bir evin duvarında.',
         'gal_empty': 'Bu seride henüz eser yok.',
         'gal_exit_k': 'Çık',   # dar ekran kısaltmaları
@@ -83,14 +74,6 @@ UI = {
         'nav_about_grp': 'The artist',
         'gal_exit': 'Back to the site', 'gal_close': 'Close',
         'gal_all': 'All',
-        'salon_lbl': 'Virtual room',
-        'salon_bas': 'Walk through the works in an exhibition room',
-        'salon_alt': 'Move between the walls, step up to a work, open its caption. '
-                     'Opens in its own view; it does not slow this page down.',
-        'salon_ac': 'Enter the room',
-        'salon_yeni': 'Open in a new tab',
-        'salon_yuk': 'Preparing the virtual room',
-        'salon_gec': 'Skip',
         'gal_room': 'Hover: the work on the wall of a home.',
         'gal_empty': 'No works in this series yet.',
         'gal_exit_k': 'Exit', 
@@ -141,14 +124,6 @@ UI = {
         'nav_about_grp': 'L’artiste',
         'gal_exit': 'Retour au site', 'gal_close': 'Fermer',
         'gal_all': 'Tout',
-        'salon_lbl': 'Salle virtuelle',
-        'salon_bas': 'Parcourez les œuvres dans une salle d’exposition',
-        'salon_alt': 'Circulez entre les murs, approchez-vous d’une œuvre, ouvrez sa notice. '
-                     'S’ouvre à part ; cette page n’est pas ralentie.',
-        'salon_ac': 'Entrer dans la salle',
-        'salon_yeni': 'Ouvrir dans un nouvel onglet',
-        'salon_yuk': 'Préparation de la salle virtuelle',
-        'salon_gec': 'Passer',
         'gal_room': 'Survolez : l’œuvre sur le mur d’un intérieur.',
         'gal_empty': 'Aucune œuvre dans cette série pour l’instant.',
         'gal_exit_k': 'Sortir', 

@@ -672,10 +672,6 @@ function menuModel() {
   const items = [];
   if (inGallery) items.push({ href: '/', label: t('gal_exit'), cikis: true });
   items.push({ href: '/galeri', label: t('nav_gallery'), ozel: true });
-  /* Showroom galerinin YANINDA: ikisi de eserlere açılan kapı, biri
-     katalog biri gezilebilir salon. Salon katalogun dibinde duruyordu,
-     kimse oraya kadar inmiyor. */
-  if (SITE.salon) items.push({ href: '/salon', label: t('salon_lbl'), ozel: true });
   items.push({ sep: true });
   items.push({ href: '/son', label: t('nav_recent') });
   SITE.series.forEach(s => items.push({ href: '/seri/' + s.key, label: L().series[s.key].title, indent: true }));
@@ -774,10 +770,6 @@ function onizlemeIcin(route) {
   }
   if (route === '/galeri') {
     return { ust: t('gal_label'), ad: t('gal_title'), alt: kisalt(t('gal_sub'), 150), img: yeniEser() };
-  }
-  if (route === '/salon') {
-    return { ust: t('salon_lbl'), ad: t('salon_bas'), alt: kisalt(t('salon_alt'), 150),
-             img: yeniEser() };
   }
   if (route === '/son') {
     return { ust: t('nav_recent'), ad: SITE.works.length + ' eser · ' + SITE.series.length + ' seri',
@@ -1116,8 +1108,6 @@ const viewIletisim = () => textPage('iletisim', t('nav_contact'), (p) => {
 
 /* Galeri ayrı bir sayfa: WebGL yalnızca oraya girenlere yükleniyor. */
 const viewGaleri = () => { location.href = 'sergi.html'; };
-/* Salon da sergi sayfasında yaşıyor: tek uygulama, tek bakım noktası. */
-const viewSalon = () => { location.href = 'sergi.html#/salon'; };
 
 /* ── yönlendirme ─────────────────────────────────────────────────────────── */
 
@@ -1137,7 +1127,6 @@ buildMenu();
 K.Router
   .on(/^\/$/,           viewHome)
   .on(/^\/galeri$/,     viewGaleri)
-  .on(/^\/salon$/,      viewSalon)
   .on(/^\/son$/,        viewSon)
   .on(/^\/seri\/(.+)$/, viewSeri)
   .on(/^\/eser\/(.+)$/, viewEser)
