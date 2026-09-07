@@ -291,6 +291,13 @@ def write_assets(data, out_dir):
 
 
 def render(tpl_path, data, standalone):
+    # Gomulu derlemede write_assets calismaz ve ortam gorseli 'ortamSrc'
+    # icinde kalirdi: sayfa yalnizca 'ortam' alanini okudugu icin gorunmezdi
+    # (ustelik base64 bosuna sayfaya gomulurdu).
+    for w in data['works']:
+        veri = w.pop('ortamSrc', None)
+        if veri and not w.get('ortam'):
+            w['ortam'] = veri
     tpl = io.open(tpl_path, encoding='utf-8').read()
     for token in ('/*__SITE_DATA__*/', '/*__KIT__*/'):
         if token not in tpl:

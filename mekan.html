@@ -1027,6 +1027,21 @@ function viewEser(slug) {
     '?subject=' + encodeURIComponent(SITE.artist.name + ' — ' + w.title + ', ' + w.year) +
     '">' + availLine(w.status) + ' · ' + SITE.artist.email + '</a>'));
   panel.appendChild(kunye);
+
+  /* Ev ortami maketi: panelden yuklenen ikinci gorsel. Eserin YERINE
+     gecmiyor, kunyeden sonra ayri bir kare olarak duruyor. Yoksa hic
+     eklenmiyor -- bos bir cerceve birakmiyor. */
+  if (w.ortam) {
+    const o = K.el('figure', 'work');
+    const im = new Image();
+    im.src = w.ortam;
+    im.alt = w.title + ' — ' + t('kare_ortam');
+    im.loading = 'lazy'; im.decoding = 'async';
+    im.style.width = '100%'; im.style.display = 'block';
+    o.appendChild(im);
+    o.appendChild(K.el('figcaption', 'cap', '<div>' + t('kare_ortam') + '</div>'));
+    panel.appendChild(o);
+  }
 }
 
 function textPage(bd, title, build) {

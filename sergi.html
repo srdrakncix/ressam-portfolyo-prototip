@@ -373,6 +373,33 @@ body {
   color: #8a6d2e; margin-top: 18px;
 }
 
+/* -- iki kare: duz reprodüksiyon + ev ortami maketi ----------------------
+   Panelden yüklenen "ortam görseli" burada görünür: eserin bir evin
+   duvarindaki hali. Tek görsel varsa serit BOS kalir ve :empty ile
+   tümüyle kaybolur -- bos bir yer tutucu birakmiyor. */
+#kareler { display: flex; gap: 12px; margin-top: 24px; }
+#kareler:empty { display: none; }
+#kareler button {
+  flex: 0 0 84px; padding: 0; border: 0; background: none;
+  font: inherit; text-align: left; cursor: pointer;
+}
+#kareler img {
+  display: block; width: 100%; height: 58px; object-fit: cover;
+  background: rgba(28,33,26,.06); opacity: .58;
+  outline: 1px solid rgba(28,33,26,.14); outline-offset: -1px;
+  transition: opacity 200ms var(--ease), outline-color 200ms var(--ease);
+}
+#kareler button:hover img { opacity: .85; }
+#kareler button[aria-current="true"] img {
+  opacity: 1; outline: 2px solid #9a7d3f; outline-offset: -2px;
+}
+#kareler span {
+  display: block; margin-top: 7px;
+  font-size: 9.5px; letter-spacing: .13em; text-transform: uppercase;
+  color: rgba(28,33,26,.5);
+}
+#kareler button[aria-current="true"] span { color: #8a6d2e; }
+
 #gez {
   margin-top: auto; padding-top: 26px;
   display: flex; align-items: center; gap: 14px;
@@ -532,6 +559,7 @@ body {
   <div id="sahne"><img id="buyuk" alt=""></div>
   <aside id="bilgi">
     <div id="kunye"></div>
+    <div id="kareler"></div>
     <div id="gez">
       <button class="onceki" type="button">←</button>
       <span id="sayac"></span>
@@ -968,7 +996,7 @@ function dongu() {
 /* ── detay: tablo ekrana doğru uçuyor (FLIP) ─────────────────────────────── */
 
 const detay = $('#detay'), buyuk = $('#buyuk'), kunyeEl = $('#kunye'),
-      sayac = $('#sayac'), duyuru = $('#duyuru');
+      karelerEl = $('#kareler'), sayac = $('#sayac'), duyuru = $('#duyuru');
 let acikIdx = -1;
 
 /* Yan listede o an duvarda ortada olan eseri işaretle. */
@@ -1007,6 +1035,14 @@ function ac(idx) {
     '<div class="durum">' + durum + '</div>';
   sayac.textContent = (idx + 1) + ' / ' + N;
 
+  /* Ikinci kare: eserin ev ortamindaki hali (panelden yüklenen "ortam
+     görseli"). Yoksa serit bos birakiliyor, CSS :empty ile kayboluyor. */
+  const kareler = [{ src: w.src, ad: t('kare_eser') }];
+  if (w.ortam) kareler.push({ src: w.ortam, ad: t('kare_ortam') });
+  karelerEl.innerHTML = kareler.length < 2 ? '' : kareler.map((k, i) =>
+    '<button type="button" data-src="' + k.src + '" aria-current="' + (i === 0) + '">' +
+    '<img src="' + k.src + '" alt="" loading="lazy"><span>' + k.ad + '</span></button>').join('');
+
   yakinlastir(false);                 // eser değişince yakınlaştırma sıfırlansın
   detay.classList.add('acik');
   detay.setAttribute('aria-hidden', 'false');
@@ -1016,6 +1052,19 @@ function ac(idx) {
   duyuru.textContent = (idx + 1) + ' / ' + N + '. ' + w.title + '. ' + w.year + '. ' + w.size + '.';
   $('#kapat').focus({ preventScroll: true });
 }
+
+/* Kareye tiklayinca büyük görsel degisiyor; yakinlastirma sifirlaniyor
+   çünkü iki görselin çerçevesi ayni degil. */
+karelerEl.addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  yakinlastir(false);
+  buyuk.style.opacity = '0';
+  buyuk.src = b.dataset.src;
+  requestAnimationFrame(() => { buyuk.style.opacity = ''; });
+  karelerEl.querySelectorAll('button').forEach((x) =>
+    x.setAttribute('aria-current', String(x === b)));
+});
 
 function kapat() {
   if (acikIdx < 0) return;

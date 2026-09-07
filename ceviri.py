@@ -61,6 +61,8 @@ UI = {
         # detay panelindeki künye etiketleri
         'lbl_year': 'Yıl', 'lbl_medium': 'Teknik', 'lbl_size': 'Ölçü',
         'lbl_series': 'Seri',
+        # detaydaki iki kare: duz reprodüksiyon / ev ortami maketi
+        'kare_eser': 'Eser', 'kare_ortam': 'Ev ortamında',
         'noscript': 'Eserleri görüntülemek için JavaScript gerekiyor.',
         'meta_desc': 'Cemal Sağlam, İstanbul’da çalışan ressam. Tuval üzerine yağlı boya; '
                      'alacakaranlık, hava ve manzara üzerine seriler.',
@@ -110,6 +112,7 @@ UI = {
         'medium': 'Oil on canvas',
         'lbl_year': 'Year', 'lbl_medium': 'Medium', 'lbl_size': 'Dimensions',
         'lbl_series': 'Series',
+        'kare_eser': 'The work', 'kare_ortam': 'In a room',
         'noscript': 'JavaScript is required to view the works.',
         'meta_desc': 'Cemal Sağlam is a painter working in Istanbul. Oil on canvas; series on '
                      'twilight, weather and landscape.',
@@ -159,7 +162,8 @@ UI = {
         'avail_gone': 'Non disponible',
         'medium': 'Huile sur toile',
         'lbl_year': 'Année', 'lbl_medium': 'Technique', 'lbl_size': 'Dimensions',
-        'lbl_series': 'Série',
+        'lbl_series': 'Serie',
+        'kare_eser': 'L’œuvre', 'kare_ortam': 'Chez soi',
         'noscript': 'JavaScript est nécessaire pour afficher les œuvres.',
         'meta_desc': 'Cemal Sağlam est un peintre établi à Istanbul. Huile sur toile ; séries '
                      'sur le crépuscule, le temps et le paysage.',

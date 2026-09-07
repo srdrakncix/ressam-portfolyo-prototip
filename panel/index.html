@@ -204,9 +204,10 @@ button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; m
             <select id="durumu" required></select>
           </div>
           <div>
-            <label for="sira">Sıra</label>
-            <input type="number" id="sira" min="1" max="999">
-            <div class="ipucu">Duvardaki asılma sırası. Boş bırakılırsa sona eklenir.</div>
+            <label for="yer">Duvarda yeri</label>
+            <select id="yer"></select>
+            <div class="ipucu">Sergi duvarında nereye asılacağı. Numaraları panel kendisi
+              veriyor — iki eser aynı sıraya düşemez.</div>
           </div>
         </div>
       </fieldset>
@@ -299,10 +300,40 @@ async function gh(yol, secim = {}) {
   return y.status === 204 ? null : y.json();
 }
 
-async function dosyaYaz(yol, base64, mesaj, sha) {
-  const govde = { message: mesaj, content: base64 };
-  if (sha) govde.sha = sha;
-  return gh('contents/' + yol, { method: 'PUT', body: JSON.stringify(govde) });
+/* TEK COMMIT: bir kaydetme = bir commit = bir derleme.
+   Eskiden her dosya ayri yaziliyordu (gorsel, ortam, kunye) — uc commit, uc
+   derleme kuyrugu ve arada siteyi yarim goren bir an. Git Data API ile hepsi
+   tek agacta: ya tamami yayina girer ya hicbiri. */
+async function tekCommit(dosyalar, mesaj) {
+  const ref = await gh('git/ref/heads/main');
+  const eski = ref.object.sha;
+  const temel = await gh('git/commits/' + eski);
+
+  const girdiler = [];
+  for (const d of dosyalar) {
+    let bsha = null;                    // null = bu yolu agactan sil
+    if (!d.sil) {
+      const govde = ('base64' in d)
+        ? { content: d.base64, encoding: 'base64' }
+        : { content: d.metin, encoding: 'utf-8' };
+      bsha = (await gh('git/blobs', { method: 'POST', body: JSON.stringify(govde) })).sha;
+    }
+    girdiler.push({ path: d.yol, mode: '100644', type: 'blob', sha: bsha });
+  }
+
+  const agac = await gh('git/trees', { method: 'POST', body: JSON.stringify(
+    { base_tree: temel.tree.sha, tree: girdiler }) });
+  const yeni = await gh('git/commits', { method: 'POST', body: JSON.stringify(
+    { message: mesaj, tree: agac.sha, parents: [eski] }) });
+  await gh('git/refs/heads/main', { method: 'PATCH', body: JSON.stringify({ sha: yeni.sha }) });
+  return yeni.sha;
+}
+
+/* Baslik ve slug dogrudan innerHTML'e giriyordu; tirnak iceren bir eser adi
+   listeyi bozardi. */
+function kacir(x) {
+  return String(x == null ? '' : x).replace(/[&<>"]/g, (c) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
 /* ── yardimcilar ───────────────────────────────────────────────────────── */
@@ -372,18 +403,68 @@ async function eserleriYukle() {
 function listeCiz() {
   const u = $('#liste');
   u.innerHTML = '';
-  eserler.forEach((e) => {
+  eserler.forEach((e, i) => {
     const li = document.createElement('li');
     const b = document.createElement('button');
     b.type = 'button';
     b.setAttribute('aria-current', String(e.slug === acikSlug));
-    b.innerHTML = '<img src="' + SITE + '/assets/' + e.slug + '.webp" alt="" loading="lazy">' +
-      '<span><span class="ad">' + e.veri.baslik + '</span><br>' +
-      '<span class="yil">' + (e.veri.yil || '') + ' · ' + (e.veri.olcu ? e.veri.olcu.yukseklik_cm + '×' + e.veri.olcu.genislik_cm + ' cm' : '') + '</span></span>';
+    /* Numara listede DURUYOR: duvardaki sirayi gormeden "nereye asilsin"
+       secmek korlemesine oluyordu. */
+    b.innerHTML = '<img src="' + SITE + '/assets/' + kacir(e.slug) + '.webp" alt="" loading="lazy">' +
+      '<span><span class="ad">' + (i + 1) + '. ' + kacir(e.veri.baslik) + '</span><br>' +
+      '<span class="yil">' + kacir(e.veri.yil || '') + ' · ' + (e.veri.olcu ? kacir(e.veri.olcu.yukseklik_cm + '×' + e.veri.olcu.genislik_cm + ' cm') : '') + '</span></span>';
     b.addEventListener('click', () => formaDoldur(e.slug));
     li.appendChild(b);
     u.appendChild(li);
   });
+  yerleriKur();
+}
+
+/* Sira listesi: numaraya gore, esitlikte slug'a gore. Depoda ayni numaradan
+   iki tane bulunabiliyor (elle duzenleme, eski kayitlar); sonuc yine de
+   kararli olsun. */
+function sirala(liste) {
+  return liste.slice().sort((a, b) =>
+    ((a.veri.sira || 999) - (b.veri.sira || 999)) || a.slug.localeCompare(b.slug));
+}
+
+/* KULLANICI NUMARA YAZMIYOR, YER SECIYOR.
+   Elle numara yazilinca iki esere ayni numara dusebiliyordu ve esitlik
+   alfabeye kaliyordu — "asd" hicbir sey yazilmadan 3. siraya oturmustu.
+   Artik secim "nereye", numaralari kaydederken panel 1..N diye kendisi
+   veriyor. */
+function yerleriKur() {
+  const alan = $('#yer');
+  if (!alan) return;
+  const digerleri = sirala(eserler.filter((e) => e.slug !== acikSlug));
+  const secenek = [];
+  if (acikSlug && eserler.some((e) => e.slug === acikSlug))
+    secenek.push(['ayni', 'Yerinde kalsın']);
+  secenek.push(['son', 'En sona (' + (digerleri.length + 1) + '.)']);
+  secenek.push(['bas', 'En başa (1.)']);
+  digerleri.forEach((e, i) => secenek.push(
+    ['once:' + e.slug, (i + 1) + '. sıraya — “' + e.veri.baslik + '” önüne']));
+  alan.innerHTML = secenek.map((o) =>
+    '<option value="' + kacir(o[0]) + '">' + kacir(o[1]) + '</option>').join('');
+  alan.value = secenek[0][0];
+}
+
+/* Secime gore eserlerin NIHAI sirasi (slug dizisi). Numaralar bundan turuyor. */
+function hedefDizi(slug) {
+  const digerleri = sirala(eserler.filter((e) => e.slug !== slug)).map((e) => e.slug);
+  const secim = ($('#yer') || {}).value || 'son';
+  if (secim === 'ayni' && eserler.some((e) => e.slug === slug))
+    return sirala(eserler).map((e) => e.slug);
+  if (secim === 'bas') return [slug].concat(digerleri);
+  if (secim.indexOf('once:') === 0) {
+    const i = digerleri.indexOf(secim.slice(5));
+    if (i >= 0) {
+      const d = digerleri.slice();
+      d.splice(i, 0, slug);
+      return d;
+    }
+  }
+  return digerleri.concat(slug);
 }
 
 /* ── form ──────────────────────────────────────────────────────────────── */
@@ -418,7 +499,6 @@ function formaDoldur(slug) {
   $('#yukseklik').value = (v.olcu || {}).yukseklik_cm || '';
   $('#genislik').value = (v.olcu || {}).genislik_cm || '';
   $('#durumu').value = v.durum || 'satilik';
-  $('#sira').value = v.sira || '';
   $('#kol-ad').value = (v.koleksiyon || {}).ad || '';
   $('#kol-yil').value = (v.koleksiyon || {}).yil || '';
   $('#not-tr').value = (v['not'] || {}).tr || '';
@@ -452,6 +532,45 @@ function birakKur(kutuId, girisId, onizId, ata) {
   kutu.addEventListener('drop', (e) => al(e.dataTransfer.files[0]));
 }
 
+/* ── yayın takibi ──────────────────────────────────────────────────────────
+   "Panelden ekledim ama sitede göremiyorum" sorusunu ortadan kaldırmak için
+   panel, yayın gerçekten inene kadar bekliyor ve sonunda esere DOĞRUDAN
+   bağlantı veriyor. Ölçüt tahmin değil: yayınlanan sergi.html'in ETag'i
+   değişince yeni derleme sunuluyor demektir. Panel siteyle aynı adreste
+   durduğu için bunun için ek bir yetki gerekmiyor. */
+async function sayfaDamgasi() {
+  try {
+    const y = await fetch('../sergi.html', { method: 'HEAD', cache: 'no-store' });
+    if (!y.ok) return '';
+    return y.headers.get('etag') || y.headers.get('last-modified') || '';
+  } catch (e) { return ''; }
+}
+
+async function yayiniIzle(onceki, slug, baslik) {
+  const kayit = '<a href="https://github.com/' + DEPO +
+                '/actions" target="_blank" rel="noopener">yayın kaydı</a>';
+  if (!onceki) {         // panel yerelde açılmış: bekleyecek bir şey yok
+    bilgiYaz('Kaydedildi. Site birkaç dakika içinde güncellenir — ' + kayit + '.');
+    return;
+  }
+  for (let i = 0; i < 80; i++) {
+    bilgiYaz('Kaydedildi. Site derleniyor… <small>(' + (i * 6) + ' sn · ' + kayit + ')</small>');
+    await new Promise((r) => setTimeout(r, 6000));
+    const simdi = await sayfaDamgasi();
+    if (simdi && simdi !== onceki) {
+      const nerede = slug
+        ? ' <a href="' + SITE + '/sergi.html#/eser/' + encodeURIComponent(slug) +
+          '" target="_blank" rel="noopener">Duvarda gör</a> · ' +
+          '<a href="' + SITE + '/mekan.html#/eser/' + encodeURIComponent(slug) +
+          '" target="_blank" rel="noopener">eser sayfası</a>'
+        : ' <a href="' + SITE + '/sergi.html" target="_blank" rel="noopener">Sergi duvarını aç</a>';
+      bilgiYaz('<b>Yayında.</b> ' + kacir(baslik) + ' sitede.' + nerede);
+      return;
+    }
+  }
+  bilgiYaz('Kaydedildi ama yayın sekiz dakikadan uzun sürdü. ' + kayit + ' sayfasına bakın.', true);
+}
+
 /* ── kaydetme ──────────────────────────────────────────────────────────── */
 async function kaydet(olay) {
   olay.preventDefault();
@@ -468,33 +587,32 @@ async function kaydet(olay) {
   const dugme = $('#kaydet');
   dugme.disabled = true;
   try {
-    /* SIRALAMA ONEMLI: once gorseller, en son JSON.
-       JSON gorselden once yazilirsa derleme "gorsel bulunamadi" diyip durur
-       ve yayin gecmez. Tersi zararsiz: sahipsiz bir gorsel kalir, o kadar. */
-    if (yeniEserDosya) {
-      bilgiYaz('Eser görseli yükleniyor…');
-      const b64 = await base64le(await kucult(yeniEserDosya));
-      const v = eserler.find((e) => e.slug === slug);
-      let sha;
-      try { sha = (await gh('contents/' + GORSEL_YOL + '/' + slug + '.webp')).sha; } catch (e) {}
-      await dosyaYaz(GORSEL_YOL + '/' + slug + '.webp', b64, 'Eser görseli: ' + baslik, sha);
-    }
-    let ortamAd = '';
     const mevcut = eserler.find((e) => e.slug === slug);
+
+    /* Numaralar burada veriliyor: seçilen yere göre 1..N. Sırası değişen
+       komşular da aynı commit'te güncelleniyor, yoksa aradaki numaralar
+       çakışıp beklenmedik bir yere düşüyor. */
+    const numara = {};
+    hedefDizi(slug).forEach((x, i) => { numara[x] = i + 1; });
+
+    const dosyalar = [];
+
+    if (yeniEserDosya) {
+      bilgiYaz('Eser görseli hazırlanıyor…');
+      dosyalar.push({ yol: GORSEL_YOL + '/' + slug + '.webp',
+                      base64: await base64le(await kucult(yeniEserDosya)) });
+    }
+    let ortamAd = mevcut ? (mevcut.veri.ortam_gorseli || '') : '';
     if (yeniOrtamDosya) {
-      bilgiYaz('Ortam görseli yükleniyor…');
-      const b64 = await base64le(await kucult(yeniOrtamDosya));
+      bilgiYaz('Ortam görseli hazırlanıyor…');
       ortamAd = 'ortam-' + slug + '.webp';
-      let sha;
-      try { sha = (await gh('contents/' + GORSEL_YOL + '/' + ortamAd)).sha; } catch (e) {}
-      await dosyaYaz(GORSEL_YOL + '/' + ortamAd, b64, 'Ortam görseli: ' + baslik, sha);
-    } else if (mevcut) {
-      ortamAd = mevcut.veri.ortam_gorseli || '';
+      dosyalar.push({ yol: GORSEL_YOL + '/' + ortamAd,
+                      base64: await base64le(await kucult(yeniOrtamDosya)) });
     }
 
     const kayit = {
       slug: slug,
-      sira: Number($('#sira').value) || (eserler.length + 1),
+      sira: numara[slug],
       baslik: baslik,
       gloss: { en: $('#gloss-en').value.trim(), fr: $('#gloss-fr').value.trim() },
       seri: $('#seri').value,
@@ -510,18 +628,27 @@ async function kaydet(olay) {
     if (!kayit.yil || !kayit.olcu.yukseklik_cm || !kayit.olcu.genislik_cm)
       throw new Error('Yıl ve ölçüler zorunlu.');
 
-    bilgiYaz('Künye kaydediliyor…');
-    const b64json = btoa(unescape(encodeURIComponent(JSON.stringify(kayit, null, 2) + '\n')));
-    await dosyaYaz(ESER_YOL + '/' + slug + '.json', b64json,
-                   (mevcut ? 'Eser güncellendi: ' : 'Yeni eser: ') + baslik,
-                   mevcut && mevcut.sha);
+    dosyalar.push({ yol: ESER_YOL + '/' + slug + '.json',
+                    metin: JSON.stringify(kayit, null, 2) + '\n' });
 
-    bilgiYaz('Kaydedildi. Site birkaç dakika içinde güncellenir — ' +
-      '<a href="https://github.com/' + DEPO + '/actions" target="_blank" rel="noopener">yayın durumu</a>.');
+    eserler.forEach((e) => {
+      if (e.slug === slug) return;
+      const n = numara[e.slug];
+      if (!n || e.veri.sira === n) return;
+      dosyalar.push({ yol: ESER_YOL + '/' + e.slug + '.json',
+                      metin: JSON.stringify(Object.assign({}, e.veri, { sira: n }), null, 2) + '\n' });
+    });
+
+    const damga = await sayfaDamgasi();
+    bilgiYaz('Kaydediliyor…');
+    await tekCommit(dosyalar, (mevcut ? 'Eser güncellendi: ' : 'Yeni eser: ') + baslik);
+
     await eserleriYukle();
     formaDoldur(slug);
+    yayiniIzle(damga, slug, baslik);
   } catch (e) {
-    bilgiYaz('Kaydedilemedi: ' + e.message + '<br><small>Site değişmedi; son yayın olduğu gibi duruyor.</small>', true);
+    bilgiYaz('Kaydedilemedi: ' + e.message +
+             '<br><small>Site değişmedi; son yayın olduğu gibi duruyor.</small>', true);
   } finally {
     dugme.disabled = false;
   }
@@ -532,14 +659,25 @@ async function sil() {
   const e = eserler.find((x) => x.slug === acikSlug);
   if (!e) return;
   if (!confirm('“' + e.veri.baslik + '” silinecek. Emin misiniz?')) return;
+  const ad = e.veri.baslik, hedef = acikSlug;
   try {
-    await gh('contents/' + ESER_YOL + '/' + acikSlug + '.json', {
-      method: 'DELETE',
-      body: JSON.stringify({ message: 'Eser silindi: ' + e.veri.baslik, sha: e.sha }),
+    /* Künye VE görseller birlikte gidiyor: eskiden görsel depoda kalıyordu. */
+    const dosyalar = [{ yol: ESER_YOL + '/' + hedef + '.json', sil: true },
+                      { yol: GORSEL_YOL + '/' + hedef + '.webp', sil: true }];
+    if (e.veri.ortam_gorseli)
+      dosyalar.push({ yol: GORSEL_YOL + '/' + e.veri.ortam_gorseli, sil: true });
+    /* Kalanlar 1..N diye yeniden numaralanıyor: silinen eserin numarası
+       arada boşluk bırakmasın. */
+    sirala(eserler.filter((x) => x.slug !== hedef)).forEach((x, i) => {
+      if (x.veri.sira === i + 1) return;
+      dosyalar.push({ yol: ESER_YOL + '/' + x.slug + '.json',
+                      metin: JSON.stringify(Object.assign({}, x.veri, { sira: i + 1 }), null, 2) + '\n' });
     });
-    bilgiYaz('Silindi. Görsel dosyası depoda kaldı, siteye çıkmaz.');
+    const damga = await sayfaDamgasi();
+    await tekCommit(dosyalar, 'Eser silindi: ' + ad);
     formuTemizle();
     await eserleriYukle();
+    yayiniIzle(damga, '', ad + ' silindi;');
   } catch (err) {
     bilgiYaz('Silinemedi: ' + err.message, true);
   }
