@@ -5,8 +5,7 @@
 # da AYNISI calisiyor - "bende calisiyordu" durumunu bastan siliyor.
 #
 # ONEMLI: Ayarlar > Pages > Build and deployment > Source = "GitHub Actions"
-# olmali. "Deploy from a branch" secili kalirsa bu is akisi calisir ama
-# yayinlanan sey eski dal icerigi olur.
+# olmali.
 name: Siteyi derle ve yayınla
 
 on:
@@ -16,15 +15,13 @@ on:
       - 'OKUBENI.md'
       - 'AJAN-RAPORLARI.md'
       - '.gitignore'
-  workflow_dispatch:        # Actions sekmesinden elle tetiklemek icin
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Ust uste kaydetmelerde sirayi bozma: onceki yayin bitsin, sonraki baslasin.
-# cancel-in-progress: false cunku yarim kalan bir Pages yayini siteyi bozabilir.
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -46,25 +43,45 @@ jobs:
       - name: Siteyi üret
         run: python yayinla.py
 
-      # Uretilen ciktinin bos ya da yarim olmadigini dogrula: bozuk bir yayin
-      # sessizce gecmesin.
+      # Bozuk bir yayin sessizce gecmesin. Denetim, panelin yazdigi kayitlarla
+      # uretilen ciktiyi KARSILASTIRIYOR: her esere bir gorsel dusmus mu?
+      # (Once "dosya adi sayi mi" diye bakiyordu; adlar slug'a donunce yanlis
+      #  alarm verdi. Olcut artik veriyle esleme.)
       - name: Çıktıyı denetle
         run: |
           python - <<'PY'
-          import os, sys
+          import json, os, sys
+
           gerekli = ['site/index.html', 'site/mekan.html', 'site/sergi.html',
                      'site/404.html', 'site/favicon.svg', 'site/robots.txt',
-                     'site/sitemap.xml', 'site/assets/duvar/salon.webp']
+                     'site/sitemap.xml', 'site/assets/duvar/salon.webp',
+                     'site/panel/index.html', 'site/panel/secenekler.json']
           eksik = [y for y in gerekli if not os.path.exists(y)]
           if eksik:
               sys.exit('EKSIK DOSYA: ' + ', '.join(eksik))
-          eser = [f for f in os.listdir('site/assets')
-                  if f.endswith('.webp') and f[:-5].isdigit()]
-          if len(eser) < 1:
-              sys.exit('HIC ESER GORSELI URETILMEDI')
-          kb = sum(os.path.getsize(os.path.join(r, f))
-                   for r, _, fs in os.walk('site') for f in fs) / 1024
-          print(f'{len(eser)} eser gorseli, toplam {kb/1024:.2f} MB')
+
+          kayitlar = [f for f in os.listdir('icerik/eserler') if f.endswith('.json')]
+          if not kayitlar:
+              sys.exit('HIC ESER KAYDI YOK')
+
+          kayip = []
+          for f in kayitlar:
+              k = json.load(open(os.path.join('icerik/eserler', f), encoding='utf-8'))
+              if not os.path.exists(os.path.join('site/assets', k['slug'] + '.webp')):
+                  kayip.append(k['slug'])
+          if kayip:
+              sys.exit('GORSELI URETILMEYEN ESER: ' + ', '.join(kayip))
+
+          # Sayfalar gercekten eserleri tasiyor mu? Bos bir kabuk yayinlanmasin.
+          govde = open('site/sergi.html', encoding='utf-8').read()
+          for f in kayitlar[:3]:
+              k = json.load(open(os.path.join('icerik/eserler', f), encoding='utf-8'))
+              if k['baslik'] not in govde:
+                  sys.exit('SAYFADA ESER YOK: ' + k['baslik'])
+
+          mb = sum(os.path.getsize(os.path.join(r, f))
+                   for r, _, fs in os.walk('site') for f in fs) / 1048576
+          print(f'{len(kayitlar)} eser, hepsinin gorseli uretildi. site/ {mb:.2f} MB')
           PY
 
       - uses: actions/upload-pages-artifact@v5
