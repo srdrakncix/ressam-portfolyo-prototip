@@ -103,6 +103,16 @@ button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; m
 #giris code { background: var(--zemin); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
 .gizli { display: none !important; }
 
+/* Olcu/gorsel oran uyarisi. Sessiz kirpma en pahali hata: musteri eserini
+   duvarda yarim goruyor ve nedenini bilmiyor. */
+#oran-uyari {
+  grid-column: 1 / -1; margin-top: 4px;
+  padding: 12px 14px; border-radius: 8px; font-size: 13.5px; line-height: 1.5;
+  background: #fdf6ec; border: 1px solid #ecd9b8; color: #6d4c14;
+}
+#oran-uyari b { color: #5a3d0c; }
+#oran-uyari .dugmeler button { padding: 7px 13px; font-size: 13px; }
+
 #kayit-bilgi {
   margin-top: 14px; padding: 12px 14px; border-radius: 8px; font-size: 14px;
   background: #eef6f1; border: 1px solid #cfe5d9; color: #1e4d38;
@@ -203,6 +213,7 @@ button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; m
             <label for="durumu">Durum <span class="zorunlu">*</span></label>
             <select id="durumu" required></select>
           </div>
+          <div id="oran-uyari" class="gizli"></div>
           <div>
             <label for="yer">Duvarda yeri</label>
             <select id="yer"></select>
@@ -477,6 +488,8 @@ function secenekleriKur() {
 
 function formuTemizle() {
   acikSlug = null;
+  eserOrani = 0;
+  $('#oran-uyari').classList.add('gizli');
   yeniEserDosya = yeniOrtamDosya = null;
   $('#form').reset();
   $('#onizleme-eser').removeAttribute('src');
@@ -577,6 +590,43 @@ async function yayiniIzle(onceki, slug, baslik) {
     }
   }
   bilgiYaz('Kaydedildi ama yayın sekiz dakikadan uzun sürdü. ' + kayit + ' sayfasına bakın.', true);
+}
+
+/* ── ölçü / görsel oranı denetimi ─────────────────────────────────────────
+   Duvarda tablo, künyeye girilen cm ölçüsünden çizilip fotoğraf onun içine
+   object-fit: cover ile oturuyor. İkisi uyuşmazsa eser SESSİZCE kırpılıyor —
+   1:1 bir fotoğraf 132x82 cm künyeyle girildiğinde tablonun altı ve üstü
+   gidiyor. Doğru fotoğrafta oran zaten tutar; tutmuyorsa bu bir veri hatası
+   ve tek fark edilebileceği yer burası. */
+let eserOrani = 0;
+
+function oranMetni(r) {
+  return r >= 1 ? r.toFixed(2).replace('.', ',') + ':1'
+                : '1:' + (1 / r).toFixed(2).replace('.', ',');
+}
+
+function oranDenetle() {
+  const kutu = $('#oran-uyari');
+  if (!kutu) return;
+  const yuk = Number($('#yukseklik').value), gen = Number($('#genislik').value);
+  if (!eserOrani || !yuk || !gen) return kutu.classList.add('gizli');
+  const girilen = gen / yuk;
+  if (Math.abs(girilen - eserOrani) / eserOrani <= 0.03)
+    return kutu.classList.add('gizli');
+
+  const oGen = Math.max(1, Math.round(yuk * eserOrani));
+  const oYuk = Math.max(1, Math.round(gen / eserOrani));
+  kutu.classList.remove('gizli');
+  kutu.innerHTML =
+    '<b>Ölçü fotoğrafla uyuşmuyor.</b> Fotoğrafın oranı ' + oranMetni(eserOrani) +
+    ', girdiğiniz ölçü ' + yuk + ' × ' + gen + ' cm (' + oranMetni(girilen) + '). ' +
+    'Duvarda eserin ' + (girilen > eserOrani ? 'altı ve üstü' : 'sağı ve solu') +
+    ' kırpılır.<div class="dugmeler" style="margin-top:9px">' +
+    '<button type="button" class="eylem ikincil" id="oran-g">Genişlik ' + oGen + ' cm olsun</button>' +
+    '<button type="button" class="eylem ikincil" id="oran-y">Yükseklik ' + oYuk + ' cm olsun</button>' +
+    '</div>';
+  $('#oran-g').onclick = () => { $('#genislik').value = oGen; oranDenetle(); };
+  $('#oran-y').onclick = () => { $('#yukseklik').value = oYuk; oranDenetle(); };
 }
 
 /* ── kaydetme ──────────────────────────────────────────────────────────── */
@@ -731,6 +781,15 @@ $('#yeni').addEventListener('click', formuTemizle);
 $('#vazgec').addEventListener('click', () => (acikSlug ? formaDoldur(acikSlug) : formuTemizle()));
 $('#sil').addEventListener('click', sil);
 $('#form').addEventListener('submit', kaydet);
+
+/* Oran hem yeni yuklenen dosyadan hem de duzenlemede sitedeki gorselden
+   geliyor: ikisi de ayni <img>'in load olayini tetikliyor. */
+$('#onizleme-eser').addEventListener('load', function () {
+  eserOrani = this.naturalHeight ? this.naturalWidth / this.naturalHeight : 0;
+  oranDenetle();
+});
+$('#yukseklik').addEventListener('input', oranDenetle);
+$('#genislik').addEventListener('input', oranDenetle);
 
 birakKur('#birak-eser', '#dosya-eser', '#onizleme-eser', (d) => (yeniEserDosya = d));
 birakKur('#birak-ortam', '#dosya-ortam', '#onizleme-ortam', (d) => (yeniOrtamDosya = d));

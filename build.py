@@ -121,6 +121,14 @@ def build_data():
         kol = (k.get('koleksiyon') or {})
         ortam = (k.get('ortam_gorseli') or '').strip()
 
+        # Kunye olcusu ile fotografin orani uyusmazsa duvarda eser KIRPILIR
+        # (.eser img object-fit: cover). Sessiz kalmasin: panel de uyariyor
+        # ama biri JSON'u elle duzenlerse tek uyari burasi olur.
+        bek, ger = cw / ch, im.width / im.height
+        if abs(ger - bek) / bek > 0.03:
+            print(f'UYARI  {k["slug"]}: gorsel orani {ger:.2f}, kunye {cw}x{ch} cm '
+                  f'({bek:.2f}). Duvarda kirpilacak.')
+
         works.append({
             'id':     k['slug'],
             'no':     f'{idx + 1:02d}',
