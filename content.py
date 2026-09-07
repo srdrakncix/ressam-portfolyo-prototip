@@ -141,6 +141,12 @@ COLLECTION_OF = {
     69844: ('Van Doorn Koleksiyonu, Rotterdam', 2022),
 }
 
+# Yonetim panelinin giris sunucusu (Cloudflare Worker).
+# BOS ise panel GitHub anahtarini dogrudan kullanicidan ister — teknik
+# olmayan biri icin anlasilmaz. Adres yazilirsa panel kullanici adi + sifre
+# soruyor, anahtar sunucuda kaliyor. Kurulum: sunucu/OKUBENI.md
+PANEL_SUNUCU = ''
+
 MEDIUM_TR = 'Tuval üzerine yağlı boya'
 
 STATUS_TR = {

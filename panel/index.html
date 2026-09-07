@@ -120,7 +120,7 @@ legend { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color
 .satir { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
 label { display: block; font-size: 13px; color: var(--soft); margin-bottom: 5px; }
 label .zorunlu { color: var(--uyari); }
-input[type=text], input[type=number], select, textarea {
+input[type=text], input[type=password], input[type=number], select, textarea {
   width: 100%; font: inherit; padding: 9px 11px;
   border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--ink);
 }
@@ -179,20 +179,34 @@ button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; m
 <!-- ── giriş ───────────────────────────────────────────────────────────── -->
 <section id="giris">
   <h2>Eser Yönetimi</h2>
-  <p style="color:var(--soft);font-size:14px">
-    Panel doğrudan siteye yazar. Girmek için bir GitHub erişim anahtarı gerekiyor —
-    bir kez yapıştırılır, bu tarayıcıda saklanır.
-  </p>
-  <ol>
-    <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Bu bağlantıdan</a> yeni bir anahtar oluşturun.</li>
-    <li><b>Repository access</b> → yalnızca <code>ressam-portfolyo-prototip</code>.</li>
-    <li><b>Permissions</b> → <code>Contents</code>: <b>Read and write</b>.</li>
-    <li>Oluşturulan anahtarı aşağıya yapıştırın.</li>
-  </ol>
-  <label for="jeton">Erişim anahtarı</label>
-  <input type="text" id="jeton" placeholder="github_pat_..." autocomplete="off" spellcheck="false">
-  <div class="dugmeler"><button class="eylem" id="gir">Gir</button></div>
+  <p id="giris-aciklama" style="color:var(--soft);font-size:14px"></p>
+  <!-- Şifreyle giriş. Sunucu kuruluysa (bkz. sunucu/OKUBENI.md) varsayılan
+       yol budur: GitHub anahtarı sunucuda kalır, buraya hiç inmez. -->
+  <form id="giris-sifre" class="gizli">
+    <label for="kullanici">Kullanıcı adı</label>
+    <input type="text" id="kullanici" autocomplete="username"
+           autocapitalize="none" autocorrect="off" spellcheck="false">
+    <label for="sifre" style="margin-top:13px">Şifre</label>
+    <input type="password" id="sifre" autocomplete="current-password">
+    <div class="dugmeler"><button type="submit" class="eylem">Gir</button></div>
+  </form>
+
+  <!-- Anahtarla giriş. Sunucu yoksa tek yol; varsa da yedek kapı olarak
+       duruyor — Worker'a bir şey olursa site yönetilemez kalmasın. -->
+  <form id="giris-anahtar" class="gizli">
+    <ol>
+      <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Bu bağlantıdan</a> yeni bir anahtar oluşturun.</li>
+      <li><b>Repository access</b> → yalnızca <code>ressam-portfolyo-prototip</code>.</li>
+      <li><b>Permissions</b> → <code>Contents</code>: <b>Read and write</b>.</li>
+      <li>Oluşturulan anahtarı aşağıya yapıştırın.</li>
+    </ol>
+    <label for="jeton">Erişim anahtarı</label>
+    <input type="text" id="jeton" placeholder="github_pat_..." autocomplete="off" spellcheck="false">
+    <div class="dugmeler"><button type="submit" class="eylem">Gir</button></div>
+  </form>
+
   <div id="giris-hata" class="ipucu" style="color:var(--uyari)"></div>
+  <p class="ipucu" style="margin-top:16px"><a href="#" id="kip-degis"></a></p>
 </section>
 
 <!-- ── panel ───────────────────────────────────────────────────────────── -->
@@ -328,7 +342,15 @@ const SITE = 'https://srdrakncix.github.io/ressam-portfolyo-prototip';
 const EN_BUYUK = 2000;          // yuklenen fotograf bu boyuta indirilir
 
 const $ = (s) => document.querySelector(s);
+/* İKİ GİRİŞ YOLU:
+   - oturum : giriş sunucusundan alınan süreli jeton (kullanıcı adı + şifre).
+              GitHub anahtarı sunucuda kalıyor, buraya hiç inmiyor.
+   - jeton  : GitHub anahtarının kendisi (geliştirici yolu / sunucu yoksa).
+   Aynı anda yalnızca biri dolu olur. */
+let SUNUCU = '';
+let oturum = '';
 let jeton = '';
+let panelAcik = false;      /* giris ekrani gecildi mi */
 let secenekler = { seriler: [], durumlar: [] };
 let eserler = [];               // {slug, sha, veri}
 let acikSlug = null;            // duzenlenen eser (yeni ise null)
@@ -352,17 +374,27 @@ async function gh(yol, secim = {}) {
      "Failed to fetch" ile dusuyor (olculdu — ayni istek egik cizgisiz
      HTTP 401 donuyor, yani sunucuya ulasiyor). Bos yol icin egik cizgi
      eklenmemeli. */
-  const taban = 'https://api.github.com/repos/' + DEPO;
-  let y;
-  try {
-    y = await fetch(yol ? taban + '/' + yol : taban, {
-    ...secim,
-    headers: {
+  let adres, basliklar;
+  if (oturum) {
+    /* Sunucu yolu. GitHub'a özgü başlıklar GÖNDERİLMİYOR: CORS ön-uçuşunda
+       izinli başlık listesi Authorization + Content-Type ile sınırlı, onları
+       eklemek isteği kapıda düşürür. Sunucu kendi tarafında ekliyor. */
+    adres = SUNUCU + (yol ? '/gh/' + yol : '/gh');
+    basliklar = { Authorization: 'Bearer ' + oturum, 'Content-Type': 'application/json' };
+  } else {
+    const taban = 'https://api.github.com/repos/' + DEPO;
+    adres = yol ? taban + '/' + yol : taban;
+    basliklar = {
       Authorization: 'Bearer ' + jeton,
       Accept: 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
-      ...(secim.headers || {}),
-    },
+    };
+  }
+  let y;
+  try {
+    y = await fetch(adres, {
+    ...secim,
+    headers: { ...basliklar, ...(secim.headers || {}) },
     });
   } catch (e) {
     /* Ag katmani hatasi: yanlis adres, engelleyici eklenti ya da baglanti.
@@ -372,6 +404,10 @@ async function gh(yol, secim = {}) {
   }
   if (!y.ok) {
     const m = await y.text();
+    /* Sunucu yolunda 401 = oturum süresi doldu. Kullanıcıyı belirsiz bir
+       hatayla baş başa bırakmak yerine doğrudan giriş ekranına al. */
+    if (oturum && y.status === 401 && panelAcik)
+      cikis('Oturum süresi doldu, tekrar girin.');
     throw new Error(y.status + ' ' + (m.slice(0, 180) || y.statusText));
   }
   return y.status === 204 ? null : y.json();
@@ -926,41 +962,118 @@ async function sil() {
   }
 }
 
-/* ── giris / cikis ─────────────────────────────────────────────────────── */
-async function baslat() {
+/* ── giriş / çıkış ──────────────────────────────────────────────────
+   İki yol var ve ikisi de aynı gh() üstünden akıyor:
+
+   ŞİFRE   Giriş sunucusu kuruluysa (content.PANEL_SUNUCU) varsayılan budur.
+           Kullanıcı adı + şifre gidiyor, süreli bir oturum jetonu geliyor.
+           GitHub anahtarı sunucuda kalıyor — sanatçı GitHub'ın varlığından
+           haberdar olmuyor.
+   ANAHTAR GitHub erişim anahtarının kendisi. Sunucu yoksa tek yol; varsa da
+           yedek kapı: Worker'a bir şey olursa site yönetilemez kalmasın. */
+
+let girisKip = 'anahtar';
+
+function girisKipi(k) {
+  girisKip = k;
+  const sifreli = k === 'sifre';
+  $('#giris-sifre').classList.toggle('gizli', !sifreli);
+  $('#giris-anahtar').classList.toggle('gizli', sifreli);
+  $('#giris-aciklama').textContent = sifreli
+    ? 'Kullanıcı adınız ve şifrenizle girin. Girdiğiniz eser, onayladığınız anda siteye çıkar.'
+    : 'Panel doğrudan siteye yazar. Girmek için bir GitHub erişim anahtarı gerekiyor — ' +
+      'bir kez yapıştırılır, bu tarayıcıda saklanır.';
+  const b = $('#kip-degis');
+  b.style.display = SUNUCU ? '' : 'none';
+  b.textContent = sifreli ? 'Geliştirici girişi (erişim anahtarı ile)' : 'Şifreyle girişe dön';
+  $('#giris-hata').textContent = '';
+  (sifreli ? $('#kullanici') : $('#jeton')).focus();
+}
+
+async function sifreyleGir(kullanici, sifre) {
+  let y;
   try {
-    secenekler = await (await fetch('secenekler.json', { cache: 'no-store' })).json();
-  } catch (e) { /* yerelde acilirsa bos kalir */ }
+    y = await fetch(SUNUCU + '/giris', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kullanici: kullanici, sifre: sifre }),
+    });
+  } catch (e) {
+    throw new Error('Giriş sunucusuna ulaşılamadı. Bağlantınızı kontrol edin.');
+  }
+  let g = {};
+  try { g = await y.json(); } catch (e) { /* gövde boş olabilir */ }
+  if (!y.ok) throw new Error(g.hata || ('Giriş başarısız (' + y.status + ').'));
+  oturum = g.jeton;
+  try {
+    localStorage.setItem('cs-panel-oturum', JSON.stringify({ j: g.jeton, b: g.sona }));
+  } catch (e) { /* gizli sekmede yazamayabilir */ }
+}
+
+function cikis(mesaj) {
+  oturum = ''; jeton = ''; panelAcik = false;
+  try {
+    localStorage.removeItem('cs-panel-oturum');
+    localStorage.removeItem('cs-panel-jeton');
+    if (mesaj) sessionStorage.setItem('cs-panel-mesaj', mesaj);
+  } catch (e) { /* yoksay */ }
+  location.reload();
+}
+
+async function baslat() {
   secenekleriKur();
   $('#giris').classList.add('gizli');
   $('#panel').classList.remove('gizli');
+  panelAcik = true;
   bosSayfa();
   await eserleriYukle();
 }
 
-$('#gir').addEventListener('click', async () => {
+$('#giris-sifre').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const k = $('#kullanici').value.trim(), p = $('#sifre').value;
+  if (!k || !p) return;
+  $('#giris-hata').textContent = 'Denetleniyor…';
+  try {
+    await sifreyleGir(k, p);
+    await gh('');                       /* sunucu gerçekten depoya yazabiliyor mu */
+    $('#giris-hata').textContent = '';
+    await baslat();
+  } catch (err) {
+    oturum = '';
+    $('#giris-hata').textContent = err.message;
+  }
+});
+
+$('#giris-anahtar').addEventListener('submit', async (e) => {
+  e.preventDefault();
   const t = $('#jeton').value.trim();
   if (!t) return;
   jeton = t;
   $('#giris-hata').textContent = 'Denetleniyor…';
   try {
-    await gh('');                       // depoya erisim var mi?
-    localStorage.setItem('cs-panel-jeton', t);
+    await gh('');
+    try { localStorage.setItem('cs-panel-jeton', t); } catch (e2) {}
     $('#giris-hata').textContent = '';
     await baslat();
-  } catch (e) {
+  } catch (err) {
     jeton = '';
-    const m = String(e.message);
+    const m = String(err.message);
     $('#giris-hata').textContent =
       m.startsWith('401') ? 'Anahtar geçersiz ya da süresi dolmuş.' :
       m.startsWith('403') ? 'Anahtarın bu depoya yetkisi yok. Contents: Read and write verin.' :
       m.startsWith('404') ? 'Depo görünmüyor. Anahtarda bu depo seçili mi?' : m;
   }
 });
-$('#jeton').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#gir').click(); });
+
+$('#kip-degis').addEventListener('click', (e) => {
+  e.preventDefault();
+  girisKipi(girisKip === 'sifre' ? 'anahtar' : 'sifre');
+});
+
 $('#cik').addEventListener('click', () => {
-  localStorage.removeItem('cs-panel-jeton');
-  location.reload();
+  if (kirli && !confirm('Kaydedilmemiş değişiklikler var. Yine de çıkılsın mı?')) return;
+  cikis();
 });
 $('#vazgec').addEventListener('click', () => (acikSlug ? formaDoldur(acikSlug) : bosSayfa()));
 $('#sil').addEventListener('click', sil);
@@ -985,13 +1098,39 @@ $('#genislik').addEventListener('input', oranDenetle);
 birakKur('#birak-eser', '#dosya-eser', '#onizleme-eser', (d) => (yeniEserDosya = d), 'eser');
 birakKur('#birak-ortam', '#dosya-ortam', '#onizleme-ortam', (d) => (yeniOrtamDosya = d), 'ortam');
 
-/* daha once girilmisse dogrudan ac */
+/* ── açılış ────────────────────────────────────────────────────────
+   Seçenekler giriş ekranından ÖNCE okunuyor: hangi giriş yolunun
+   gösterileceği (şifre mi, anahtar mı) oradan geliyor. */
 (async () => {
-  const t = localStorage.getItem('cs-panel-jeton');
+  try {
+    secenekler = await (await fetch('secenekler.json?t=' + Date.now(),
+                                    { cache: 'no-store' })).json();
+  } catch (e) { /* yerelde açılmış olabilir */ }
+  SUNUCU = String(secenekler.sunucu || '').trim();
+  while (SUNUCU.endsWith('/')) SUNUCU = SUNUCU.slice(0, -1);
+
+  girisKipi(SUNUCU ? 'sifre' : 'anahtar');
+  try {
+    const m = sessionStorage.getItem('cs-panel-mesaj');
+    if (m) { $('#giris-hata').textContent = m; sessionStorage.removeItem('cs-panel-mesaj'); }
+  } catch (e) { /* yoksay */ }
+
+  /* Daha önce girilmişse doğrudan aç. */
+  if (SUNUCU) {
+    let kayit = null;
+    try { kayit = JSON.parse(localStorage.getItem('cs-panel-oturum') || 'null'); } catch (e) {}
+    if (kayit && kayit.j && kayit.b > Math.floor(Date.now() / 1000) + 30) {
+      oturum = kayit.j;
+      try { await gh(''); await baslat(); return; }
+      catch (e) { oturum = ''; try { localStorage.removeItem('cs-panel-oturum'); } catch (e2) {} }
+    }
+  }
+  let t = null;
+  try { t = localStorage.getItem('cs-panel-jeton'); } catch (e) {}
   if (!t) return;
   jeton = t;
   try { await gh(''); await baslat(); }
-  catch (e) { jeton = ''; localStorage.removeItem('cs-panel-jeton'); }
+  catch (e) { jeton = ''; try { localStorage.removeItem('cs-panel-jeton'); } catch (e2) {} }
 })();
 </script>
 </body>

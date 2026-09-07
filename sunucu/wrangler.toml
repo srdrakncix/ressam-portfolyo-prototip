@@ -1,0 +1,10 @@
+name = "cemal-saglam-panel"
+main = "index.js"
+compatibility_date = "2026-09-01"
+
+# Gizli değerler BURAYA YAZILMAZ. `wrangler secret put ...` ile konur:
+#   GITHUB_ANAHTAR  GITHUB_KULLANICI değil — depoya yazma yetkili PAT
+#   KULLANICI       panele girecek ad, örn. cemalsaglam
+#   SIFRE           giriş şifresi
+#   IMZA_GIZLI      oturum jetonunu imzalayan rastgele dize
+# Ayrıntı: OKUBENI.md

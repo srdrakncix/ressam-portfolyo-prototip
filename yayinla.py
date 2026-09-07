@@ -93,6 +93,7 @@ def main():
             'seriler': [{'anahtar': x['key'], 'ad': x['title']} for x in _C.SERIES],
             'durumlar': [{'anahtar': k, 'ad': v} for k, v in _C.STATUS_TR.items()],
             'teknik': _C.MEDIUM_TR,
+            'sunucu': getattr(_C, 'PANEL_SUNUCU', ''),
         }, ensure_ascii=False, indent=2))
     print('panel/            index.html + secenekler.json')
 
