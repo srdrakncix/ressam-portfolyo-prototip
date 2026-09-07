@@ -1,12 +1,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sergi Duvarı — Cemal Sağlam</title>
-<meta name="theme-color" content="#14211c">
-<meta name="description" content="Eserler bir Fransız salonu duvarında, gerçek santimetre ölçeğinde asılı.">
+<title>Eserler — Cemal Sağlam</title>
+<meta name="theme-color" content="#faf9f6">
+<meta name="description" content="Cemal Sağlam'ın eserleri. Her eser diğerlerine göre gerçek ölçekte, aynı alanın içinde.">
 <link rel="canonical" href="https://srdrakncix.github.io/ressam-portfolyo-prototip/sergi.html">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Sergi Duvarı — Cemal Sağlam">
-<meta property="og:description" content="Eserler bir Fransız salonu duvarında, gerçek santimetre ölçeğinde asılı.">
+<meta property="og:title" content="Eserler — Cemal Sağlam">
+<meta property="og:description" content="Her eser diğerlerine göre gerçek ölçekte, aynı alanın içinde.">
 <meta property="og:image" content="https://srdrakncix.github.io/ressam-portfolyo-prototip/assets/dag-sirti.webp">
 <meta property="og:locale" content="tr_TR">
 <meta name="twitter:card" content="summary_large_image">
@@ -17,289 +17,215 @@
 
 <style>
 /* ═══════════════════════════════════════════════════════════════════════════
-   SERGİ DUVARI — şato resim galerisi.
-   Koyu şişe yeşili damask, ahşap lambri, kornis, altın çerçeveler.
-   Gerçek 3B perspektif (CSS transform), WebGL YOK: tablolar tam çözünürlüklü
-   <img> olarak kalıyor, fare/klavye/ekran okuyucu bedavaya geliyor.
-   Hareket yalnızca YANAL — dönme yok, mide bulandırmaz.
+   ESERLER — katalog.
+
+   Şato duvarı (yaldız çerçeve, damask, avize, yatay kaydırma) kaldırıldı.
+   Yerine galerilerin kendi çözümü: her eser AYNI boyutta nötr bir alanın
+   içinde, ama KENDİ gerçek ölçüsüyle. 200 cm'lik bir tuval alanı doldurur,
+   40 cm'lik bir etüt aynı alanın ortasında küçücük kalır. Lüks hissi
+   çerçeveden değil, o gri dikdörtgenden, doğru ölçekten ve tek bir gölgeden
+   geliyor; üstelik ölçek bir süs değil, BİLGİ.
+
+   Bu düzen iki eski eleştiriyi de kapatıyor: "on bir eser aynı barok
+   yaldızda" ve "40 cm'lik etüt ile 200 cm'lik tuval ekranda birebir aynı
+   görünüyor".
+
+   Detay katmanı (beyaz tam ekran + sağ künye + ESER/EV ORTAMI kareleri)
+   olduğu gibi korundu; artık ızgarayla aynı dünyada, koyu yeşilden beyaza
+   sıçrama yok.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
-  --yesil-koyu:  #14211c;
-  --yesil:       #1d3229;
-  --yesil-acik:  #274437;
-  --ahsap:       #2a1d14;
-  --ahsap-acik:  #4a3524;
-  --altin:       #c9a86a;
-  --altin-koyu:  #7a5f2f;
-  --altin-parlak:#e6d2a0;
-  --krem:        #efe8da;
-  --krem-sol:    rgba(239,232,218,.62);
+  --kagit:    #faf9f6;   /* sayfa zemini */
+  --alan:     #eceae4;   /* eserin durduğu nötr saha */
+  --murekkep: #1c211a;
+  --soluk:    rgba(28,33,26,.54);
+  --silik:    rgba(28,33,26,.40);
+  --cizgi:    rgba(28,33,26,.13);
+  --bronz:    #8a6d2e;
+  --altin:    #9a7d3f;
 
-  --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --sans:  "Helvetica Neue", Helvetica, Arial, sans-serif;
   --serif: "Cormorant Garamond", Garamond, "EB Garamond", Georgia, serif;
-  --ease: cubic-bezier(.19, 1, .22, 1);
+  --ease:  cubic-bezier(.19, 1, .22, 1);
 
-  --duvar-h: 300;   /* duvarın gerçek yüksekliği, cm */
-  --hat: 152;       /* asılma hattı, cm */
-  --ppc: 2.2;       /* piksel / santimetre — JS ayarlıyor */
+  --ppc: 1.6px;          /* piksel / santimetre — JS yazıyor */
+  --en:  1180px;         /* okuma genişliği */
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
 
-html { background: var(--yesil-koyu); }
-html.kilitli, html.kilitli body {
-  height: 100%; overflow: hidden;         /* dar ekranda dikey kaydırma yok */
-  overscroll-behavior: none;
-}
-html.kilitli body { touch-action: none; } /* her hareket duvarı sürükler */
+html { background: var(--kagit); }
+html.durdur, html.durdur body { overflow: hidden; }   /* detay açıkken */
 
 body {
-  touch-action: pan-y;
-  margin: 0; color: var(--krem);
+  margin: 0; color: var(--murekkep); background: var(--kagit);
   font: 400 14px/1.55 var(--sans);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
 }
 
-/* ── oda: perspektifin kaynağı ───────────────────────────────────────────── */
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--altin); outline-offset: 3px; }
+.gizli { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 
-#oda {
-  position: fixed; inset: 0; z-index: 1;
-  perspective: 2000px;
-  perspective-origin: 50% 44%;
-  overflow: hidden;
-  background:
-    radial-gradient(ellipse 120% 90% at 50% 120%, rgba(0,0,0,.55), transparent 60%),
-    linear-gradient(#0d1714, #14211c 55%, #0b1310);
-}
-
-/* ── duvar ───────────────────────────────────────────────────────────────── */
-
-#duvar {
-  position: absolute; top: 0; left: 0; height: 100%;
-  transform-style: preserve-3d;
-  will-change: transform;
-}
-
-/* Duvar segmentleri: her biri gerçek bir salon duvarı görseli.
-   Korniş, panel, boiserie, parke — hepsi görselin içinde. */
-.segment {
-  position: absolute; top: 0;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-}
-/* okunurluk için çok hafif koyultma ve zemin gölgesi */
-#yansima {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 26%;
-  background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,.30));
-  pointer-events: none;
-}
-
-/* ── eserler ─────────────────────────────────────────────────────────────── */
-
-.eser {
-  position: absolute;
-  transform-style: preserve-3d;
-  background: none; border: 0; padding: 0; cursor: pointer;
-  transition: transform 520ms var(--ease), filter 380ms var(--ease);
-  transform: translateZ(0);
-}
-.cerceve {
-  position: absolute; inset: 0; box-sizing: border-box;
-  /* GERÇEK ÇERÇEVE: oyma Louis XV yaldız, 9-dilim border-image.
-     Köşe kartuşları bozulmadan kalır, kenar pervazı gerilir — bu yüzden
-     her en-boy oranındaki tabloya aynı çerçeve doğru biçimde oturur.
-     --bw çerçeve kalınlığı; boyutla() tablonun genişliğine göre yazar. */
-  --bw: 20px;
-  --yaldiz: url('assets/cerceve/yaldiz-a.webp');
-  border: var(--bw) solid transparent;
-  border-image: var(--yaldiz) 132 140 stretch;
-  background: #100c08;                       /* tuvalin arkası */
-  box-shadow:
-    0 1px 0 rgba(0,0,0,.6),
-    0 3px 5px rgba(0,0,0,.5),                /* temas gölgesi */
-    0 22px 40px -16px rgba(0,0,0,.8);
-  transition: box-shadow 420ms var(--ease);
-}
-/* aynı çerçeve üç tonda dökülmüş — gerçek bir salonda hepsi birebir aynı olmaz */
-.cerceve.t-b { --yaldiz: url('assets/cerceve/yaldiz-b.webp'); }
-.cerceve.t-c { --yaldiz: url('assets/cerceve/yaldiz-c.webp'); }
-
-.cerceve::before {                               /* kenarsız sıcak hâle */
-  content: ""; position: absolute; inset: calc(var(--bw) * -1); pointer-events: none;
-  box-shadow: 0 0 60px 26px rgba(255,226,175,.14);
-  opacity: 0; transition: opacity 420ms var(--ease);
-}
-.cerceve::after {                                /* tuval ile pervaz arası gölge */
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,.6), inset 0 2px 5px rgba(0,0,0,.45);
-}
-.eser img { display: block; width: 100%; height: 100%; object-fit: cover; }
-
-/* Tablonun üstüne düşen sıcak ışık.
-   KUTU KENARI GÖRÜNMEMELİ: gradyan öğenin sınırına varmadan tamamen
-   saydamlaşmalı, yoksa duvarda dikdörtgen bir leke belirir. Öğe büyük,
-   gradyan %52'de biter. */
-.isik {
-  position: absolute; inset: -58% -52% -34%;
-  background: radial-gradient(ellipse 46% 42% at 50% 30%,
-    rgba(255,233,190,.26) 0%,
-    rgba(255,228,180,.13) 22%,
-    rgba(255,226,175,.045) 36%,
-    rgba(255,226,175,0) 52%);
-  opacity: .62; pointer-events: none;
-  mix-blend-mode: soft-light;
-  transition: opacity 420ms var(--ease);
-}
-
-/* fare üstüne gelince: duvardan kalkar, gölge derinleşir, ışık artar */
-@media (hover: hover) and (pointer: fine) {
-  .eser:hover, .eser:focus-visible { transform: translateZ(26px); }
-  .eser:hover .cerceve, .eser:focus-visible .cerceve {
-    box-shadow:
-      0 1px 0 rgba(0,0,0,.6),
-      0 6px 8px rgba(0,0,0,.5),
-      0 44px 70px -22px rgba(0,0,0,.86);
-  }
-  .eser:hover .isik, .eser:focus-visible .isik { opacity: 1; }
-  /* çerçeveye sıcak bir hâle: kenarı olmayan gerçek ışık */
-  .eser:hover .cerceve::before, .eser:focus-visible .cerceve::before { opacity: 1; }
-  /* komşular sönsün, dikkat toplansın */
-  #duvar.odak .eser:not(:hover):not(:focus-visible) { filter: brightness(.62) saturate(.85); }
-}
-
-/* künye etiketi — duvarda, çerçevenin altında */
-.etiket {
-  position: absolute; left: 50%; top: calc(100% + 9px);
-  transform: translateX(-50%) translateY(-4px);
-  white-space: nowrap; text-align: center;
-  opacity: 0; pointer-events: none;
-  transition: opacity 300ms var(--ease), transform 300ms var(--ease);
-}
-.etiket .a { font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--krem); }
-.etiket .o { font-size: 11px; color: var(--krem-sol); letter-spacing: .04em; margin-top: 2px; }
-.eser:hover .etiket, .eser:focus-visible .etiket { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* ── duvar etiketi: lambrinin üstünde, pirinç levhaya kazınmış gibi ───────
-   O kahverengi bant boştu. Müzede tam oraya yorum panosu konur.          */
-
-#tabela {
-  position: fixed; left: 50%; transform: translateX(-50%);
-  top: var(--tabela-y, 74%);
-  width: min(700px, 86vw); text-align: center;
-  z-index: 12; pointer-events: none;
-  padding: 15px 68px 17px;               /* okların yeri */
-  background: linear-gradient(158deg, rgba(30,34,27,.90), rgba(17,21,16,.94));
-  border: 1px solid rgba(201,168,106,.44);
-  box-shadow: 0 12px 34px rgba(0,0,0,.5),
-              inset 0 1px 0 rgba(255,240,205,.14),
-              inset 0 0 26px rgba(0,0,0,.35);
-  transition: opacity 300ms var(--ease);
-}
-/* Künyenin iki yanındaki gezinme okları. Pirinç kartelin kendi diliyle:
-   ince altın çerçeve, koyu dolgu, sıcak altın ok. */
-.gezok {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  pointer-events: auto;                  /* künye tıklanmaz, oklar tıklanır */
-  width: 38px; height: 38px; padding: 0;
-  display: grid; place-items: center;
-  font: 400 17px/1 var(--sans); color: #d9bd7f;
-  background: rgba(12,16,11,.55);
-  border: 1px solid rgba(201,168,106,.42);
-  border-radius: 50%;
-  cursor: pointer;
-  transition: background 260ms var(--ease), border-color 260ms var(--ease),
-              color 260ms var(--ease), transform 260ms var(--ease);
-}
-.gezok[data-yon="-1"] { left: 15px; }
-.gezok[data-yon="1"]  { right: 15px; }
-@media (hover: hover) {
-  .gezok:hover {
-    background: rgba(201,168,106,.20);
-    border-color: rgba(201,168,106,.85);
-    color: #f6e7c4;
-  }
-  .gezok[data-yon="-1"]:hover { transform: translateY(-50%) translateX(-2px); }
-  .gezok[data-yon="1"]:hover  { transform: translateY(-50%) translateX(2px); }
-}
-.gezok:active { background: rgba(201,168,106,.32); }
-
-#tabela .ad {
-  font-family: var(--serif); font-style: italic;
-  font-size: clamp(18px, 1rem + .6vw, 24px); color: #f4e9d2;
-}
-#tabela .cev {
-  font-family: var(--serif); font-style: italic; font-size: 13px;
-  color: rgba(244,233,210,.60); margin-top: 1px;
-}
-#tabela .sat {
-  font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
-  color: rgba(244,233,210,.55); margin-top: 6px;
-}
-/* Ölçü büyük harfe ÇEVRİLMEMELİ: Türkçe locale'de "in" -> "İN" oluyor ve
-   öyle bir birim yok. Ana sitede zaten küçük harf; iki yüzey aynı olsun.
-   Bölünmez boşluklar build.py'de veriye gömülü, satır sonunda kopmaz. */
-#tabela .sat .olcu { text-transform: none; letter-spacing: .04em; }
-#tabela .soz {
-  font-family: var(--serif); font-style: italic;
-  font-size: clamp(13px, .82rem + .2vw, 15px); line-height: 1.55;
-  color: rgba(246,236,216,.86); margin: 8px auto 0; max-width: 52ch;
-}
-#tabela .durum {
-  font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
-  color: #d0ab68; margin-top: 8px;
-}
-#tabela .bos {
-  font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
-  color: rgba(244,233,210,.42);
-}
-
-/* ── üst şerit ───────────────────────────────────────────────────────────── */
-
+/* ── üst şerit ───────────────────────────────────────────────────────────
+   Sayfa artık dikey kayıyor, bu yüzden şerit sticky: eserler arasında
+   aşağı inerken dile ve çıkışa erişim kaybolmasın. */
 #ust {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 20;
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 14px; padding: 14px clamp(14px, 2.4vw, 28px); pointer-events: none;
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(250,249,246,.90);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--cizgi);
 }
-#ust > * { pointer-events: auto; }
-#ust a, #ust button {
-  font: inherit; font-size: 11px; letter-spacing: .13em; text-transform: uppercase;
-  color: var(--krem-sol); background: rgba(10,18,15,.55);
-  border: 1px solid rgba(239,232,218,.18); padding: 9px 13px;
-  cursor: pointer; text-decoration: none;
-  transition: color 240ms, border-color 240ms;
+#ust .ic {
+  max-width: var(--en); margin: 0 auto;
+  padding: 15px clamp(18px, 4vw, 34px);
+  display: flex; align-items: center; gap: 18px;
 }
-#ust a:hover, #ust button:hover { color: var(--krem); border-color: rgba(239,232,218,.5); }
+#marka {
+  font-family: var(--serif); font-size: 20px; line-height: 1;
+  letter-spacing: .01em; text-decoration: none; color: var(--murekkep);
+}
+#marka b { font-weight: 500; letter-spacing: .06em; }
+/* 390 px'te "Cemal SAĞLAM" iki satıra kırılıyordu; ad bölünmez. */
+#marka { white-space: nowrap; }
+@media (max-width: 560px) { #marka { font-size: 17px; } }
 
-/* dil anahtarı — üst barın ortasında, sessiz */
-#lang { display: flex; align-items: baseline; gap: 9px; }
+#lang { margin-left: auto; display: flex; align-items: baseline; gap: 8px; }
 #lang button {
-  background: none !important; border: 0 !important; padding: 6px 2px !important;
-  font-size: 10.5px !important; letter-spacing: .14em; text-transform: uppercase;
-  color: rgba(239,232,218,.42); cursor: pointer;
-  transition: color 240ms var(--ease);
+  background: none; border: 0; padding: 6px 2px; cursor: pointer;
+  font: 400 10.5px/1 var(--sans); letter-spacing: .15em; text-transform: uppercase;
+  color: var(--silik); transition: color 220ms var(--ease);
 }
-#lang button:hover { color: var(--krem); }
-#lang button[aria-current="true"] { color: var(--altin); }
-#lang .ayrac { color: rgba(239,232,218,.22); font-size: 10px; }
-@media (max-width: 560px) { #lang { gap: 6px; } #lang button { font-size: 10px !important; } }
-#ilerleme {
-  position: fixed; left: 0; top: 0; height: 2px; z-index: 21;
-  background: var(--altin); width: 0; transition: width 180ms linear;
+#lang button:hover { color: var(--murekkep); }
+#lang button[aria-current="true"] { color: var(--bronz); }
+#lang .ayrac { color: rgba(28,33,26,.22); font-size: 10px; }
+
+#cikis {
+  font: 400 10.5px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase;
+  color: var(--silik); text-decoration: none; padding: 6px 0;
+  border-bottom: 1px solid transparent;
+  transition: color 220ms var(--ease), border-color 220ms var(--ease);
+}
+#cikis:hover { color: var(--murekkep); border-color: var(--cizgi); }
+
+/* ── başlık bloğu ───────────────────────────────────────────────────────── */
+main { max-width: var(--en); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px) 96px; }
+
+#lede { padding: clamp(44px, 7vw, 84px) 0 clamp(26px, 3vw, 38px); max-width: 46ch; }
+#lede h1 {
+  margin: 0; font-family: var(--serif); font-weight: 300;
+  font-size: clamp(34px, 2.2rem + 2vw, 60px); line-height: 1.04;
+  letter-spacing: -.01em; text-wrap: balance;
+}
+#lede .alt {
+  margin-top: 16px; font-size: 14px; line-height: 1.62; color: var(--soluk);
 }
 
-/* ── detay katmanı ───────────────────────────────────────────────────────── */
+/* ── seri süzgeci ───────────────────────────────────────────────────────
+   Düz yazı bağlantılar. Kutu, hap, gölge yok: bir katalogda bölüm
+   başlıkları nasıl duruyorsa öyle. */
+#suzgec {
+  display: flex; flex-wrap: wrap; gap: 6px 26px; align-items: baseline;
+  padding: 22px 0; border-top: 1px solid var(--cizgi); border-bottom: 1px solid var(--cizgi);
+}
+#suzgec button {
+  background: none; border: 0; padding: 4px 0; cursor: pointer;
+  font: 400 11px/1 var(--sans); letter-spacing: .15em; text-transform: uppercase;
+  color: var(--silik); border-bottom: 1px solid transparent;
+  transition: color 220ms var(--ease), border-color 220ms var(--ease);
+}
+#suzgec button:hover { color: var(--murekkep); }
+#suzgec button[aria-current="true"] { color: var(--bronz); border-color: var(--bronz); }
+#suzgec .sayi {
+  margin-left: auto; font-size: 10.5px; letter-spacing: .14em;
+  color: var(--silik); font-variant-numeric: tabular-nums;
+}
+/* Dar ekranda süzgeç iki satıra sarıyor ve sayaç sağdan taşıyordu. */
+@media (max-width: 620px) { #suzgec .sayi { display: none; } }
 
-/* Kapalıyken görünmemeli: pointer-events tek başına yetmiyor, oklar ve
-   Kapat düğmesi duvarın üstünde duruyordu. */
+/* Ölçek açıklaması lede'de duruyor; burada tekrarlamak gereksizdi.
+   Kalan tek not, imleçle gelen ortam görselinin ipucu — dokunmatikte
+   karşılığı olmadığı için orada hiç yazılmıyor. */
+#notlar { display: none; padding: 18px 0 0; font-size: 11.5px; color: var(--silik); }
+@media (hover: hover) and (min-width: 761px) { #notlar { display: block; } }
+
+/* ── ızgara ─────────────────────────────────────────────────────────────── */
+#izgara {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: clamp(34px, 4vw, 58px) clamp(24px, 3vw, 40px);
+  padding-top: clamp(32px, 4vw, 52px);
+}
+@media (max-width: 760px) { #izgara { grid-template-columns: 1fr; } }
+
+.kart { text-decoration: none; display: block; }
+.kart[hidden] { display: none; }
+
+/* Nötr saha: her eserde AYNI. Ölçüyü okuyabilmenin tek yolu ortak bir zemin. */
+.alan {
+  position: relative; aspect-ratio: 4 / 3;
+  background: var(--alan);
+  display: grid; place-items: center;
+  overflow: hidden;
+}
+/* Eser: gerçek santimetre ölçüsünden çiziliyor ( --cw / --ch × --ppc ).
+   Kırpma YOK — object-fit devrede değil, kutu zaten eserin oranında. */
+.tuval {
+  display: block;
+  width:  calc(var(--cw) * var(--ppc));
+  height: calc(var(--ch) * var(--ppc));
+  /* Kutu künyedeki cm ölçüsünden çiziliyor. Fotoğrafın oranı tutmazsa
+     object-fit olmadan görsel GERİLİR — bir tabloyu germek kırpmaktan
+     beterdir. cover kırpar, asla bozmaz; panel zaten uyuşmazlığı yüklerken
+     uyarıyor. */
+  object-fit: cover;
+  box-shadow: 0 1px 2px rgba(30,26,18,.16), 0 16px 30px -14px rgba(30,26,18,.34);
+  transition: transform 620ms var(--ease), box-shadow 620ms var(--ease);
+}
+@media (hover: hover) {
+  .kart:not(.var-ortam):hover .tuval {
+    transform: translateY(-3px);
+    box-shadow: 0 2px 4px rgba(30,26,18,.18), 0 26px 44px -16px rgba(30,26,18,.40);
+  }
+}
+
+/* Ortam görseli (Smartist maketi): sahayı doldurup üzerine biniyor.
+   Duruşta yok — ızgara sakin kalsın; imleç gelince eser bir evin duvarına
+   taşınıyor. Dokunmatikte hover yok, orada detaydaki EV ORTAMI karesi var. */
+.ortam {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: 0; pointer-events: none;
+  transition: opacity 620ms var(--ease);
+}
+@media (hover: hover) { .kart:hover .ortam { opacity: 1; } }
+
+/* künye — Zwirner mantığı: ad ve yıl bir satır, sonra teknik, sonra ölçü */
+.kunye { padding-top: 16px; }
+.kunye .ad {
+  font-family: var(--serif); font-size: 21px; line-height: 1.2; color: var(--murekkep);
+}
+.kunye .ad i { font-style: italic; }
+.kunye .cev {
+  font-family: var(--serif); font-style: italic; font-size: 14px;
+  color: var(--silik); margin-top: 2px;
+}
+.kunye .satir { font-size: 12.5px; line-height: 1.5; color: var(--soluk); margin-top: 7px; }
+.kunye .olcu { margin-top: 1px; font-variant-numeric: tabular-nums; text-transform: none; }
+.kunye .ayrac { color: rgba(28,33,26,.26); padding: 0 2px; }
+.kunye .durum {
+  margin-top: 12px; font-size: 10px; letter-spacing: .15em; text-transform: uppercase;
+  color: var(--bronz);
+}
+
+#bos { padding: 70px 0; color: var(--soluk); font-size: 14px; }
+#bos[hidden] { display: none; }
+
 /* ── DETAY: beyaz zeminde tam ekran ─────────────────────────────────────
-   Eser duvardan koparılıp müze salonundan bir sergi kataloğuna geçiyor:
-   beyaz zemin, büyük reprodüksiyon, künye sağ panelde. Duvardaki yaldız
-   çerçeve burada yok — beyaz zeminde ağır durur ve asıl bakılacak şeyin
-   önüne geçer. Eskiden tablo duvardaki yerinden "uçarak" geliyordu; beyaz
-   zemin bir anda belirince o uçuşun tutunacağı bir bağlam kalmıyor, o
-   yüzden sakin bir açılışla değiştirildi. */
+   Eser katalog sayfasından koparılıp tek başına duvara alınıyor: büyük
+   reprodüksiyon solda, künye sağ panelde. Bu katman şato sürümünden
+   olduğu gibi geldi — orada da doğru olan tek parça oydu. */
 #detay {
   position: fixed; inset: 0; z-index: 30;
   background: #faf9f6;
@@ -313,15 +239,8 @@ body {
   transition: opacity 280ms var(--ease), visibility 0s;
 }
 
-#sahne {
-  display: grid; place-items: center; min-width: 0;
-  padding: clamp(22px, 3.4vw, 60px);
-}
-/* Yakınlaştırma: bir resim sitesinde boyayı görememek en büyük eksikti.
-   Tıklayınca büyüyor, fare gezindikçe kadraj takip ediyor (müzelerin
-   kullandığı büyüteç davranışı). Kaynak dosya 1686 px olduğu için kat
-   2,2 ile sınırlı; müşterinin kendi fotoğrafları gelince yükseltilebilir. */
-#sahne { overflow: hidden; }
+#sahne { display: grid; place-items: center; min-width: 0; overflow: hidden;
+         padding: clamp(22px, 3.4vw, 60px); }
 #buyuk { cursor: zoom-in; }
 #sahne.yakin #buyuk { cursor: zoom-out; }
 #buyuk {
@@ -332,16 +251,12 @@ body {
   transition: opacity 340ms var(--ease), transform 520ms var(--ease);
 }
 #detay.acik #buyuk { opacity: 1; transform: none; }
-/* Yakınken kadraj fareyi takip ediyor; 520 ms'lik geçiş burada ağır kalır. */
 #sahne.yakin #buyuk { transition: transform 90ms linear, opacity 340ms var(--ease); }
 
-/* künye paneli — koyu galeri paletinden çıkıp katalog tipografisine geçiyor */
 #bilgi {
-  background: #fff;
-  border-left: 1px solid rgba(28,33,26,.12);
+  background: #fff; border-left: 1px solid var(--cizgi);
   padding: clamp(56px, 5vw, 78px) clamp(22px, 2.2vw, 40px) clamp(22px, 3vw, 40px);
-  display: flex; flex-direction: column;
-  overflow-y: auto; color: #1c211a;
+  display: flex; flex-direction: column; overflow-y: auto; color: #1c211a;
 }
 #kunye .ad {
   font-family: var(--serif); font-style: italic;
@@ -349,15 +264,14 @@ body {
 }
 #kunye .cev {
   font-family: var(--serif); font-style: italic; font-size: 14px;
-  color: rgba(28,33,26,.52); margin-top: 4px;
+  color: var(--silik); margin-top: 4px;
 }
 #kunye .seri {
   font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
-  color: #9a7d3f; margin-top: 20px;
+  color: var(--altin); margin-top: 20px;
 }
 #kunye dl {
-  margin: 12px 0 0; padding-top: 14px;
-  border-top: 1px solid rgba(28,33,26,.12);
+  margin: 12px 0 0; padding-top: 14px; border-top: 1px solid var(--cizgi);
   display: grid; grid-template-columns: auto 1fr; gap: 7px 16px;
   font-size: 12.5px; line-height: 1.5;
 }
@@ -366,17 +280,15 @@ body {
 #kunye .not {
   font-family: var(--serif); font-style: italic; font-size: 15px; line-height: 1.62;
   color: rgba(28,33,26,.80); margin-top: 22px; padding-top: 18px;
-  border-top: 1px solid rgba(28,33,26,.12);
+  border-top: 1px solid var(--cizgi);
 }
 #kunye .durum {
   font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
-  color: #8a6d2e; margin-top: 18px;
+  color: var(--bronz); margin-top: 18px;
 }
 
-/* -- iki kare: duz reprodüksiyon + ev ortami maketi ----------------------
-   Panelden yüklenen "ortam görseli" burada görünür: eserin bir evin
-   duvarindaki hali. Tek görsel varsa serit BOS kalir ve :empty ile
-   tümüyle kaybolur -- bos bir yer tutucu birakmiyor. */
+/* iki kare: düz reprodüksiyon + ev ortamı maketi. contain — bu kareler
+   "hangi görsel" sorusunu cevaplıyor, kadraj değil. */
 #kareler { display: flex; align-items: flex-start; gap: 12px; margin-top: 24px; }
 #kareler:empty { display: none; }
 #kareler button {
@@ -384,8 +296,6 @@ body {
   font: inherit; text-align: left; cursor: pointer;
 }
 #kareler img {
-  /* contain: bu kareler "hangi görsel" sorusunu cevaplıyor, kadraj değil.
-     cover ile dikey bir ortam maketi ince bir şeride iniyordu. */
   display: block; width: 100%; height: 58px; object-fit: contain;
   background: rgba(28,33,26,.06); opacity: .58;
   outline: 1px solid rgba(28,33,26,.14); outline-offset: -1px;
@@ -393,169 +303,68 @@ body {
 }
 #kareler button:hover img { opacity: .85; }
 #kareler button[aria-current="true"] img {
-  opacity: 1; outline: 2px solid #9a7d3f; outline-offset: -2px;
+  opacity: 1; outline: 2px solid var(--altin); outline-offset: -2px;
 }
 #kareler span {
   display: block; margin-top: 7px;
   font-size: 9.5px; letter-spacing: .11em; text-transform: uppercase;
   white-space: nowrap; color: rgba(28,33,26,.5);
 }
-#kareler button[aria-current="true"] span { color: #8a6d2e; }
+#kareler button[aria-current="true"] span { color: var(--bronz); }
 
-#gez {
-  margin-top: auto; padding-top: 26px;
-  display: flex; align-items: center; gap: 14px;
-}
+#gez { margin-top: auto; padding-top: 26px; display: flex; align-items: center; gap: 14px; }
 #gez button {
-  background: none; cursor: pointer;
-  width: 38px; height: 38px; padding: 0;
+  background: none; cursor: pointer; width: 38px; height: 38px; padding: 0;
   display: grid; place-items: center;
   border: 1px solid rgba(28,33,26,.22); border-radius: 50%;
   color: #33392b; font: 400 16px/1 var(--sans);
   transition: background 240ms var(--ease), border-color 240ms var(--ease), color 240ms;
 }
 #gez button:hover { background: #1c211a; border-color: #1c211a; color: #fff; }
-#sayac {
-  font-size: 11px; letter-spacing: .14em; color: rgba(28,33,26,.5);
-  font-variant-numeric: tabular-nums;
-}
+#sayac { font-size: 11px; letter-spacing: .14em; color: var(--soluk);
+         font-variant-numeric: tabular-nums; }
 #kapat {
   position: absolute; top: 16px; right: clamp(14px, 2vw, 26px);
-  background: none; border: 0; cursor: pointer;
-  color: rgba(28,33,26,.55); font-size: 11px; letter-spacing: .14em;
-  text-transform: uppercase; padding: 10px;
+  background: none; border: 0; cursor: pointer; padding: 10px;
+  color: var(--soluk); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
   transition: color 240ms;
 }
 #kapat:hover { color: #1c211a; }
 
-/* ── YAN LİSTE ──────────────────────────────────────────────────────────
-   Önce liste sönük hâlde doğrudan tablonun ÜSTÜNE biniyordu: altı bağımsız
-   inceleme de aynı şeyi söyledi — yazı okunmuyor, tablo da kirleniyor.
-   Bir tablonun yüzüne yazı bindirilmez.
-
-   Yeni düzen: kapalıyken yalnızca sol kenarda dar bir dil duruyor (tablonun
-   dışında), açılınca liste opak bir panelde geliyor. Dar ekranda da aynı
-   bileşen çalışıyor — eskiden 980 px altında tamamen kaldırılmıştı, yani
-   telefonda 11 eser arasında sıçramanın hiçbir yolu yoktu. */
-#yanliste {
-  position: fixed; left: 0; top: 50%; transform: translateY(-50%);
-  z-index: 16; display: flex; align-items: stretch;
-}
-#listeAc {
-  flex: none; align-self: center;
-  writing-mode: vertical-rl; text-orientation: mixed;
-  padding: 20px 9px; cursor: pointer;
-  font: 400 10.5px/1 var(--sans); letter-spacing: .18em; text-transform: uppercase;
-  color: rgba(244,233,210,.72);
-  background: linear-gradient(180deg, rgba(12,16,11,.86), rgba(8,11,7,.92));
-  border: 1px solid rgba(201,168,106,.30); border-left: 0;
-  border-radius: 0 3px 3px 0;
-  transition: color 240ms var(--ease), border-color 240ms var(--ease),
-              background 240ms var(--ease);
-}
-#listeAc b { font-weight: 400; color: var(--altin); margin-top: 9px; }
-#listeAc:hover { color: #fff8e8; border-color: rgba(201,168,106,.7); }
-
-#listeKutu {
-  overflow: hidden auto; max-height: 78vh;
-  width: 0; opacity: 0; pointer-events: none;
-  background: linear-gradient(158deg, rgba(13,17,11,.97), rgba(8,11,7,.98));
-  border: 1px solid rgba(201,168,106,.22); border-left: 0;
-  box-shadow: 26px 0 56px -20px rgba(0,0,0,.7);
-  transition: width 340ms var(--ease), opacity 260ms var(--ease);
-}
-#yanliste.acik #listeKutu { width: min(300px, 74vw); opacity: 1; pointer-events: auto; }
-#yanliste.acik #listeAc { color: #fff8e8; border-color: rgba(201,168,106,.7); }
-
-#liste { list-style: none; margin: 0; padding: 10px 8px; }
-#liste a {
-  display: flex; align-items: baseline; gap: 10px;
-  text-decoration: none; padding: 12px 12px;      /* 44 px'lik dokunma hedefi */
-  border-left: 2px solid transparent; border-radius: 2px;
-  font-family: var(--serif); font-style: italic; font-size: 16px; line-height: 1.25;
-  color: rgba(244,233,210,.86);
-  transition: color 200ms var(--ease), border-color 200ms var(--ease),
-              background 200ms var(--ease);
-}
-#liste a .yil {
-  margin-left: auto;
-  font-family: var(--sans); font-style: normal; font-size: 11px;
-  letter-spacing: .08em; color: rgba(244,233,210,.45);
-}
-#liste a:hover { color: #fff8e8; border-color: var(--altin); background: rgba(201,168,106,.14); }
-#liste a[aria-current="true"] { color: #f2dfb4; border-color: var(--altin); background: rgba(201,168,106,.09); }
-#liste a[aria-current="true"] .yil { color: rgba(242,223,180,.65); }
-
-@media (max-width: 720px) {
-  /* telefonda dil aşağıya, künyenin üstüne alınıyor */
-  #listeAc { padding: 18px 16px; font-size: 10px; }   /* parmakla 44 px */
-  #yanliste.acik #listeKutu { width: min(280px, 78vw); }
-  #listeKutu { max-height: 62vh; }
-}
-
-/* ── gizli semantik katman ───────────────────────────────────────────────── */
-.gizli { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-:focus-visible { outline: 2px solid var(--altin); outline-offset: 4px; }
-
-@media (max-width: 720px) {
+@media (max-width: 860px) {
   #detay { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
-  #bilgi {
-    border-left: 0; border-top: 1px solid rgba(28,33,26,.12);
-    padding: 20px 18px 22px; max-height: 46vh;
-  }
-  #sahne { padding: 40px 10px 8px; }
-  #buyuk { max-height: calc(62vh - 48px); }
-  /* Künye telefonda ekranın yarısını yiyordu; alıntı satırı burada
-     gösterilmiyor, kalan satırlar ise BÜYÜTÜLÜYOR — en önemli bilgiler
-     sayfadaki en küçük puntoydu. */
-  /* Künye telefonda ALTTAN çıpalanıyor. Üstten (--tabela-y) konumlanınca
-     yüksekliği içeriğe göre değiştiği için alttaki ipucu satırının üstüne
-     biniyordu; alttan çıpalayınca çakışma yapısal olarak imkânsız. */
-  #tabela { width: 96vw; padding: 10px 46px 11px; top: auto; bottom: 56px; }   /* ipucu iki satira sarsa bile cakismaz */
-  .gezok { width: 44px; height: 44px; font-size: 17px; }   /* dokunma hedefi */
-  .gezok[data-yon="-1"] { left: 4px; }
-  .gezok[data-yon="1"]  { right: 4px; }
-  #tabela .ad  { font-size: 20px; }
-  #tabela .cev { display: none; }
-  #tabela .sat { font-size: 12px; letter-spacing: .05em; }
-  #tabela .soz { display: none; }
-  #tabela .durum { font-size: 11.5px; margin-top: 6px; }
-  #ipucu { font-size: 11px; }
-}
-
-#ipucu {
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 10px; z-index: 11;
-  font-size: 11px; letter-spacing: .13em; text-transform: uppercase;
-  color: rgba(239,232,218,.42); pointer-events: none;
-  max-width: 92vw; text-align: center;
-  transition: opacity 600ms var(--ease);
+  #bilgi { border-left: 0; border-top: 1px solid var(--cizgi);
+           padding: 22px clamp(18px, 5vw, 28px) calc(22px + env(safe-area-inset-bottom)); }
+  #sahne { padding: 54px 16px 12px; }
+  #buyuk { max-height: 52vh; }
+  #gez { padding-top: 18px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * { transition-duration: .01ms !important; }
+  * { transition-duration: 1ms !important; }
 }
 </style>
 
-<div id="oda">
-  <div id="duvar">
-    <div id="yansima"></div>
+<header id="ust">
+  <div class="ic">
+    <a id="marka" href="mekan.html"></a>
+    <div id="lang"></div>
+    <a id="cikis" href="mekan.html"></a>
   </div>
-</div>
+</header>
 
-<div id="tabela">
-  <button class="gezok" type="button" data-yon="-1">←</button>
-  <div id="tabelaic" aria-hidden="true"></div>
-  <button class="gezok" type="button" data-yon="1">→</button>
-</div>
-<div id="ilerleme"></div>
+<main>
+  <div id="lede">
+    <h1></h1>
+    <p class="alt"></p>
+  </div>
 
-<div id="ust">
-  <a href="mekan.html" id="cikis">Galeriden çık</a>
-  <div id="lang"></div>
-  <button id="hepsi" type="button">Başa dön</button>
-</div>
+  <nav id="suzgec" aria-label="Seriler"></nav>
+  <p id="notlar"></p>
 
-<div id="ipucu">Kaydırarak duvar boyunca ilerleyin · tabloya tıklayın</div>
+  <div id="izgara"></div>
+  <p id="bos" hidden></p>
+</main>
 
 <div id="detay" aria-hidden="true">
   <div id="sahne"><img id="buyuk" alt=""></div>
@@ -571,17 +380,13 @@ body {
   <button id="kapat" type="button"></button>
 </div>
 
-<nav id="yanliste">
-  <button id="listeAc" type="button" aria-expanded="false" aria-controls="listeKutu"></button>
-  <div id="listeKutu"><ol id="liste"></ol></div>
-</nav>
 <p id="duyuru" class="gizli" aria-live="polite" aria-atomic="true"></p>
 
 <noscript>
-  <div style="position:relative;z-index:40;padding:60px 24px;max-width:34em;margin:0 auto">
-    <h1 style="font-weight:400">Sergi duvarı</h1>
+  <div style="padding:60px 24px;max-width:34em;margin:0 auto">
+    <h1 style="font-weight:400">Eserler</h1>
     <p>Bu bölüm JavaScript gerektiriyor.
-       <a href="mekan.html" style="color:#c9a86a">Eserlerin listesine dönün</a>.</p>
+       <a href="mekan.html">Eserlerin listesine dönün</a>.</p>
   </div>
 </noscript>
 
@@ -597,428 +402,145 @@ const L = () => SITE.i18n[LANG] || SITE.i18n.tr;
 const t = (k) => (L().ui && L().ui[k]) || SITE.i18n.tr.ui[k] || k;
 document.documentElement.lang = LANG;
 
-const WORKS = SITE.works;
-/* N artık YERLER.length — yerleşim kurulduktan sonra tanımlanıyor. */
 const $ = (s) => document.querySelector(s);
-
-const oda = $('#oda'), duvar = $('#duvar');
-const yansima = $('#yansima');
-
-/* ── duvar birimleri ──────────────────────────────────────────────────────
-   Duvar artık gerçek bir Fransız salonu görselinden kuruluyor. Panel
-   koordinatları görselden ÖLÇÜLDÜ (dikey silme tespiti), göz kararı değil.
-   Tablolar panellerin tam içine asılıyor.                                */
-
-const BIRIM = {
-  /* Tek karo, dikişi ölçülmüş.
-     Karo duvardan rastgele bir x'ten kesilirse karonun sağ kenarı bir sonraki
-     karonun sol kenarının devamı olmuyor: silmeler karşıya geçmiyor, süs
-     motifleri ikiye bölünüyor, parke kırılıyordu. Ton eşitlemek bunu gizlemez.
-     duvar.py karoyu düz duvardan kesiyor ve sağ ucuna sol ucun hemen solundaki
-     şeridi kopyalıyor; böylece karo_N'in son sütunu ile karo_N+1'in ilk sütunu
-     kaynakta yan yana iki piksel oluyor. Ölçülen ek farkı 0.94, duvarın kendi
-     sütun farkının ortancası 1.67 — ek, dokunun içinde kayboluyor.
-     ÖLÇÜLERİ ELLE DEĞİŞTİRME: duvar.py yeniden çalıştırılınca oradan gelir. */
-  salon: {
-    src: 'assets/duvar/salon.webp', en: 777, boy: 941,
-    yuvalar: [ { cx: 0.3578, g: 0.6589 } ],
-  },
-};
-const YUVA_CY = 0.4352;       // büyük panonun dikey merkezi (silmelerden ölçüldü)
-const YUVA_BOY = 0.6238;      // panonun yüksekliği (duvar yüksekliğinin oranı)
-const DOLULUK = 0.70;         // en geniş eser, panoyu bu oranda doldurur
-
-/* Her karoda bir pano, her panoda bir eser. Şato galerisinde ritim düzenlidir;
-   panoyu iki eserle bölmek duvarı kalabalık gösteriyordu. */
-function yerlesim() {
-  return { segmentler: WORKS.map((w) => ({ tip: 'salon', isler: [{ j: 0, w }] })) };
-}
-
-const { segmentler: SEGMENTLER } = yerlesim();
-
-/* düz liste: künye, klavye ve erişilebilirlik bunun üstünden çalışıyor */
-const YERLER = [];
-SEGMENTLER.forEach((seg, si) => seg.isler.forEach(it =>
-  YERLER.push({ w: it.w, si, j: it.j })));
-const N = YERLER.length;
-
-/* ── ölçülendirme ────────────────────────────────────────────────────────── */
-
-let ppc = 2.2, duvarEnPx = 0;
-const MERKEZLER = [];        // her eserin duvar üstündeki yatay merkezi
-
-function boyutla() {
-  const vh = innerHeight, vw = innerWidth;
-  dar = vw < 720;                             // telefon ve dar tablet
-
-  /* ÖLÇEK DAR EKRANDA GENİŞLİKTEN KURULUR.
-     Duvarın yüksekliği aynı zamanda karonun genişliğini belirliyor; yükseklik
-     ekrana göre seçilince telefonda tek panel bile kadraja sığmıyor, kişi
-     pilastra burnunu dayamış gibi oluyordu. Dar ekranda büyük paneli ekranın
-     ~%84'ü yapacak yüksekliği seçiyoruz; duvar üste yaslanıyor ve künye
-     altında kalan boşluğa oturuyor (kullanıcının istediği alt bant). */
-  const yuvaOran = BIRIM.salon.yuvalar[0].g * (BIRIM.salon.en / BIRIM.salon.boy);
-  const duvarBoy = dar
-    ? Math.round(Math.min(vh * 0.80, (vw * 0.92) / yuvaOran))
-    : Math.round(vh * 0.94);
-  const ustBosluk = dar ? Math.min(18, Math.round((vh - duvarBoy) * 0.14))
-                        : Math.round((vh - duvarBoy) / 2);
-  const enGenis = Math.max(...WORKS.map(w => w.cw));
-
-  // segment genişlikleri ve konumları
-  let x = 0;
-  const konum = SEGMENTLER.map((seg) => {
-    const b = BIRIM[seg.tip];
-    const en = b.en * (duvarBoy / b.boy);
-    const k = { x, en };
-    x += en;
-    return k;
-  });
-  duvarEnPx = x;
-
-  const buyukYuvaPx = BIRIM.salon.yuvalar[0].g * (BIRIM.salon.en * (duvarBoy / BIRIM.salon.boy));
-  /* Ölçek yalnız GENİŞLİĞE göre kurulursa uzun bir tuval panoyu taşırır.
-     Bugünkü eserlerin hepsi yatay olduğu için bu hiç ortaya çıkmıyor, ama
-     müşterinin gerçek işlerinde dikey format olacak: ölçüldü, mevcut kurulumda
-     ~197 cm'den uzun bir tuval silmelerin üstüne çıkıyordu. Ölçek artık iki
-     boyutu birden gözetiyor — hangisi sınırlıyorsa o kazanıyor. */
-  const enYuksek = Math.max(...WORKS.map(w => w.ch));
-  ppc = Math.min((buyukYuvaPx * DOLULUK) / enGenis,
-                 (YUVA_BOY * duvarBoy * DOLULUK) / enYuksek);
-
-  duvar.style.height = duvarBoy + 'px';
-  duvar.style.top = ustBosluk + 'px';
-  duvar.style.width = duvarEnPx + 'px';
-
-  // segment zeminleri
-  duvar.querySelectorAll('.segment').forEach((el, i) => {
-    const k = konum[i], b = BIRIM[SEGMENTLER[i].tip];
-    el.style.left = k.x + 'px';
-    el.style.width = k.en + 'px';
-    el.style.height = duvarBoy + 'px';
-    el.style.backgroundImage = 'url(' + b.src + ')';
-  });
-
-  // eserler yuvalarının tam ortasına
-  duvar.querySelectorAll('.eser').forEach((el) => {
-    const d = el._d, k = konum[d.si], b = BIRIM[SEGMENTLER[d.si].tip];
-    const yv = b.yuvalar[d.j];
-    const gp = d.w.cw * ppc, yp = d.w.ch * ppc;
-    /* Çerçeve bandı tuvalin DIŞINA ekleniyor: tuval gerçek en-boy oranını
-       korur, çerçeve etrafını sarar. Toplam ölçü yuvaya göre konumlanır. */
-    const bw = Math.max(7, Math.min(30, gp * 0.075));
-    const tg = gp + 2 * bw, ty = yp + 2 * bw;
-    el.style.width = tg + 'px';
-    el.style.height = ty + 'px';
-    el.style.left = (k.x + yv.cx * k.en - tg / 2) + 'px';
-    el.style.top = (YUVA_CY * duvarBoy - ty / 2) + 'px';
-    el.querySelector('.cerceve').style.setProperty('--bw', bw.toFixed(1) + 'px');
-    MERKEZLER[+el.dataset.i] = k.x + yv.cx * k.en;   // duvar koordinatında merkez
-  });
-
-  /* Künye: geniş ekranda duvarın lambri bandı hizasında; dar ekranda duvarın
-     ALTINDAKİ boşlukta — tabloların üstünü kapatmasın, hep görünür kalsın. */
-  document.documentElement.style.setProperty('--tabela-y',
-    Math.round(dar ? ustBosluk + duvarBoy + 12
-                   : ustBosluk + duvarBoy * 0.775) + 'px');
-  document.documentElement.style.setProperty('--duvar-boy', duvarBoy + 'px');
-
-  /* DAR EKRANDA DİKEY KAYDIRMA YOK.
-     Duvarı sürmek için sayfayı dikey kaydırmak telefonda yanlış bir his
-     veriyordu: parmağını yukarı çekince duvar yana gidiyordu. Artık gövde
-     tam ekran boyunda, sayfa hiç kaymıyor; duvarı yalnız yatay parmak
-     hareketi sürüyor. Geniş ekranda tekerlek çalışmaya devam ediyor. */
-  document.documentElement.classList.toggle('kilitli', dar);
-  document.body.style.height = dar
-    ? '100%'
-    : Math.max(vh * 1.2, duvarEnPx - vw + vh) + 'px';
-
-  if (dar) guncelle(); else kaydir();
-
-  /* Duvar sıfır noktasında pilastra denk geliyor, kişi eser yerine boş panel
-     görüyordu. İlk açılışta ilk eseri kadraja alıyoruz. */
-  if (ilkKurulum) { ilkKurulum = false; if (dar) merkezeAl(0); }
-}
-
-let ilkKurulum = true;
-
-function merkezeAl(idx) {
-  const el = duvar.querySelector('.eser[data-i="' + idx + '"]');
-  if (!el) return;
-  konumaGit(parseFloat(el.style.left) - innerWidth / 2 + parseFloat(el.style.width) / 2);
-}
-
-/* ── segmentleri ve eserleri kur ─────────────────────────────────────────── */
-
-SEGMENTLER.forEach(() => {
-  const d = document.createElement('div');
-  d.className = 'segment';
-  duvar.appendChild(d);
-});
-
-const TON = ['', 't-b', '', 't-c', 't-b', '', 't-c'];   // düzenli tekrar hissi vermesin
-const liste = document.getElementById('liste');
-YERLER.forEach((d, idx) => {
-  const w = d.w;
-  const b = document.createElement('button');
-  b.className = 'eser';
-  b.type = 'button';
-  b.dataset.i = idx;
-  b._d = d;
-  b.setAttribute('aria-label', w.title + ', ' + w.year + ', ' + w.size);
-  b.innerHTML =
-    '<div class="isik"></div>' +
-    '<div class="cerceve ' + TON[idx % TON.length] + '">' +
-      '<img src="' + w.src + '" alt="" loading="lazy"></div>';
-
-  b.addEventListener('click', () => ac(idx));
-  b.addEventListener('pointerenter', () => { uzerinde = idx; duvar.classList.add('odak'); tabelaTazele();
-    document.getElementById('ipucu').style.opacity = '0'; });
-  b.addEventListener('pointerleave', () => { uzerinde = -1; duvar.classList.remove('odak'); tabelaTazele(); });
-  b.addEventListener('mouseenter',  () => { uzerinde = idx; duvar.classList.add('odak'); tabelaTazele(); });
-  b.addEventListener('mouseleave',  () => { uzerinde = -1; duvar.classList.remove('odak'); tabelaTazele(); });
-  b.addEventListener('focus', () => { uzerinde = idx; tabelaTazele(); });
-  b.addEventListener('blur',  () => { uzerinde = -1; tabelaTazele(); });
-  duvar.appendChild(b);
-
-  const li = document.createElement('li');
-  li.innerHTML = '<a href="#e' + idx + '">' + w.title +
-                 '<span class="yil">' + w.year + '</span></a>';
-  /* Listeden seçmek eseri AÇMIYOR, duvarı oraya götürüyor: liste bir dizin,
-     bir kısayol menüsü değil. Açmak için tabloya tıklanır. */
-  li.querySelector('a').addEventListener('click', (e) => {
-    e.preventDefault();
-    uzerinde = -1;
-    merkezeAl(idx); merkezde = idx;
-    tabelaTazele(); listeIsaretle(idx);
-    listeAcKapa(false);
-  });
-  liste.appendChild(li);
-});
-
-/* ── duvar etiketi ───────────────────────────────────────────────────────
-   Fare bir tablonun üstündeyse onun bilgisi; değilse ekranın ortasına en
-   yakın eserinki. Dokunmatikte hover olmadığı için panel hiç boş kalmıyor. */
-
-const tabela = document.getElementById('tabela');
-const tabelaIc = document.getElementById('tabelaic');
-let uzerinde = -1, merkezde = -1;
-
-function tabelaYaz(idx) {
-  if (idx < 0 || !YERLER[idx]) {
-    tabelaIc.innerHTML = '<div class="bos">' + t('nav_gallery') + ' · ' +
-                       SITE.artist.name + '</div>';
-    return;
-  }
-  const w = YERLER[idx].w;
-  const gloss = (L().works[w.id] || {}).gloss || '';
-  const soz = (L().works[w.id] || {}).note || w.note;
-  const durum = w.status === 'satilik' ? t('avail_studio')
-              : w.status === 'koleksiyonda' ? t('avail_private') : t('avail_gone');
-  tabelaIc.innerHTML =
-    '<div class="ad">' + w.title + '</div>' +
-    (gloss ? '<div class="cev">' + gloss + '</div>' : '') +
-    '<div class="sat">' + w.year + ' · ' + t('medium') + ' · ' +
-    '<span class="olcu">' + w.size + '  |  ' + w.sizeIn + '</span></div>' +
-    '<div class="soz">“' + soz + '”</div>' +
-    '<div class="durum">' + durum + '</div>';
-}
-
-function tabelaTazele() {
-  tabelaYaz(uzerinde >= 0 ? uzerinde : merkezde);
-}
-
-/* Ekranın ortasına en yakın eser.
-   Eskiden her eserin getBoundingClientRect'i okunuyordu. İki sorunu vardı:
-   (1) her kaydırma olayında 18 kaplama ölçümü — gereksiz yerleşim hesabı;
-   (2) duvar hedefine YUMUŞAK gittiği için ölçüm o anki (eski) konumu
-       veriyordu, yani ok tuşuna basınca künye eski eserde kalıyordu.
-   Artık merkezler boyutla() içinde önbelleğe alınıyor ve karşılaştırma
-   HEDEF konuma göre yapılıyor: künye anında doğru esere geçiyor. */
-function merkeziBul() {
-  const hedef = konum + innerWidth / 2;
-  let en = Infinity, k = -1;
-  for (let i = 0; i < MERKEZLER.length; i++) {
-    const d = Math.abs(MERKEZLER[i] - hedef);
-    if (d < en) { en = d; k = i; }
-  }
-  if (k !== merkezde) { merkezde = k; listeIsaretle(k); if (uzerinde < 0) tabelaTazele(); }
-}
-
-/* Künyedeki oklar: o an gösterilen eserden bir önceki/sonrakine geç. */
-function gez(yon) {
-  const su = uzerinde >= 0 ? uzerinde : merkezde;
-  const y = su < 0 ? (yon > 0 ? 0 : N - 1) : (su + yon + N) % N;
-  uzerinde = -1;
-  duvar.classList.remove('odak');
-  merkezeAl(y);
-  merkezde = y;                 /* duvar yumuşak giderken künye beklemesin */
-  tabelaTazele(); listeIsaretle(y);
-}
-
-document.querySelectorAll('.gezok').forEach((b) => {
-  b.addEventListener('click', () => gez(+b.dataset.yon));
-});
-
-/* Liste kapalıyken yalnızca kenardaki dil görünür; açmak tıklamayla.
-   Geniş ekranda fare dile değince de açılıyor, ama açık kalması için
-   tıklamak gerekiyor — imleç geçerken kazara açılıp kapanmasın. */
-const yanliste = $('#yanliste'), listeAc = $('#listeAc');
-function listeAcKapa(ac) {
-  yanliste.classList.toggle('acik', ac);
-  listeAc.setAttribute('aria-expanded', ac ? 'true' : 'false');
-}
-listeAc.addEventListener('click', () => listeAcKapa(!yanliste.classList.contains('acik')));
-if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
-  yanliste.addEventListener('pointerenter', () => listeAcKapa(true));
-  yanliste.addEventListener('pointerleave', () => listeAcKapa(false));
-}
-addEventListener('keydown', (e) => { if (e.key === 'Escape') listeAcKapa(false); });
-document.addEventListener('pointerdown', (e) => {
-  if (!yanliste.contains(e.target)) listeAcKapa(false);
-});
-
-/* Delegasyon kaldırıldı: dinleyiciler doğrudan eserlerde. */
-
-/* ── yanal hareket + hafif paralaks. Dönme YOK. ──────────────────────────── */
-
-let hedefX = 0, suanX = 0, fareEgim = 0, hedefEgim = 0;
-
-/* DUVARIN YATAY KONUMU TEK DEĞİŞKENDE: konum (0 .. enFazla piksel).
-   Önce dikey scroll tek kaynaktı; telefonda bu, olmaması gereken bir dikey
-   kaydırma yaratıyordu — parmağını yukarı sürükleyince duvar yana kayıyor,
-   sayfa da kendi başına oynuyordu. Artık dar ekranda sayfa hiç kaymıyor
-   (gövde yüksekliği ekran kadar), duvarı yalnızca yatay parmak hareketi
-   sürüyor. Geniş ekranda tekerlek/scroll aynı konumu besliyor. */
-let konum = 0, dar = false;
-
-const enFazla = () => Math.max(0, duvarEnPx - innerWidth);
-const scrollPayi = () => document.body.scrollHeight - innerHeight;
-
-function guncelle() {
-  const max = enFazla();
-  konum = Math.min(max, Math.max(0, konum));
-  const p = max > 0 ? konum / max : 0;
-  hedefX = -konum;
-  $('#ilerleme').style.width = (p * 100) + '%';
-  if (p > 0.02) $('#ipucu').style.opacity = '0';
-  merkeziBul();
-}
-
-/* Konumu yaz. Geniş ekranda scroll da senkron kalsın diye sayfa kaydırılır;
-   dar ekranda scroll yok, doğrudan konum yazılır. */
-function konumaGit(px) {
-  konum = Math.min(enFazla(), Math.max(0, px));
-  if (!dar) {
-    const max = enFazla(), oran = scrollPayi();
-    if (max > 0 && oran > 0) scrollTo({ top: (konum / max) * oran, behavior: 'auto' });
-  }
-  guncelle();
-}
-
-function kaydir() {
-  if (dar) return;                       // dar ekranda scroll kaynağı değil
-  const max = enFazla(), oran = scrollPayi();
-  konum = oran > 0 ? Math.min(1, Math.max(0, scrollY / oran)) * max : 0;
-  guncelle();
-}
-addEventListener('scroll', kaydir, { passive: true });
-
-/* ── DOKUNMATİK: yatay parmak hareketi ───────────────────────────────────
-   Parmak duvarı birebir sürüklüyor; bırakınca atalet devam ediyor.
-   Dar ekranda sayfanın dikey kaydırması kapalı olduğu için (boyutla()
-   gövde yüksekliğini ekrana eşitliyor) burada scroll'a hiç dokunulmuyor. */
-(function () {
-  let x0 = 0, y0 = 0, k0 = 0, yon = null, sonX = 0, sonT = 0, hiz = 0, atalet = 0;
-  let kaydi = false;
-
-  addEventListener('touchstart', (e) => {
-    if (acikIdx >= 0 || e.touches.length !== 1) return;
-    atalet = 0; kaydi = false;
-    const t = e.touches[0];
-    x0 = sonX = t.clientX; y0 = t.clientY;
-    k0 = konum; yon = null; hiz = 0; sonT = e.timeStamp;
-  }, { passive: true });
-
-  addEventListener('touchmove', (e) => {
-    if (acikIdx >= 0 || e.touches.length !== 1) return;
-    const t = e.touches[0];
-    const dx = x0 - t.clientX, dy = y0 - t.clientY;
-    if (yon === null) {
-      if (Math.abs(dx) < 9 && Math.abs(dy) < 9) return;
-      /* Dar ekranda dikey kaydırma diye bir şey yok: her hareket duvarı
-         sürüklesin, kişi parmağını hafif eğik kaydırınca hiçbir şey
-         olmaması sinir bozucu oluyordu. */
-      yon = (dar || Math.abs(dx) > Math.abs(dy)) ? 'yatay' : 'dikey';
-    }
-    if (yon !== 'yatay') return;
-    if (e.cancelable) e.preventDefault();
-    kaydi = true;
-    const dt = e.timeStamp - sonT;
-    if (dt > 0) hiz = (sonX - t.clientX) / dt;          // px/ms
-    sonX = t.clientX; sonT = e.timeStamp;
-    konumaGit(k0 + dx);
-  }, { passive: false });
-
-  addEventListener('touchend', () => {
-    if (yon !== 'yatay' || Math.abs(hiz) < 0.25) { yon = null; return; }
-    yon = null;
-    atalet = hiz * 16;                                  // kare başına px
-    const sur = () => {
-      if (Math.abs(atalet) < 0.35) return;
-      const onceki = konum;
-      konumaGit(konum + atalet);
-      if (konum === onceki) return;                     // uca dayandı
-      atalet *= 0.94;
-      requestAnimationFrame(sur);
-    };
-    requestAnimationFrame(sur);
-  }, { passive: true });
-
-  /* sürükleme bittiğinde tabloyu açma; parmak kaydırmak tıklamak değildir */
-  duvar.addEventListener('click', (e) => {
-    if (kaydi) { e.stopPropagation(); e.preventDefault(); kaydi = false; }
-  }, true);
-})();
-
-if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
-  addEventListener('pointermove', (e) => {
-    hedefEgim = ((e.clientX / innerWidth) - 0.5) * 3.2;   // ±1.6° — derinlik ipucu
-  }, { passive: true });
-}
-
-function dongu() {
-  suanX += (hedefX - suanX) * 0.11;
-  fareEgim += (hedefEgim - fareEgim) * 0.06;
-  duvar.style.transform =
-    'translate3d(' + suanX.toFixed(2) + 'px,0,0) rotateY(' + fareEgim.toFixed(3) + 'deg)';
-  requestAnimationFrame(dongu);
-}
-
-/* ── detay: tablo ekrana doğru uçuyor (FLIP) ─────────────────────────────── */
-
+const WORKS = SITE.works;                 // build.py sıraya göre veriyor
+const izgara = $('#izgara'), suzgec = $('#suzgec');
 const detay = $('#detay'), buyuk = $('#buyuk'), kunyeEl = $('#kunye'),
       karelerEl = $('#kareler'), sayac = $('#sayac'), duyuru = $('#duyuru');
-let acikIdx = -1;
 
-/* Yan listede o an duvarda ortada olan eseri işaretle. */
-function listeIsaretle(idx) {
-  liste.querySelectorAll('a').forEach((a, i) =>
-    a.setAttribute('aria-current', i === idx ? 'true' : 'false'));
+let seri = 'hepsi';
+let gorunen = WORKS.slice();              // süzgeçten geçen liste; oklar bunu izler
+let acikIdx = -1;                         // gorunen içindeki indeks
+let geriScroll = 0;
+
+/* Türkçe büyük harf: toUpperCase() "i" harfini "I" yapıyor. */
+function upTR(s) { return String(s).replace(/i/g, 'İ').toUpperCase(); }
+
+function durumMetni(s) {
+  return s === 'satilik' ? t('avail_studio')
+       : s === 'koleksiyonda' ? t('avail_private') : t('avail_gone');
 }
 
+/* ── ÖLÇEK ────────────────────────────────────────────────────────────
+   Her eser aynı boyutta nötr bir alanın içinde, kendi gerçek ölçüsüyle.
+   Ölçek BÜTÜN koleksiyona göre hesaplanıyor, süzgeçten geçene göre değil:
+   yoksa aynı eser "Tümü" ile "Hava" görünümünde iki farklı boyutta çıkardı
+   ve ölçek karşılaştırması anlamını yitirirdi. */
+const EN_GENIS  = Math.max.apply(null, WORKS.map((w) => w.cw));
+const EN_YUKSEK = Math.max.apply(null, WORKS.map((w) => w.ch));
+const DOLULUK = 0.84;      /* en büyük eser alanın %84'ünü kaplasın */
+const EN_KUCUK = 0.10;     /* güvenlik tabanı: bir aykırı ölçü 2 px'e inmesin */
+
+function olcekle() {
+  const el = izgara.querySelector('.alan');
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  const ppc = Math.min(r.width * DOLULUK / EN_GENIS, r.height * DOLULUK / EN_YUKSEK);
+  izgara.style.setProperty('--ppc', ppc.toFixed(4) + 'px');
+  /* Taban: koleksiyonda uçlar çok açıksa küçük eser kaybolmasın. */
+  const taban = r.width * EN_KUCUK;
+  izgara.querySelectorAll('.kart').forEach((a) => {
+    const g = Number(a.dataset.cw) * ppc;
+    a.style.setProperty('--ppc', g < taban ? (taban / Number(a.dataset.cw)).toFixed(4) + 'px' : '');
+  });
+}
+
+/* ── ızgara ─────────────────────────────────────────────────────────────── */
+function kartlariKur() {
+  izgara.innerHTML = '';
+  WORKS.forEach((w) => {
+    const a = document.createElement('a');
+    a.className = w.ortam ? 'kart var-ortam' : 'kart';
+    a.href = '#/eser/' + encodeURIComponent(w.slug);
+    a.dataset.slug = w.slug;
+    a.dataset.seri = w.series;
+    a.dataset.cw = w.cw;
+    a.style.setProperty('--cw', w.cw);
+    a.style.setProperty('--ch', w.ch);
+    a.innerHTML =
+      '<div class="alan">' +
+        '<img class="tuval" src="' + w.src + '" alt="" loading="lazy" ' +
+             'style="background:' + (w.tone || '#e6e3dc') + '">' +
+        (w.ortam ? '<img class="ortam" src="' + w.ortam + '" alt="" loading="lazy">' : '') +
+      '</div><div class="kunye"></div>';
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const i = gorunen.indexOf(w);
+      if (i >= 0) ac(i);
+    });
+    izgara.appendChild(a);
+  });
+}
+
+function kunyeleriYaz() {
+  izgara.querySelectorAll('.kart').forEach((a) => {
+    const w = WORKS.find((x) => x.slug === a.dataset.slug);
+    if (!w) return;
+    const gloss = (L().works[w.id] || {}).gloss || '';
+    a.querySelector('.kunye').innerHTML =
+      '<div class="ad"><i>' + w.title + '</i>, ' + w.year + '</div>' +
+      (gloss ? '<div class="cev">' + gloss + '</div>' : '') +
+      '<div class="satir">' + t('medium') + '</div>' +
+      '<div class="satir olcu">' + w.size +
+        ' <span class="ayrac">|</span> ' + w.sizeIn + '</div>' +
+      '<div class="durum">' + durumMetni(w.status) + '</div>';
+    a.setAttribute('aria-label', w.title + ', ' + w.year + '. ' + w.size + '.');
+  });
+}
+
+/* ── seri süzgeci ───────────────────────────────────────────────────────── */
+function suzgeciKur() {
+  suzgec.innerHTML = '';
+  const ekle = (anahtar, ad) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = ad;
+    b.dataset.k = anahtar;
+    b.setAttribute('aria-current', String(anahtar === seri));
+    b.addEventListener('click', () => suz(anahtar));
+    suzgec.appendChild(b);
+  };
+  ekle('hepsi', t('gal_all'));
+  (SITE.series || []).forEach((s) => {
+    if (!WORKS.some((w) => w.series === s.key)) return;   // boş seri listelenmesin
+    ekle(s.key, ((L().series || {})[s.key] || K.seriesOf(s.key) || {}).title || s.key);
+  });
+  const sayi = document.createElement('span');
+  sayi.className = 'sayi';
+  suzgec.appendChild(sayi);
+  sayiyiYaz();
+}
+
+function sayiyiYaz() {
+  const s = suzgec.querySelector('.sayi');
+  if (s) s.textContent = gorunen.length + ' / ' + WORKS.length;
+}
+
+function suz(anahtar) {
+  seri = anahtar;
+  gorunen = anahtar === 'hepsi' ? WORKS.slice() : WORKS.filter((w) => w.series === anahtar);
+  izgara.querySelectorAll('.kart').forEach((a) => {
+    a.hidden = anahtar !== 'hepsi' && a.dataset.seri !== anahtar;
+  });
+  suzgec.querySelectorAll('button').forEach((b) => {
+    b.setAttribute('aria-current', String(b.dataset.k === seri));
+  });
+  const bos = $('#bos');
+  bos.textContent = t('gal_empty');
+  bos.hidden = gorunen.length > 0;
+  sayiyiYaz();
+  olcekle();
+}
+
+/* ── detay ──────────────────────────────────────────────────────────────── */
 function ac(idx) {
-  const w = YERLER[idx] && YERLER[idx].w;
+  const w = gorunen[idx];
   if (!w) return;
   const gloss = (L().works[w.id] || {}).gloss || '';
   const not = (L().works[w.id] || {}).note || w.note;
-  const durum = w.status === 'satilik' ? t('avail_studio')
-              : w.status === 'koleksiyonda' ? t('avail_private') : t('avail_gone');
-  /* K.seriesOf ANAHTAR alıyor, eser nesnesi değil; başlık da çeviriden gelmeli. */
-  const seri = ((L().series || {})[w.series] || K.seriesOf(w.series) || {}).title || '';
+  const seriAd = ((L().series || {})[w.series] || K.seriesOf(w.series) || {}).title || '';
 
-  /* Eser değişince kısa bir sönüp açılma: aynı panelde farklı resim
-     olduğunu göz kaçırmasın. */
   buyuk.style.opacity = '0';
   buyuk.src = w.src;
   buyuk.alt = w.title + ', ' + w.year;
@@ -1027,36 +549,58 @@ function ac(idx) {
   kunyeEl.innerHTML =
     '<div class="ad">' + w.title + '</div>' +
     (gloss ? '<div class="cev">' + gloss + '</div>' : '') +
-    (seri ? '<div class="seri">' + seri + '</div>' : '') +
+    (seriAd ? '<div class="seri">' + seriAd + '</div>' : '') +
     '<dl>' +
       '<dt>' + t('lbl_year') + '</dt><dd>' + w.year + '</dd>' +
       '<dt>' + t('lbl_medium') + '</dt><dd>' + t('medium') + '</dd>' +
       '<dt>' + t('lbl_size') + '</dt><dd>' + w.size + '<br>' + w.sizeIn + '</dd>' +
     '</dl>' +
-    '<div class="not">“' + not + '”</div>' +
-    '<div class="durum">' + durum + '</div>';
-  sayac.textContent = (idx + 1) + ' / ' + N;
+    (not ? '<div class="not">“' + not + '”</div>' : '') +
+    '<div class="durum">' + durumMetni(w.status) + '</div>';
 
-  /* Ikinci kare: eserin ev ortamindaki hali (panelden yüklenen "ortam
-     görseli"). Yoksa serit bos birakiliyor, CSS :empty ile kayboluyor. */
   const kareler = [{ src: w.src, ad: t('kare_eser') }];
   if (w.ortam) kareler.push({ src: w.ortam, ad: t('kare_ortam') });
   karelerEl.innerHTML = kareler.length < 2 ? '' : kareler.map((k, i) =>
     '<button type="button" data-src="' + k.src + '" aria-current="' + (i === 0) + '">' +
     '<img src="' + k.src + '" alt=""><span>' + k.ad + '</span></button>').join('');
 
-  yakinlastir(false);                 // eser değişince yakınlaştırma sıfırlansın
+  sayac.textContent = (idx + 1) + ' / ' + gorunen.length;
+
+  if (acikIdx < 0) {                       // ilk açılış: sayfanın yerini sakla
+    geriScroll = window.scrollY;
+    document.documentElement.classList.add('durdur');
+  }
+  yakinlastir(false);
   detay.classList.add('acik');
   detay.setAttribute('aria-hidden', 'false');
   acikIdx = idx;
   adresYaz(idx);
-  tabela.style.opacity = '0';
-  duyuru.textContent = (idx + 1) + ' / ' + N + '. ' + w.title + '. ' + w.year + '. ' + w.size + '.';
+  duyuru.textContent = (idx + 1) + ' / ' + gorunen.length + '. ' +
+                       w.title + '. ' + w.year + '. ' + w.size + '.';
   $('#kapat').focus({ preventScroll: true });
 }
 
-/* Kareye tiklayinca büyük görsel degisiyor; yakinlastirma sifirlaniyor
-   çünkü iki görselin çerçevesi ayni degil. */
+function kapat() {
+  if (acikIdx < 0) return;
+  const geri = gorunen[acikIdx];
+  acikIdx = -1;
+  yakinlastir(false);
+  adresYaz(-1);
+  detay.classList.remove('acik');
+  detay.setAttribute('aria-hidden', 'true');
+  document.documentElement.classList.remove('durdur');
+  window.scrollTo(0, geriScroll);
+  const el = geri && izgara.querySelector('.kart[data-slug="' + geri.slug + '"]');
+  if (el) el.focus({ preventScroll: true });
+}
+
+function git(yon) {
+  if (acikIdx < 0 || !gorunen.length) return;
+  ac((acikIdx + yon + gorunen.length) % gorunen.length);
+}
+
+/* Kareye tıklayınca büyük görsel değişiyor; yakınlaştırma sıfırlanıyor
+   çünkü iki görselin çerçevesi aynı değil. */
 karelerEl.addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b) return;
@@ -1068,34 +612,9 @@ karelerEl.addEventListener('click', (e) => {
     x.setAttribute('aria-current', String(x === b)));
 });
 
-function kapat() {
-  if (acikIdx < 0) return;
-  const geri = acikIdx;
-  acikIdx = -1;
-  yakinlastir(false);
-  adresYaz(-1);
-  detay.classList.remove('acik');
-  detay.setAttribute('aria-hidden', 'true');
-  tabela.style.opacity = '';
-  const el = duvar.querySelector('.eser[data-i="' + geri + '"]');
-  if (el) el.focus({ preventScroll: true });
-}
-
-/* Detaydaki oklar: duvarı da beraberinde götürsün ki kapatınca doğru
-   yerde olalım. */
-function git(yon) {
-  if (acikIdx < 0) return;
-  const y = (acikIdx + yon + N) % N;
-  merkezeAl(y); merkezde = y; listeIsaretle(y);
-  ac(y);
-}
-
-/* ── 11) YAKINLAŞTIRMA ────────────────────────────────────────────────
-   Tıkla, büyüsün; fare gezindikçe kadraj takip etsin. Dokunmatikte çift
-   dokunuş açıyor, parmak sürüklemesi kadrajı geziyor.
-   KAT 2,2 ile sınırlı: kaynak dosya 1686 px, daha fazlası yalnızca
-   büyütülmüş bulanıklık olurdu. Müşterinin kendi fotoğrafları gelince
-   secim.py içindeki FULL_W ile birlikte yükseltilebilir. */
+/* ── yakınlaştırma ────────────────────────────────────────────────────
+   Tıkla büyüsün, fare gezindikçe kadraj takip etsin; dokunmatikte çift
+   dokunuş. KAT 2,2 ile sınırlı: kaynak dosya 1686 px. */
 const sahne = $('#sahne');
 const KAT = 2.2;
 let yakin = false;
@@ -1108,26 +627,28 @@ function odak(x, y) {
   buyuk.style.transformOrigin = px.toFixed(1) + '% ' + py.toFixed(1) + '%';
 }
 
-function yakinlastir(ac, x, y) {
-  yakin = ac;
+function yakinlastir(acik, x, y) {
+  yakin = acik;
   sahne.classList.toggle('yakin', yakin);
   if (yakin) { odak(x, y); buyuk.style.transform = 'scale(' + KAT + ')'; }
   else { buyuk.style.transform = ''; buyuk.style.transformOrigin = ''; }
 }
 
 buyuk.addEventListener('click', (e) => yakinlastir(!yakin, e.clientX, e.clientY));
-sahne.addEventListener('pointermove', (e) => { if (yakin && e.pointerType !== 'touch') odak(e.clientX, e.clientY); });
+sahne.addEventListener('pointermove', (e) => {
+  if (yakin && e.pointerType !== 'touch') odak(e.clientX, e.clientY);
+});
 sahne.addEventListener('pointerleave', () => { if (yakin) yakinlastir(false); });
 
 let sonDokunus = 0;
 buyuk.addEventListener('touchend', (e) => {
-  const t = e.timeStamp;
-  if (t - sonDokunus < 320) {
+  const z = e.timeStamp;
+  if (z - sonDokunus < 320) {
     e.preventDefault();
     const d = e.changedTouches[0];
     yakinlastir(!yakin, d.clientX, d.clientY);
   }
-  sonDokunus = t;
+  sonDokunus = z;
 });
 buyuk.addEventListener('touchmove', (e) => {
   if (!yakin || e.touches.length !== 1) return;
@@ -1135,58 +656,46 @@ buyuk.addEventListener('touchmove', (e) => {
   odak(e.touches[0].clientX, e.touches[0].clientY);
 }, { passive: false });
 
-/* ── 10) TEK ESERE KALICI BAĞLANTI ────────────────────────────────────
-   Bir eseri gösteren paylaşılabilir bir adres yoktu; "siteye gir, dördüncü
-   tabloya tıkla" demek gerekiyordu. Adres çubuğu açık esere göre
-   güncelleniyor (replaceState — her ok basışı geçmişe girmesin diye) ve
-   sayfa o adresle açılırsa eser doğrudan açılıyor. */
+/* ── tek esere kalıcı bağlantı ────────────────────────────────────────
+   replaceState: her ok basışı geçmişe girmesin. Adresle gelen bir eser
+   o an süzgeç dışındaysa süzgeç önce "Tümü"ne alınıyor — bağlantı her
+   koşulda açılmalı. */
+const ONEK = '#/eser/';
+
 function adresYaz(idx) {
-  const w = idx >= 0 && YERLER[idx] ? YERLER[idx].w : null;
-  /* file:// üstünde ve bazı gömülü bağlamlarda replaceState güvenlik hatası
-     atıyor; adres güncellemesi süslemedir, eser açılışını düşürmemeli. */
+  const w = idx >= 0 ? gorunen[idx] : null;
   try {
     history.replaceState(null, '',
-      w ? '#/eser/' + w.slug : location.pathname + location.search);
-  } catch (e) { /* yoksay */ }
+      w ? ONEK + encodeURIComponent(w.slug) : location.pathname + location.search);
+  } catch (e) { /* file:// ve bazı gömülü bağlamlarda güvenlik hatası atıyor */ }
 }
 
 function adrestenAc() {
-  const m = location.hash.match(/^#\/eser\/(.+)$/);
-  if (!m) return;
-  const slug = decodeURIComponent(m[1]);
-  const i = YERLER.findIndex((y) => y.w.slug === slug);
-  if (i < 0) return;
-  merkezeAl(i); merkezde = i; listeIsaretle(i);
-  ac(i);
+  if (location.hash.indexOf(ONEK) !== 0) return;
+  const slug = decodeURIComponent(location.hash.slice(ONEK.length));
+  const w = WORKS.find((x) => x.slug === slug);
+  if (!w) return;
+  if (gorunen.indexOf(w) < 0) suz('hepsi');
+  ac(gorunen.indexOf(w));
 }
 
 $('#kapat').addEventListener('click', kapat);
 $('.onceki').addEventListener('click', () => git(-1));
 $('.sonraki').addEventListener('click', () => git(1));
 addEventListener('keydown', (e) => {
-  if (acikIdx >= 0) {
-    if (e.key === 'Escape') kapat();
-    if (e.key === 'ArrowLeft') git(-1);
-    if (e.key === 'ArrowRight') git(1);
-    return;
-  }
-  /* duvarda gezinirken de aynı oklar çalışsın */
-  if (e.key === 'ArrowLeft')  { e.preventDefault(); gez(-1); }
-  if (e.key === 'ArrowRight') { e.preventDefault(); gez(1); }
+  if (acikIdx < 0) return;
+  if (e.key === 'Escape') kapat();
+  if (e.key === 'ArrowLeft') git(-1);
+  if (e.key === 'ArrowRight') git(1);
 });
 
-$('#hepsi').addEventListener('click', () => konumaGit(0));
-
-/* ── başlat ──────────────────────────────────────────────────────────────── */
-
-/* ── DİL ───────────────────────────────────────────────────────────────
-   Galeri sayfası kayıtlı dili okuyor ve künyeyi çeviriyordu, ama sabit
-   metinler ("Galeriden çık", "Başa dön", "Kapat", okların aria-label'ları,
-   ipucu satırı) Türkçe gömülüydü: EN/FR seçen ziyaretçi yarı çevrilmiş bir
-   sayfa görüyordu. Artık hepsi tek yerden, t() üstünden geliyor ve sayfanın
-   kendi dil anahtarı var — dil değiştirmek için mekâna dönmek gerekmiyor. */
-function dokunmatikMi() {
-  return matchMedia('(hover: none)').matches || innerWidth < 720;
+/* ── dil ─────────────────────────────────────────────────────────────────── */
+/* Dar ekranda uzun etiket ("Retour au site") başlığı iki satıra kırıyordu;
+   kısa karşılık kullanılıyor, erişilebilir ad tam kalıyor. */
+function cikisEtiketi() {
+  const e = $('#cikis');
+  e.textContent = innerWidth < 560 ? t('gal_exit_k') : t('gal_exit');
+  e.setAttribute('aria-label', t('gal_exit'));
 }
 
 function dilUygula() {
@@ -1194,31 +703,25 @@ function dilUygula() {
   const d = document.querySelector('meta[name="description"]');
   if (d && L().ui && L().ui.meta_desc) d.setAttribute('content', t('meta_desc'));
 
-  /* Dar ekranda uzun etiketler iki satıra kırılıp dil anahtarını eziyordu
-     (özellikle FR: "QUITTER LA GALERIE" + "RETOUR AU DÉBUT"). 560 px altında
-     kısa karşılıkları kullanılıyor; erişilebilir ad tam hâliyle kalıyor. */
-  const kisa = innerWidth < 560;
-  $('#cikis').textContent = kisa ? t('gal_exit_k') : t('gal_exit');
-  $('#cikis').setAttribute('aria-label', t('gal_exit'));
-  $('#hepsi').textContent = kisa ? t('gal_top_k') : t('gal_top');
-  $('#hepsi').setAttribute('aria-label', t('gal_top'));
+  const ad = SITE.artist.name.split(' ');
+  $('#marka').innerHTML = ad[0] + ' <b>' + upTR(ad.slice(1).join(' ')) + '</b>';
+  $('#marka').setAttribute('aria-label', SITE.artist.name);
+  cikisEtiketi();
   $('#kapat').textContent = t('gal_close');
-  $('#yanliste').setAttribute('aria-label', t('gal_works'));
-  $('#listeAc').innerHTML = t('gal_works') + '<b>' + N + '</b>';
-  $('#listeAc').setAttribute('title', t('gal_works'));
-  $('#ipucu').textContent = dokunmatikMi() ? t('gal_hint_touch') : t('gal_hint');
+  $('#lede h1').textContent = t('gal_works');
+  $('#lede .alt').textContent = t('gal_sub');
+  $('#notlar').textContent = WORKS.some((w) => w.ortam) ? t('gal_room') : '';
 
-  document.querySelectorAll('.gezok, .onceki, .sonraki').forEach((b) => {
-    const geri = b.classList.contains('onceki') || b.dataset.yon === '-1';
+  document.querySelectorAll('.onceki, .sonraki').forEach((b) => {
+    const geri = b.classList.contains('onceki');
     b.setAttribute('aria-label', geri ? t('gal_prev') : t('gal_next'));
     b.title = geri ? t('gal_prev') : t('gal_next');
   });
 
-  // dil düğmeleri
   const kutu = $('#lang');
   kutu.innerHTML = '';
   LANGS.forEach((kod, i) => {
-    if (i) { const a = K.el('span', 'ayrac', '·'); kutu.appendChild(a); }
+    if (i) kutu.appendChild(K.el('span', 'ayrac', '·'));
     const b = K.el('button', '', kod.toUpperCase());
     b.type = 'button';
     b.setAttribute('aria-current', kod === LANG ? 'true' : 'false');
@@ -1227,8 +730,10 @@ function dilUygula() {
     kutu.appendChild(b);
   });
 
-  // dile bağlı içerikleri tazele
-  tabelaTazele();
+  suzgeciKur();
+  kunyeleriYaz();
+  const bos = $('#bos');
+  bos.textContent = t('gal_empty');
   if (acikIdx >= 0) ac(acikIdx);
 }
 
@@ -1239,14 +744,14 @@ function setLang(next) {
   dilUygula();
 }
 
-addEventListener('resize', dilUygula, { passive: true });
-
+/* ── başlat ─────────────────────────────────────────────────────────────── */
+kartlariKur();
 dilUygula();
-
-addEventListener('resize', boyutla, { passive: true });
-boyutla();
+olcekle();
+addEventListener('resize', olcekle, { passive: true });
+/* Yeniden boyutlandırmada bütün künyeleri yeniden yazmak gereksiz;
+   ekran genişliğine bağlı tek şey çıkış etiketi. */
+addEventListener('resize', cikisEtiketi, { passive: true });
+addEventListener('load', olcekle);
 adrestenAc();
-merkeziBul();
-tabelaTazele();
-requestAnimationFrame(dongu);
 </script>

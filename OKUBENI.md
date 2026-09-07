@@ -7,6 +7,47 @@ Helvetica, solda düz metin menü, devasa resimler, küçük künye. Süs yok.
 
 ---
 
+## Sergi sayfası: şato duvarı rafa kalktı (2026-09)
+
+`sergi.html` bir Fransız salonu duvarıydı: yaldız çerçeveler, damask, avize,
+yatay kaydırma, gerçek 3B perspektif. Teknik olarak çalışıyordu ama yanlış
+şeyi satıyordu — lüksü süsle satın almaya çalışıyordu ve eserin önüne
+geçiyordu.
+
+Yerine galerilerin kendi çözümü kuruldu (David Zwirner'ın *survey*
+sayfasındaki ilke): her eser **aynı boyutta nötr bir alanın** içinde, ama
+**kendi gerçek santimetre ölçüsüyle**. 200 cm'lik bir tuval alanı doldurur,
+40 cm'lik bir etüt aynı alanın ortasında küçücük kalır. Tek gölge onu
+duvara asılmış bir nesne yapar. Çerçeve yok.
+
+Neden bu daha iyi:
+
+- **Ölçek süs değil, bilgi.** Eski duvarda on bir eser aynı barok yaldızda ve
+  neredeyse aynı büyüklükteydi; bağımsız incelemelerin ikisi de bunu yazmıştı.
+- **Müşterinin fotoğraflarında ayakta kalıyor.** Yaldız çerçeve, düzgün
+  çekilmemiş bir reprodüksiyonu daha da kötü gösteriyordu.
+- **Detay katmanıyla aynı dünyada.** Eskiden koyu yeşilden beyaza sıçranıyordu.
+
+Karşılaştırılan siteler: David Zwirner (nötr sahne + gerçek ölçek), Gagosian
+(tek renk, serif, karışık boyutlu mozaik), Ruprecht von Kaufmann (seri başına
+kare karo), Sadie Coles (sabit görsel sütunu + liste/ızgara geçişi).
+
+**Ölçek nasıl hesaplanıyor:** `EN_GENIS`/`EN_YUKSEK` bütün koleksiyondan
+alınıyor, süzgeçten geçen listeden değil — yoksa aynı eser "Tümü" ile "Hava"
+görünümünde iki farklı boyutta çıkar ve karşılaştırma anlamını yitirirdi.
+`EN_KUCUK` (%10) bir güvenlik tabanı: koleksiyona 250 cm'lik bir tuval
+girerse 20 cm'lik etüt 2 piksele inmesin.
+
+**Ortam görseli** (Smartist maketi) ızgarada duruşta görünmüyor; imleç
+kartın üstüne gelince nötr alanı doldurup eseri bir evin duvarına taşıyor.
+Dokunmatikte hover yok — orada karşılığı detaydaki **EV ORTAMI** karesi.
+
+Duvarın kendisi silinmedi: `varlik/duvar/`, `varlik/cerceve/` ve onları üreten
+`duvar.py` / `_cerceve.py` duruyor, aşağıdaki bölümler de nasıl yapıldıklarını
+anlatıyor. Geri dönmek istenirse kaynak elde.
+
+---
+
 ## Dosyalar
 
     content.py           Türkçe kaynak içerik: sanatçı, biyografi, CV,
