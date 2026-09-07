@@ -167,7 +167,7 @@ a:hover { color: var(--link); }
 
 #msol { padding: 104px clamp(18px, 2.2vw, 30px) 26px; overflow-y: auto; }
 #menu ul { list-style: none; margin: 0; padding: 0; }
-#menu li { margin-bottom: 5px; }
+#menu li { margin-bottom: 1px; }
 
 /* Satirlar sirayla netlesip geliyor: etiketlerin aydinlanmasi. */
 #menu li, #menu .grouplbl, #lang {
@@ -180,46 +180,44 @@ a:hover { color: var(--link); }
   transition-delay: var(--d, 0ms);
 }
 
+/* Satirlar duz: dolgu yok, cerceve yok, hap bicimi yok. Bir menu okunacak
+   bir liste; her satiri kapsule koymak listeyi arayuz gurultusune ceviriyor.
+   Bulundugun sayfa ve uzerine geldigin satir soldaki ince cizgiyle
+   belirtiliyor - dolduran degil, isaret eden bir jest. */
 #menu a {
+  position: relative;
   display: flex; align-items: center; gap: 10px;
   width: 100%; text-align: left;
   font: inherit; font-size: clamp(15px, .9rem + .26vw, 18px);
-  padding: 11px 15px; line-height: 1.25;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.075);
-  background: rgba(255,255,255,.035);
+  padding: 9px 2px 9px 19px; line-height: 1.3;
+  border: 0; background: none;
   cursor: pointer; text-decoration: none;
-  transition: background 300ms var(--ease), border-color 300ms var(--ease),
-              transform 300ms var(--ease), color 600ms ease-in-out;
+  transition: transform 300ms var(--ease), color 600ms ease-in-out,
+              opacity 300ms var(--ease);
+}
+#menu a::before {
+  content: ""; position: absolute; left: 0; top: 50%; translate: 0 -50%;
+  width: 10px; height: 1px; background: currentColor;
+  opacity: 0; transition: opacity 280ms var(--ease);
 }
 @media (hover: hover) {
-  #menu a:hover, #menu a:focus-visible {
-    background: hsla(var(--h, 40), var(--s, 0%), 40%, .42) !important;
-    border-color: hsla(var(--h, 40), var(--s, 0%), 70%, .62) !important;
-    transform: translateX(5px);
-  }
+  #menu a:hover, #menu a:focus-visible { transform: translateX(4px); }
+  #menu a:hover::before, #menu a:focus-visible::before { opacity: .5; }
 }
-#menu a[aria-current="page"] {
-  background: hsla(var(--h, 40), var(--s, 0%), 44%, .46) !important;
-  border-color: hsla(var(--h, 40), var(--s, 0%), 74%, .7) !important;
-}
+#menu a[aria-current="page"]::before { opacity: .9; }
 #menu a.ozel {
-  font-size: clamp(16px, .95rem + .33vw, 20px);
+  font-size: clamp(17px, 1rem + .42vw, 22px);
   color: #e8cf9a !important;
-  border-color: rgba(201,168,106,.5);
-  background: linear-gradient(90deg, rgba(201,168,106,.20), rgba(201,168,106,.05));
-  padding-block: 13px; margin-bottom: 4px;
+  padding-block: 11px; margin-bottom: 2px;
 }
 #menu a.ozel::after {
-  content: "\2192"; margin-left: auto; opacity: .75;
+  content: "\2192"; margin-left: auto; opacity: .7;
   transition: transform 300ms var(--ease);
 }
 @media (hover: hover) {
-  #menu a.ozel:hover { background: linear-gradient(90deg, rgba(201,168,106,.34), rgba(201,168,106,.10));
-                       border-color: rgba(201,168,106,.85); }
   #menu a.ozel:hover::after { transform: translateX(4px); }
 }
-#menu a.cikis { color: #d9b9a0 !important; border-color: rgba(217,185,160,.4); }
+#menu a.cikis { color: #d9b9a0 !important; }
 #menu .sep { height: 18px; }
 #menu .grouplbl {
   font-size: var(--t-micro); letter-spacing: .14em; text-transform: uppercase;
@@ -299,8 +297,8 @@ a:hover { color: var(--link); }
     overflow: hidden;
   }
   #mon-ad { overflow-wrap: anywhere; }
-  #msol { padding: 14px 18px calc(22px + env(safe-area-inset-bottom)); }
-  #menu a { padding: 13px 16px; }
+  #msol { padding: 14px 20px calc(22px + env(safe-area-inset-bottom)); }
+  #menu a { padding: 12px 2px 12px 19px; }   /* dokunma hedefi ~46px */
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -535,9 +533,15 @@ html.acilis #panel .k-fig::after {
 .enter .sub { font-size: var(--t-cap); opacity: .82; max-width: 34em; }
 
 @media (max-width: 760px) {
-  #menubtn { width: 54px; height: 54px; padding: 11px 10px; gap: 5px; }
-  #menubtn i { height: 4px; }
-  #shell { margin-top: 86px; }
+  /* Telefonda düğme küçük: 44px hâlâ rahat bir dokunma hedefi ama ekranın
+     köşesinde bir rozet gibi durmuyor. Çubuk aralığı 7px olduğu için
+     çarpı hâlindeki kayma da 7px. */
+  #menubtn { width: 44px; height: 44px; padding: 13px 11px; gap: 4px;
+             box-shadow: 0 2px 12px rgba(0,0,0,.24); }
+  #menubtn i { height: 3px; }
+  #menubtn[aria-expanded="true"] i:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  #menubtn[aria-expanded="true"] i:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  #shell { margin-top: 74px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -617,9 +621,9 @@ function setBackdrop(key) {
   paintBurger(b.src);
 }
 
-/* Menü satırlarının rengi o sayfanın zemininden geliyor — her satır ayrı ton. */
-/* Hamburger doğrudan tablodan renk alıyordu ama baloncuklar almıyordu.
-   Artık üçü de aynı paletten besleniyor: yazı, dolgu ve çerçeve. */
+/* Menü satırlarının rengi o sayfanın zemininden geliyor — her satır ayrı ton.
+   Eskiden dolgu ve çerçeve de bu paletten besleniyordu; satırlar hap
+   biçiminde kapsüllerdi. Kapsüller kalktı, geriye yalnızca yazı rengi kaldı. */
 function hsl(hex) {
   const n = parseInt(hex.slice(1), 16);
   const r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
@@ -638,19 +642,12 @@ function hsl(hex) {
 function paintMenu(pal) {
   document.querySelectorAll('#menu .nav-item').forEach((el, i) => {
     if (el.classList.contains('ozel') || el.classList.contains('cikis')) return;
-    if (!pal.length) {
-      el.style.color = '#e9e9e4';
-      el.style.background = ''; el.style.borderColor = '';
-      return;
-    }
+    if (!pal.length) { el.style.color = '#e9e9e4'; return; }
     const [h, sRaw] = hsl(pal[i % pal.length]);
     const sat = Math.min(sRaw, 0.40);
     const lig = 0.72 + ((i * 3) % 7) * 0.036;          /* satır satır ayrışsın */
-    el.style.color       = 'hsl(' + h.toFixed(0) + ',' + (sat * 100).toFixed(0) + '%,' + (lig * 100).toFixed(0) + '%)';
-    el.style.background  = 'hsla(' + h.toFixed(0) + ',' + (sat * 78).toFixed(0) + '%,26%,.30)';
-    el.style.borderColor = 'hsla(' + h.toFixed(0) + ',' + (sat * 78).toFixed(0) + '%,58%,.30)';
-    el.style.setProperty('--h', h.toFixed(0));
-    el.style.setProperty('--s', (sat * 78).toFixed(0) + '%');
+    el.style.color = 'hsl(' + h.toFixed(0) + ',' + (sat * 100).toFixed(0) + '%,' +
+                     (lig * 100).toFixed(0) + '%)';
   });
 }
 
@@ -698,7 +695,7 @@ function buildMenu() {
                    it.label);
     a.href = '#' + it.href;
     a.dataset.route = it.href;
-    if (it.indent) a.style.paddingLeft = '26px';
+    if (it.indent) a.style.paddingLeft = '34px';   // seri satirlari bir kademe icerde
     li.appendChild(a);
     ul.appendChild(li);
   });
