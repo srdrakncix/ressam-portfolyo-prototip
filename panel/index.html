@@ -165,6 +165,30 @@ button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; m
 #oran-uyari b { color: #5a3d0c; }
 #oran-uyari .dugmeler button { padding: 7px 13px; font-size: 13px; }
 
+/* Kurulum penceresi — şifreli girişi PANELDEN kurmak için.
+   Bunun terminalden yapılması gerekiyordu (Cloudflare hesabı, wrangler,
+   dört gizli değer); kurulumun kendisi işin en zor parçası hâline gelmişti.
+   Artık burada: kullanıcı adı + şifre yaz, Kur'a bas. */
+#kurulum {
+  border: 1px solid var(--line); border-radius: 12px; padding: 0;
+  width: min(460px, 92vw); background: var(--kart); color: var(--ink);
+}
+#kurulum::backdrop { background: rgba(22,24,26,.42); }
+#kurulum .ic { padding: 24px; }
+#kurulum h3 { margin: 0 0 6px; font-size: 17px; }
+#kurulum p { color: var(--soft); font-size: 13.5px; line-height: 1.6; margin: 0 0 16px; }
+#kurulum label { margin-top: 12px; }
+#kurulum .dugmeler { margin-top: 20px; }
+#kurulum .sonuc { margin-top: 14px; font-size: 13.5px; line-height: 1.6; }
+#kurulum .sonuc.iyi { color: var(--vurgu); }
+#kurulum .sonuc.kotu { color: var(--uyari); }
+#kurulum .not {
+  margin-top: 16px; padding: 11px 13px; border-radius: 8px; font-size: 12.5px;
+  line-height: 1.55; background: #fdf6ec; border: 1px solid #ecd9b8; color: #6d4c14;
+}
+#kurulum-ac { font-size: 13px; color: var(--soft); text-decoration: underline; cursor: pointer; }
+#kurulum-ac:hover { color: var(--ink); }
+
 #kayit-bilgi {
   margin-top: 14px; padding: 12px 14px; border-radius: 8px; font-size: 14px;
   background: #eef6f1; border: 1px solid #cfe5d9; color: #1e4d38;
@@ -216,9 +240,39 @@ button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; m
   <div class="ara">
     <span id="surum" title="Yüklü panel sürümü">__YAPIM__</span>
     <span id="durum"></span>
+    <a id="kurulum-ac" class="gizli" href="#">Şifreli giriş kur</a>
     <button class="eylem ikincil" id="cik">Çık</button>
   </div>
 </header>
+
+<dialog id="kurulum">
+  <form class="ic" method="dialog" id="kurulum-form">
+    <h3>Şifreli giriş kur</h3>
+    <p>Bundan sonra panele <b>kullanıcı adı ve şifreyle</b> girilir; erişim
+       anahtarı istenmez. Anahtar şifrelenip sitenin yanında saklanır, çözmek
+       için şifre gerekir.</p>
+
+    <label for="k-kullanici">Kullanıcı adı</label>
+    <input type="text" id="k-kullanici" autocomplete="off" autocapitalize="none"
+           spellcheck="false" placeholder="cemalsaglam">
+
+    <label for="k-sifre">Şifre</label>
+    <input type="password" id="k-sifre" autocomplete="new-password">
+
+    <label for="k-sifre2">Şifre (tekrar)</label>
+    <input type="password" id="k-sifre2" autocomplete="new-password">
+
+    <div class="not">Bu şifreyi bilen siteye eser ekleyebilir, silebilir.
+      Kısa gösterimler için <code>demo1234</code> yeter; işi devrederken
+      dört beş kelimelik bir parola kullanın.</div>
+
+    <div class="dugmeler">
+      <button type="submit" class="eylem" id="k-kur">Kur ve yayınla</button>
+      <button type="button" class="eylem ikincil" id="k-kapat">Vazgeç</button>
+    </div>
+    <div class="sonuc" id="k-sonuc"></div>
+  </form>
+</dialog>
 
 <div class="sarmal">
   <aside>
@@ -351,6 +405,7 @@ let SUNUCU = '';
 let oturum = '';
 let jeton = '';
 let panelAcik = false;      /* giris ekrani gecildi mi */
+let kilit = null;           /* panel/kilit.json — sunucusuz sifreli giris */
 let secenekler = { seriler: [], durumlar: [] };
 let eserler = [];               // {slug, sha, veri}
 let acikSlug = null;            // duzenlenen eser (yeni ise null)
@@ -962,6 +1017,64 @@ async function sil() {
   }
 }
 
+/* ── ŞİFRELİ GİRİŞ (sunucusuz) ─────────────────────────────────────────────
+   GitHub anahtarı, panelin yanında duran kilit.json içinde ŞİFRELENMİŞ
+   olarak saklanıyor (PBKDF2-SHA256 + AES-GCM, tarayıcının kendi WebCrypto'su).
+   Doğru şifre girilince tarayıcıda çözülüyor; yanlış şifrede AES-GCM
+   doğrulaması düşüyor, yani "şifre hatalı" bilgisi kriptografiden geliyor,
+   bizim karşılaştırmamızdan değil.
+
+   Sunucu kurmak GEREKMİYOR: kurulum panelin içinden yapılıyor.
+   Bedeli açık olsun — kilit.json herkese açık bir adreste duruyor, yani
+   şifre çevrimdışı denenebilir. Bu yüzden döngü sayısı yüksek ve şifrenin
+   güçlü olması önemli. Daha sağlam yol sunucu/ klasöründeki Worker; orada
+   anahtar tarayıcıya hiç inmiyor. */
+
+const KILIT_DONGU = 600000;
+
+function b64(baytlar) {
+  let s = '';
+  for (const b of baytlar) s += String.fromCharCode(b);
+  return btoa(s);
+}
+
+function b64coz(metin) {
+  const s = atob(metin);
+  const a = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i);
+  return a;
+}
+
+async function kilitAnahtari(sifre, tuz, dongu, kullanim) {
+  const ham = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(sifre), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: tuz, iterations: dongu, hash: 'SHA-256' },
+    ham, { name: 'AES-GCM', length: 256 }, false, [kullanim]);
+}
+
+async function kilitUret(kullanici, sifre, anahtar) {
+  const tuz = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const k = await kilitAnahtari(sifre, tuz, KILIT_DONGU, 'encrypt');
+  const kapali = new Uint8Array(await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv: iv }, k, new TextEncoder().encode(anahtar)));
+  return { kullanici: kullanici, dongu: KILIT_DONGU,
+           tuz: b64(tuz), iv: b64(iv), kapali: b64(kapali) };
+}
+
+async function kilitCoz(sifre, k) {
+  const anah = await kilitAnahtari(sifre, b64coz(k.tuz), k.dongu || KILIT_DONGU, 'decrypt');
+  let acik;
+  try {
+    acik = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: b64coz(k.iv) }, anah, b64coz(k.kapali));
+  } catch (e) {
+    throw new Error('Kullanıcı adı ya da şifre hatalı.');
+  }
+  return new TextDecoder().decode(acik);
+}
+
 /* ── giriş / çıkış ──────────────────────────────────────────────────
    İki yol var ve ikisi de aynı gh() üstünden akıyor:
 
@@ -1015,16 +1128,70 @@ function cikis(mesaj) {
   try {
     localStorage.removeItem('cs-panel-oturum');
     localStorage.removeItem('cs-panel-jeton');
+    sessionStorage.removeItem('cs-panel-jeton-oturum');
     if (mesaj) sessionStorage.setItem('cs-panel-mesaj', mesaj);
   } catch (e) { /* yoksay */ }
   location.reload();
 }
+
+/* Kurulum yalnızca ERİŞİM ANAHTARIYLA girildiğinde anlamlı: kilidi
+   yazabilmek için anahtarın kendisi gerekiyor. */
+function kurulumGoster() {
+  const a = $('#kurulum-ac');
+  a.classList.toggle('gizli', !jeton);
+  a.textContent = kilit ? 'Şifreyi değiştir' : 'Şifreli giriş kur';
+}
+
+$('#kurulum-ac').addEventListener('click', (e) => {
+  e.preventDefault();
+  $('#k-sonuc').textContent = '';
+  $('#k-sonuc').className = 'sonuc';
+  $('#k-kullanici').value = (kilit && kilit.kullanici) || 'cemalsaglam';
+  $('#k-sifre').value = '';
+  $('#k-sifre2').value = '';
+  $('#kurulum').showModal();
+});
+$('#k-kapat').addEventListener('click', () => $('#kurulum').close());
+
+$('#kurulum-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const sonuc = $('#k-sonuc');
+  const kul = $('#k-kullanici').value.trim();
+  const s1 = $('#k-sifre').value, s2 = $('#k-sifre2').value;
+  const yaz = (m, sinif) => { sonuc.innerHTML = m; sonuc.className = 'sonuc ' + (sinif || ''); };
+
+  if (!kul) return yaz('Kullanıcı adı boş olamaz.', 'kotu');
+  if (s1.length < 6) return yaz('Şifre en az 6 karakter olmalı.', 'kotu');
+  if (s1 !== s2) return yaz('İki şifre birbirini tutmuyor.', 'kotu');
+  if (!jeton) return yaz('Bunun için erişim anahtarıyla girmiş olmak gerekiyor.', 'kotu');
+
+  const dugme = $('#k-kur');
+  dugme.disabled = true;
+  try {
+    yaz('Anahtar şifreleniyor…');
+    const yeni = await kilitUret(kul, s1, jeton);
+    yaz('Depoya yazılıyor…');
+    await tekCommit([{ yol: 'panel/kilit.json',
+                       metin: JSON.stringify(yeni, null, 2) + String.fromCharCode(10) }],
+                    kilit ? 'Panel şifresi değiştirildi' : 'Panele şifreli giriş kuruldu');
+    kilit = yeni;
+    kurulumGoster();
+    yaz('<b>Kuruldu.</b> Site birkaç dakika içinde güncellenir. Sonra bu adresi ' +
+        'gönderebilirsiniz:<br><code>' + location.href.split('#')[0] + '</code><br>' +
+        'Kullanıcı adı <b>' + kacir(kul) + '</b>, şifre sizde.', 'iyi');
+  } catch (err) {
+    yaz('Kurulamadı: ' + err.message, 'kotu');
+  } finally {
+    dugme.disabled = false;
+  }
+});
 
 async function baslat() {
   secenekleriKur();
   $('#giris').classList.add('gizli');
   $('#panel').classList.remove('gizli');
   panelAcik = true;
+  kurulumGoster();
   bosSayfa();
   await eserleriYukle();
 }
@@ -1035,12 +1202,20 @@ $('#giris-sifre').addEventListener('submit', async (e) => {
   if (!k || !p) return;
   $('#giris-hata').textContent = 'Denetleniyor…';
   try {
-    await sifreyleGir(k, p);
-    await gh('');                       /* sunucu gerçekten depoya yazabiliyor mu */
+    if (kilit) {
+      /* Sunucusuz yol: anahtar burada, tarayıcıda çözülüyor. */
+      if (kilit.kullanici && kilit.kullanici !== k)
+        throw new Error('Kullanıcı adı ya da şifre hatalı.');
+      jeton = await kilitCoz(p, kilit);
+      try { sessionStorage.setItem('cs-panel-jeton-oturum', jeton); } catch (e2) {}
+    } else {
+      await sifreyleGir(k, p);
+    }
+    await gh('');                       /* gerçekten depoya yazabiliyor muyuz */
     $('#giris-hata').textContent = '';
     await baslat();
   } catch (err) {
-    oturum = '';
+    oturum = ''; jeton = '';
     $('#giris-hata').textContent = err.message;
   }
 });
@@ -1109,7 +1284,13 @@ birakKur('#birak-ortam', '#dosya-ortam', '#onizleme-ortam', (d) => (yeniOrtamDos
   SUNUCU = String(secenekler.sunucu || '').trim();
   while (SUNUCU.endsWith('/')) SUNUCU = SUNUCU.slice(0, -1);
 
-  girisKipi(SUNUCU ? 'sifre' : 'anahtar');
+  /* Şifreli giriş kurulmuş mu? Kilit dosyası varsa sunucuya gerek yok. */
+  try {
+    const y = await fetch('kilit.json?t=' + Date.now(), { cache: 'no-store' });
+    if (y.ok) kilit = await y.json();
+  } catch (e) { /* yok, sorun değil */ }
+
+  girisKipi((kilit || SUNUCU) ? 'sifre' : 'anahtar');
   try {
     const m = sessionStorage.getItem('cs-panel-mesaj');
     if (m) { $('#giris-hata').textContent = m; sessionStorage.removeItem('cs-panel-mesaj'); }
@@ -1126,7 +1307,12 @@ birakKur('#birak-ortam', '#dosya-ortam', '#onizleme-ortam', (d) => (yeniOrtamDos
     }
   }
   let t = null;
-  try { t = localStorage.getItem('cs-panel-jeton'); } catch (e) {}
+  try {
+    /* Şifreyle çözülen anahtar SEKME ÖMRÜ boyunca tutuluyor: sayfa
+       yenilenince şifre sorulmuyor, sekme kapanınca unutuluyor. */
+    t = sessionStorage.getItem('cs-panel-jeton-oturum') ||
+        localStorage.getItem('cs-panel-jeton');
+  } catch (e) {}
   if (!t) return;
   jeton = t;
   try { await gh(''); await baslat(); }

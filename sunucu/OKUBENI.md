@@ -1,5 +1,14 @@
 # Giriş sunucusu — kurulum
 
+> **Bunu kurmak zorunda değilsin.** Şifreli girişin kolay yolu panelin
+> içinde: erişim anahtarıyla gir, sağ üstteki **“Şifreli giriş kur”**
+> bağlantısına bas, kullanıcı adı ve şifre yaz. Terminal, hesap, kurulum yok.
+>
+> Buradaki Worker daha **sağlam** olanı: orada anahtar tarayıcıya hiç inmiyor.
+> Panel içi kurulumda anahtar şifrelenmiş olarak sitenin yanında durur, yani
+> şifre çevrimdışı denenebilir. Kısa gösterimler için panel içi kurulum yeter;
+> siteyi kalıcı olarak sanatçıya devrederken buraya geç.
+
 Panelin şifreyle açılmasını sağlayan küçük bir Cloudflare Worker. GitHub
 anahtarı burada, sunucuda duruyor; sanatçının tarayıcısına hiç inmiyor.
 

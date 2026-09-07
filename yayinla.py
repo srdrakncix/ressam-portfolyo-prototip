@@ -95,7 +95,14 @@ def main():
             'teknik': _C.MEDIUM_TR,
             'sunucu': getattr(_C, 'PANEL_SUNUCU', ''),
         }, ensure_ascii=False, indent=2))
-    print('panel/            index.html + secenekler.json')
+    # Sifreli girisin kilidi. Panelden kurulunca depoya yaziliyor;
+    # icinde GitHub anahtarinin SIFRELENMIS hali var, duz hali degil.
+    kilit_kaynak = os.path.join(KOK, 'panel', 'kilit.json')
+    if os.path.exists(kilit_kaynak):
+        shutil.copy2(kilit_kaynak, os.path.join(panel_hedef, 'kilit.json'))
+        print('panel/            index.html + secenekler.json + kilit.json')
+    else:
+        print('panel/            index.html + secenekler.json')
 
     # 4) yayin damgasi
     #    Panel "site guncellendi mi" sorusunu buradan cevapliyor: her
