@@ -270,6 +270,7 @@ main { max-width: var(--en); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px) 9
   visibility: hidden; opacity: 0; pointer-events: none;
   transition: opacity 300ms var(--ease), visibility 0s linear 320ms;
 }
+#salonKatman .alt { position: relative; min-height: 0; }
 #salonKatman.acik { visibility: visible; opacity: 1; pointer-events: auto;
                     transition: opacity 260ms var(--ease), visibility 0s; }
 #salonKatman .ust {
@@ -284,6 +285,36 @@ main { max-width: var(--en); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px) 9
 }
 #salonKatman .kapa:hover { color: var(--murekkep); }
 #salonKatman iframe { width: 100%; height: 100%; border: 0; display: block; background: var(--alan); }
+
+/* KENDİ YÜKLEME EKRANIMIZ. 360Artwork'ün kendi açılışı kendi markasını
+   gösteriyor; ziyaretçi Cemal Sağlam'ın sitesinden çıkmış gibi oluyor.
+   Onların ekranını gizleyemeyiz (başka bir kökende, içine karışamayız) ama
+   ÜSTÜNÜ örtebiliriz.
+   Dürüst sınır: salonun ne zaman GERÇEKTEN hazır olduğunu bilemiyoruz —
+   iframe'in load olayı belgeyi haber veriyor, WebGL sahnesini değil. Bu
+   yüzden örtü süreli: load + 2,6 sn. Salon daha uzun sürerse ziyaretçi yine
+   onların ekranını görür; tıklayarak da geçilebiliyor. */
+#salonYuk {
+  position: absolute; inset: 0; z-index: 2; background: var(--kagit);
+  display: grid; place-content: center; justify-items: center; gap: 22px;
+  cursor: pointer; transition: opacity 460ms var(--ease), visibility 0s linear 470ms;
+}
+#salonYuk[hidden] { display: grid; opacity: 0; visibility: hidden; pointer-events: none; }
+#salonYuk .marka {
+  font-family: var(--serif); font-size: clamp(24px, 1.4rem + 1vw, 36px);
+  letter-spacing: .01em; color: var(--murekkep);
+}
+#salonYuk .marka b { font-weight: 500; letter-spacing: .06em; }
+#salonYuk .metin {
+  font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--silik);
+}
+#salonYuk .cizgi { width: 190px; height: 1px; background: var(--cizgi); overflow: hidden; }
+#salonYuk .cizgi i {
+  display: block; width: 34%; height: 100%; background: var(--bronz);
+  animation: salonAkis 1500ms var(--ease) infinite;
+}
+@keyframes salonAkis { 0% { transform: translateX(-110%); } 100% { transform: translateX(400%); } }
+@media (prefers-reduced-motion: reduce) { #salonYuk .cizgi i { animation: none; width: 100%; opacity: .5; } }
 
 /* ── DETAY: beyaz zeminde tam ekran ─────────────────────────────────────
    Eser katalog sayfasından koparılıp tek başına duvara alınıyor: büyük
@@ -460,8 +491,15 @@ main { max-width: var(--en); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px) 9
     <span class="ad"></span>
     <button type="button" class="kapa"></button>
   </div>
-  <iframe title="" allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
-          allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+  <div class="alt" style="position:relative">
+    <iframe title="" allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
+            allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+    <div id="salonYuk">
+      <div class="marka"></div>
+      <div class="cizgi"><i></i></div>
+      <div class="metin"></div>
+    </div>
+  </div>
 </div>
 
 <p id="duyuru" class="gizli" aria-live="polite" aria-atomic="true"></p>
@@ -755,6 +793,8 @@ function adresYaz(idx) {
 }
 
 function adrestenAc() {
+  /* Menüdeki showroom buraya #/salon ile geliyor. */
+  if (location.hash === SALON_ADRES) { salonAc(); return; }
   if (location.hash.indexOf(ONEK) !== 0) return;
   const slug = decodeURIComponent(location.hash.slice(ONEK.length));
   const w = WORKS.find((x) => x.slug === slug);
@@ -780,8 +820,30 @@ addEventListener('keydown', (e) => {
    boşaltılıyor, WebGL bağlamı serbest kalıyor. */
 const salonKatman = $('#salonKatman'), salonCerceve = salonKatman.querySelector('iframe');
 
+const salonYuk = $('#salonYuk');
+let salonSayac = 0;
+
+function salonYukGizle() {
+  clearTimeout(salonSayac);
+  salonYuk.hidden = true;
+}
+
+/* Belge yüklendi; sahne için biraz daha bekleyip örtüyü kaldırıyoruz. */
+salonCerceve.addEventListener('load', () => {
+  if (!salonCerceve.getAttribute('src')) return;
+  clearTimeout(salonSayac);
+  salonSayac = setTimeout(salonYukGizle, 2600);
+});
+salonYuk.addEventListener('click', salonYukGizle);
+
+const SALON_ADRES = '#/salon';
+
 function salonAc() {
   if (!SITE.salon) return;
+  try { history.replaceState(null, '', SALON_ADRES); } catch (e) {}
+  salonYuk.hidden = false;
+  clearTimeout(salonSayac);
+  salonSayac = setTimeout(salonYukGizle, 12000);   // hiçbir şey olmazsa yine de aç
   salonCerceve.src = SITE.salon;
   document.documentElement.classList.add('durdur');
   salonKatman.classList.add('acik');
@@ -794,7 +856,11 @@ function salonKapat() {
   salonKatman.classList.remove('acik');
   salonKatman.setAttribute('aria-hidden', 'true');
   salonCerceve.removeAttribute('src');
+  salonYukGizle();
   if (acikIdx < 0) document.documentElement.classList.remove('durdur');
+  if (location.hash === SALON_ADRES) {
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  }
   $('#salonAc').focus({ preventScroll: true });
 }
 
@@ -836,6 +902,10 @@ function dilUygula() {
     $('#salonYeni').textContent = t('salon_yeni');
     $('#salonYeni').href = SITE.salon;
     salonKatman.querySelector('.ad').textContent = t('salon_lbl');
+    const ad = SITE.artist.name.split(' ');
+    salonYuk.querySelector('.marka').innerHTML =
+      ad[0] + ' <b>' + upTR(ad.slice(1).join(' ')) + '</b>';
+    salonYuk.querySelector('.metin').textContent = t('salon_yuk');
     salonKatman.querySelector('.kapa').textContent = t('gal_close');
     salonCerceve.title = t('salon_bas');
   }
