@@ -1,0 +1,82 @@
+# Depoya bir degisiklik gelince siteyi derler ve GitHub Pages'e yayinlar.
+#
+# Bu is akisi olmadan yonetim paneli calismaz: panel depoya yazar, yayina
+# donusturen sey burasidir. Yerelde `python yayinla.py` ne yapiyorsa burada
+# da AYNISI calisiyor - "bende calisiyordu" durumunu bastan siliyor.
+#
+# ONEMLI: Ayarlar > Pages > Build and deployment > Source = "GitHub Actions"
+# olmali. "Deploy from a branch" secili kalirsa bu is akisi calisir ama
+# yayinlanan sey eski dal icerigi olur.
+name: Siteyi derle ve yayınla
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'OKUBENI.md'
+      - 'AJAN-RAPORLARI.md'
+      - '.gitignore'
+  workflow_dispatch:        # Actions sekmesinden elle tetiklemek icin
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Ust uste kaydetmelerde sirayi bozma: onceki yayin bitsin, sonraki baslasin.
+# cancel-in-progress: false cunku yarim kalan bir Pages yayini siteyi bozabilir.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  derle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Bağımlılıklar
+        run: pip install -r requirements.txt
+
+      - name: Siteyi üret
+        run: python yayinla.py
+
+      # Uretilen ciktinin bos ya da yarim olmadigini dogrula: bozuk bir yayin
+      # sessizce gecmesin.
+      - name: Çıktıyı denetle
+        run: |
+          python - <<'PY'
+          import os, sys
+          gerekli = ['site/index.html', 'site/mekan.html', 'site/sergi.html',
+                     'site/404.html', 'site/favicon.svg', 'site/robots.txt',
+                     'site/sitemap.xml', 'site/assets/duvar/salon.webp']
+          eksik = [y for y in gerekli if not os.path.exists(y)]
+          if eksik:
+              sys.exit('EKSIK DOSYA: ' + ', '.join(eksik))
+          eser = [f for f in os.listdir('site/assets')
+                  if f.endswith('.webp') and f[:-5].isdigit()]
+          if len(eser) < 1:
+              sys.exit('HIC ESER GORSELI URETILMEDI')
+          kb = sum(os.path.getsize(os.path.join(r, f))
+                   for r, _, fs in os.walk('site') for f in fs) / 1024
+          print(f'{len(eser)} eser gorseli, toplam {kb/1024:.2f} MB')
+          PY
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  yayinla:
+    needs: derle
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - id: pages
+        uses: actions/deploy-pages@v5
