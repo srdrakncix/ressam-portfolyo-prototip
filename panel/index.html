@@ -46,6 +46,32 @@ header .ara { margin-left: auto; display: flex; gap: 10px; align-items: center; 
 
 /* liste */
 aside { border-right: 1px solid var(--line); background: var(--kart); padding: 14px; }
+/* "Yeni eser" başlıktaydı, gözden kaçıyordu: bir eseri kaydettikten sonra
+   form o eserle dolu kalıyor ve kullanıcı üstüne yazmaya başlıyordu.
+   Düğme artık listenin başında, tam genişlikte ve yapışkan. */
+/* İkincil (beyaz) kalıyor: sayfadaki TEK koyu düğme "Kaydet ve yayınla"
+   olmalı — taahhüt eden eylem o. Bu düğme tam genişlikte ve en üstte
+   olduğu için zaten görünür. */
+#yeni {
+  display: block; width: 100%; text-align: center; margin-bottom: 14px;
+  position: sticky; top: 74px; z-index: 5;
+  background: var(--kart);
+}
+@media (max-width: 860px) { #yeni { position: static; } }
+
+/* Formun kipi yazıyor: "Yeni eser" mi, "Düzenleniyor: Kıyı" mı.
+   Bu satır olmadan iki kip birbirinden ayırt edilemiyordu. */
+#kip {
+  margin: 0 0 18px; font-size: 13px; font-weight: 600;
+  letter-spacing: .04em; color: var(--soft);
+}
+#kip b { color: var(--ink); font-weight: 600; }
+#kip .rozet {
+  display: inline-block; margin-right: 9px; padding: 3px 9px; border-radius: 999px;
+  font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  background: #eef3ef; color: var(--vurgu); border: 1px solid #d3e3d9;
+}
+#kip.duzenleme .rozet { background: #fdf8ee; color: var(--altin); border-color: #ecdcb8; }
 @media (max-width: 860px) { aside { border-right: 0; border-bottom: 1px solid var(--line); } }
 #liste { list-style: none; margin: 10px 0 0; padding: 0; }
 #liste li { margin-bottom: 4px; }
@@ -118,6 +144,8 @@ button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; m
   background: #eef6f1; border: 1px solid #cfe5d9; color: #1e4d38;
 }
 #kayit-bilgi.kotu { background: #fdf1ec; border-color: #f0d2c5; color: #8a3618; }
+#kayit-bilgi .dugmeler { margin-top: 11px; }
+#kayit-bilgi button { padding: 8px 14px; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -148,19 +176,20 @@ button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; m
   <div class="ara">
     <span id="surum" title="Yüklü panel sürümü">__YAPIM__</span>
     <span id="durum"></span>
-    <button class="eylem ikincil" id="yeni">+ Yeni eser</button>
     <button class="eylem ikincil" id="cik">Çık</button>
   </div>
 </header>
 
 <div class="sarmal">
   <aside>
-    <div class="ipucu">Eserler</div>
+    <button class="eylem ikincil" id="yeni">＋ Yeni eser</button>
+    <div class="ipucu" id="liste-basligi">Eserler</div>
     <ul id="liste"></ul>
   </aside>
 
   <main>
     <form id="form" autocomplete="off">
+      <h2 id="kip"></h2>
       <fieldset>
         <legend>Görseller</legend>
         <div class="satir">
@@ -279,6 +308,13 @@ let secenekler = { seriler: [], durumlar: [] };
 let eserler = [];               // {slug, sha, veri}
 let acikSlug = null;            // duzenlenen eser (yeni ise null)
 let yeniEserDosya = null, yeniOrtamDosya = null;
+/* Seçilen dosyanın önizleme adresi. Serbest bırakılmazsa her yükleme
+   tarayıcıda bir kopya bırakıyordu; ayrıca eserler arasında gezinirken
+   bir öncekinin fotoğrafı ekranda kalabiliyordu. */
+let onizURL = { eser: '', ortam: '' };
+/* Bu oturumda kaydedilen eserler: sitedeki görselleri henüz eski, önbellek
+   kırılmadan düzenlemeye dönünce ESKİ fotoğraf geliyordu. */
+const tazelenen = {};
 
 /* ── GitHub ────────────────────────────────────────────────────────────── */
 async function gh(yol, secim = {}) {
@@ -379,10 +415,54 @@ function base64le(blob) {
   });
 }
 
+function onizBirak(hangi) {
+  if (!onizURL[hangi]) return;
+  try { URL.revokeObjectURL(onizURL[hangi]); } catch (e) {}
+  onizURL[hangi] = '';
+}
+
+/* Sitedeki görselin adresi. Bu oturumda kaydedilmişse önbellek kırılıyor —
+   yoksa yeni yüklenen fotoğraf yerine eskisi görünüyor. */
+function varlikAdresi(ad, slug) {
+  return SITE + '/assets/' + ad + '.webp' +
+         (tazelenen[slug] ? '?v=' + tazelenen[slug] : '');
+}
+
+function kipYaz(slug) {
+  const k = $('#kip');
+  if (!k) return;
+  if (slug) {
+    const e = eserler.find((x) => x.slug === slug);
+    k.className = 'duzenleme';
+    k.innerHTML = '<span class="rozet">Düzenleniyor</span><b>' +
+                  kacir(e ? e.veri.baslik : slug) + '</b>';
+  } else {
+    k.className = '';
+    k.innerHTML = '<span class="rozet">Yeni</span>Boş form — yeni bir eser ekliyorsunuz.';
+  }
+}
+
 function durumYaz(m, sinif) {
   const d = $('#durum');
   d.textContent = m || '';
   d.className = sinif || '';
+}
+
+/* Kaydetme bittiğinde bir sonraki adım belli olsun: form o eserle dolu
+   kalıyor (ne kaydettiğini görebilesin diye), ama buradan tek tıkla boş
+   forma geçiliyor. */
+function bitisDugmesi() {
+  const b = $('#kayit-bilgi');
+  if (!b || b.querySelector('.dugmeler')) return;
+  const kutu = document.createElement('div');
+  kutu.className = 'dugmeler';
+  const dg = document.createElement('button');
+  dg.type = 'button';
+  dg.className = 'eylem ikincil';
+  dg.textContent = '＋ Başka bir eser ekle';
+  dg.addEventListener('click', formuTemizle);
+  kutu.appendChild(dg);
+  b.appendChild(kutu);
 }
 
 function bilgiYaz(m, kotu) {
@@ -486,26 +566,38 @@ function secenekleriKur() {
     .map((s) => '<option value="' + s.anahtar + '">' + s.ad + '</option>').join('');
 }
 
+/* TAM SIFIRLAMA. Kaydettikten sonra form o eserle dolu kalıyordu; kullanıcı
+   yeni eser eklemek isteyince eski fotoğrafın ve künyenin üstüne yazıyordu.
+   Buradan çıkan form her zaman boş. */
 function formuTemizle() {
   acikSlug = null;
   eserOrani = 0;
   $('#oran-uyari').classList.add('gizli');
   yeniEserDosya = yeniOrtamDosya = null;
+  onizBirak('eser'); onizBirak('ortam');
   $('#form').reset();
+  $('#dosya-eser').value = '';
+  $('#dosya-ortam').value = '';
   $('#onizleme-eser').removeAttribute('src');
   $('#onizleme-ortam').removeAttribute('src');
   $('#yil').value = new Date().getFullYear();
   $('#sil').classList.add('gizli');
   $('#kayit-bilgi').classList.add('gizli');
+  kipYaz(null);
   listeCiz();
+  window.scrollTo(0, 0);      // telefonda form listenin altında
 }
 
-function formaDoldur(slug) {
+/* onizleme_kalsin: kaydetmenin hemen ardından çağrıldığında yerel önizleme
+   korunuyor. Yoksa sitedeki görsel isteniyor — ki yeni eserde o dosya daha
+   yayına girmemiş olur ve kırık resim çıkardı. */
+function formaDoldur(slug, onizleme_kalsin) {
   const e = eserler.find((x) => x.slug === slug);
   if (!e) return;
   const v = e.veri;
   acikSlug = slug;
   yeniEserDosya = yeniOrtamDosya = null;
+  if (!onizleme_kalsin) { onizBirak('eser'); onizBirak('ortam'); }
   $('#baslik').value = v.baslik || '';
   $('#seri').value = v.seri || '';
   $('#yil').value = v.yil || '';
@@ -519,21 +611,26 @@ function formaDoldur(slug) {
   $('#not-fr').value = (v['not'] || {}).fr || '';
   $('#gloss-en').value = (v.gloss || {}).en || '';
   $('#gloss-fr').value = (v.gloss || {}).fr || '';
-  $('#onizleme-eser').src = SITE + '/assets/' + slug + '.webp';
-  if (v.ortam_gorseli) $('#onizleme-ortam').src = SITE + '/assets/ortam-' + slug + '.webp';
-  else $('#onizleme-ortam').removeAttribute('src');
+  if (!onizleme_kalsin) {
+    $('#onizleme-eser').src = varlikAdresi(slug, slug);
+    if (v.ortam_gorseli) $('#onizleme-ortam').src = varlikAdresi('ortam-' + slug, slug);
+    else $('#onizleme-ortam').removeAttribute('src');
+  }
   $('#sil').classList.remove('gizli');
-  $('#kayit-bilgi').classList.add('gizli');
+  if (!onizleme_kalsin) $('#kayit-bilgi').classList.add('gizli');
+  kipYaz(slug);
   listeCiz();
   window.scrollTo(0, 0);
 }
 
-function birakKur(kutuId, girisId, onizId, ata) {
+function birakKur(kutuId, girisId, onizId, ata, hangi) {
   const kutu = $(kutuId), giris = $(girisId), oniz = $(onizId);
   const al = (d) => {
     if (!d || !d.type.startsWith('image/')) return;
     ata(d);
-    oniz.src = URL.createObjectURL(d);
+    onizBirak(hangi);
+    onizURL[hangi] = URL.createObjectURL(d);
+    oniz.src = onizURL[hangi];
   };
   giris.addEventListener('change', () => al(giris.files[0]));
   ['dragenter', 'dragover'].forEach((t) => kutu.addEventListener(t, (e) => {
@@ -572,6 +669,7 @@ async function yayiniIzle(onceki, slug, baslik) {
                 '/actions" target="_blank" rel="noopener">yayın kaydı</a>';
   if (!onceki) {         // panel yerelde açılmış: bekleyecek bir şey yok
     bilgiYaz('Kaydedildi. Site birkaç dakika içinde güncellenir — ' + kayit + '.');
+    bitisDugmesi();
     return;
   }
   for (let i = 0; i < 80; i++) {
@@ -586,10 +684,12 @@ async function yayiniIzle(onceki, slug, baslik) {
           '" target="_blank" rel="noopener">eser sayfası</a>'
         : ' <a href="' + SITE + '/sergi.html" target="_blank" rel="noopener">Sergi duvarını aç</a>';
       bilgiYaz('<b>Yayında.</b> ' + kacir(baslik) + ' sitede.' + nerede);
+      bitisDugmesi();
       return;
     }
   }
   bilgiYaz('Kaydedildi ama yayın sekiz dakikadan uzun sürdü. ' + kayit + ' sayfasına bakın.', true);
+  bitisDugmesi();
 }
 
 /* ── ölçü / görsel oranı denetimi ─────────────────────────────────────────
@@ -701,8 +801,9 @@ async function kaydet(olay) {
     bilgiYaz('Kaydediliyor…');
     await tekCommit(dosyalar, (mevcut ? 'Eser güncellendi: ' : 'Yeni eser: ') + baslik);
 
+    tazelenen[slug] = Date.now();     // görsel değiştiyse önbellek kırılsın
     await eserleriYukle();
-    formaDoldur(slug);
+    formaDoldur(slug, true);          // yerel önizleme kalsın: site henüz derlemedi
     yayiniIzle(damga, slug, baslik);
   } catch (e) {
     bilgiYaz('Kaydedilemedi: ' + e.message +
@@ -791,8 +892,8 @@ $('#onizleme-eser').addEventListener('load', function () {
 $('#yukseklik').addEventListener('input', oranDenetle);
 $('#genislik').addEventListener('input', oranDenetle);
 
-birakKur('#birak-eser', '#dosya-eser', '#onizleme-eser', (d) => (yeniEserDosya = d));
-birakKur('#birak-ortam', '#dosya-ortam', '#onizleme-ortam', (d) => (yeniOrtamDosya = d));
+birakKur('#birak-eser', '#dosya-eser', '#onizleme-eser', (d) => (yeniEserDosya = d), 'eser');
+birakKur('#birak-ortam', '#dosya-ortam', '#onizleme-ortam', (d) => (yeniOrtamDosya = d), 'ortam');
 
 /* daha once girilmisse dogrudan ac */
 (async () => {
