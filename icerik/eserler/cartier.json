@@ -1,0 +1,28 @@
+{
+  "slug": "cartier",
+  "sira": 12,
+  "baslik": "Cartier",
+  "gloss": {
+    "en": "The One",
+    "fr": "La uno"
+  },
+  "seri": "alacakaranlik",
+  "yil": 2026,
+  "durum": "satilik",
+  "olcu": {
+    "yukseklik_cm": 82,
+    "genislik_cm": 132
+  },
+  "koleksiyon": {
+    "ad": "",
+    "yil": null
+  },
+  "gorsel": "cartier.webp",
+  "ortam_gorseli": "ortam-cartier.webp",
+  "not": {
+    "tr": "guzel bi eser",
+    "en": "good",
+    "fr": ""
+  },
+  "kaynak_kredisi": ""
+}
