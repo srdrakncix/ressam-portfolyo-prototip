@@ -49,15 +49,27 @@ aside { border-right: 1px solid var(--line); background: var(--kart); padding: 1
 /* "Yeni eser" başlıktaydı, gözden kaçıyordu: bir eseri kaydettikten sonra
    form o eserle dolu kalıyor ve kullanıcı üstüne yazmaya başlıyordu.
    Düğme artık listenin başında, tam genişlikte ve yapışkan. */
-/* İkincil (beyaz) kalıyor: sayfadaki TEK koyu düğme "Kaydet ve yayınla"
-   olmalı — taahhüt eden eylem o. Bu düğme tam genişlikte ve en üstte
-   olduğu için zaten görünür. */
-#yeni {
-  display: block; width: 100%; text-align: center; margin-bottom: 14px;
-  position: sticky; top: 74px; z-index: 5;
-  background: var(--kart);
+/* BOŞ SAYFA — listenin son satırı.
+   Önce bunun yerinde "Yeni eser" düğmesi vardı: basınca formu TEMİZLİYORDU.
+   O bir yer değiştirme değil, bir silme işlemiydi; ne zaman ne olacağı
+   belli olmuyordu. Artık boş sayfa listede duruyor: kayıtlı eserlerle
+   arasında hiçbir fark yok, yalnızca henüz kaydedilmemiş. Doldurup
+   kaydedince gerçek eser olur ve altında yenisi belirir. */
+#liste .bos { position: sticky; bottom: 0; padding-top: 6px; background: var(--kart); }
+#liste .bos button {
+  border: 1px dashed var(--line); background: var(--kart); color: var(--soft);
 }
-@media (max-width: 860px) { #yeni { position: static; } }
+#liste .bos button:hover { border-color: var(--altin); color: var(--ink); background: #fdf8ee; }
+#liste .bos button[aria-current="true"] {
+  border-style: solid; border-color: var(--altin); background: #fdf8ee; color: var(--ink);
+}
+#liste .bos .kutu {
+  flex: none; width: 46px; height: 34px; border-radius: 3px;
+  display: grid; place-items: center;
+  border: 1px dashed var(--line); color: var(--soft);
+  font-size: 17px; line-height: 1;
+}
+#liste .bos button[aria-current="true"] .kutu { border-color: var(--altin); color: var(--altin); }
 
 /* Formun kipi yazıyor: "Yeni eser" mi, "Düzenleniyor: Kıyı" mı.
    Bu satır olmadan iki kip birbirinden ayırt edilemiyordu. */
@@ -68,7 +80,7 @@ aside { border-right: 1px solid var(--line); background: var(--kart); padding: 1
 #kip b { color: var(--ink); font-weight: 600; }
 #kip .rozet {
   display: inline-block; margin-right: 9px; padding: 3px 9px; border-radius: 999px;
-  font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  font-size: 11px; letter-spacing: .08em;
   background: #eef3ef; color: var(--vurgu); border: 1px solid #d3e3d9;
 }
 #kip.duzenleme .rozet { background: #fdf8ee; color: var(--altin); border-color: #ecdcb8; }
@@ -85,6 +97,20 @@ aside { border-right: 1px solid var(--line); background: var(--kart); padding: 1
 #liste img { width: 46px; height: 34px; object-fit: cover; border-radius: 3px; background: var(--line); }
 #liste .ad { font-size: 14px; line-height: 1.2; }
 #liste .yil { font-size: 12px; color: var(--soft); }
+
+/* DURUM ROZETİ — "kaydettim ama sitede var mı?" sorusu listede cevaplanıyor.
+   Ölçüt tahmin değil: yayınlanan site her derlemede eserler.json içine her
+   kaydın GIT BLOB SHA'sını yazıyor, panel de aynı değeri depodan alıyor.
+   Eşitse eser sitede duran sürümdür; değilse derleme henüz yetişmedi. */
+#liste .rozet {
+  display: inline-block; margin-top: 5px; padding: 2px 7px; border-radius: 999px;
+  font-size: 10px; letter-spacing: .05em; line-height: 1.6;
+  border: 1px solid transparent; white-space: nowrap;
+}
+#liste .r-yayin { background: #eef6f1; color: #1e6b47; border-color: #cfe5d9; }
+#liste .r-bekle { background: #fdf6ec; color: #8a6410; border-color: #ecd9b8; }
+#liste .r-kayit { background: #fdf1ec; color: #a3401f; border-color: #f0d2c5; }
+#liste .r-bos   { background: var(--zemin); color: var(--soft); border-color: var(--line); }
 
 /* form */
 main { padding: clamp(16px, 3vw, 32px); max-width: 860px; }
@@ -182,7 +208,6 @@ button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; m
 
 <div class="sarmal">
   <aside>
-    <button class="eylem ikincil" id="yeni">＋ Yeni eser</button>
     <div class="ipucu" id="liste-basligi">Eserler</div>
     <ul id="liste"></ul>
   </aside>
@@ -315,6 +340,11 @@ let onizURL = { eser: '', ortam: '' };
 /* Bu oturumda kaydedilen eserler: sitedeki görselleri henüz eski, önbellek
    kırılmadan düzenlemeye dönünce ESKİ fotoğraf geliyordu. */
 const tazelenen = {};
+/* Formda kaydedilmemiş bir şey var mı. Geçişler bunun için soruyor. */
+let kirli = false;
+/* Sitede DURAN sürüm: {slug: git blob sha}. null = okunamadı (yerelde açılmış
+   ya da site henüz yayınlanmamış). */
+let yayindaki = null;
 
 /* ── GitHub ────────────────────────────────────────────────────────────── */
 async function gh(yol, secim = {}) {
@@ -434,11 +464,12 @@ function kipYaz(slug) {
   if (slug) {
     const e = eserler.find((x) => x.slug === slug);
     k.className = 'duzenleme';
-    k.innerHTML = '<span class="rozet">Düzenleniyor</span><b>' +
+    k.innerHTML = '<span class="rozet">DÜZENLENİYOR</span><b>' +
                   kacir(e ? e.veri.baslik : slug) + '</b>';
   } else {
     k.className = '';
-    k.innerHTML = '<span class="rozet">Yeni</span>Boş form — yeni bir eser ekliyorsunuz.';
+    k.innerHTML = '<span class="rozet">BOŞ SAYFA</span>Doldurup kaydedin; ' +
+                  'listenin sonunda yenisi açılır.';
   }
 }
 
@@ -460,7 +491,7 @@ function bitisDugmesi() {
   dg.type = 'button';
   dg.className = 'eylem ikincil';
   dg.textContent = '＋ Başka bir eser ekle';
-  dg.addEventListener('click', formuTemizle);
+  dg.addEventListener('click', () => gecis(null));
   kutu.appendChild(dg);
   b.appendChild(kutu);
 }
@@ -473,8 +504,25 @@ function bilgiYaz(m, kotu) {
 }
 
 /* ── yukleme ───────────────────────────────────────────────────────────── */
+/* Yayınlanan sitenin parmak izleri. yayinla.py her derlemede yazıyor. */
+async function yayindakileriOku() {
+  try {
+    const y = await fetch('../eserler.json?t=' + Date.now(), { cache: 'no-store' });
+    yayindaki = y.ok ? await y.json() : null;
+  } catch (e) { yayindaki = null; }
+}
+
+/* Bir eserin durumu: kaydedilmemiş / yayında / yayınlanıyor. */
+function durumRozeti(e) {
+  if (e.slug === acikSlug && kirli) return ['r-kayit', 'KAYDEDİLMEDİ'];
+  if (!yayindaki) return ['r-bekle', 'KAYDEDİLDİ'];
+  return yayindaki[e.slug] === e.sha ? ['r-yayin', 'YAYINDA']
+                                     : ['r-bekle', 'YAYINLANIYOR'];
+}
+
 async function eserleriYukle() {
   durumYaz('Yükleniyor…');
+  await yayindakileriOku();
   let liste = [];
   try {
     liste = await gh('contents/' + ESER_YOL);
@@ -503,12 +551,39 @@ function listeCiz() {
        secmek korlemesine oluyordu. */
     b.innerHTML = '<img src="' + SITE + '/assets/' + kacir(e.slug) + '.webp" alt="" loading="lazy">' +
       '<span><span class="ad">' + (i + 1) + '. ' + kacir(e.veri.baslik) + '</span><br>' +
-      '<span class="yil">' + kacir(e.veri.yil || '') + ' · ' + (e.veri.olcu ? kacir(e.veri.olcu.yukseklik_cm + '×' + e.veri.olcu.genislik_cm + ' cm') : '') + '</span></span>';
-    b.addEventListener('click', () => formaDoldur(e.slug));
+      '<span class="yil">' + kacir(e.veri.yil || '') + ' · ' + (e.veri.olcu ? kacir(e.veri.olcu.yukseklik_cm + '×' + e.veri.olcu.genislik_cm + ' cm') : '') + '</span>' +
+      '<br><span class="rozet ' + durumRozeti(e)[0] + '">' + durumRozeti(e)[1] + '</span></span>';
+    b.addEventListener('click', () => gecis(e.slug));
     li.appendChild(b);
     u.appendChild(li);
   });
+
+  /* Listenin son satırı HER ZAMAN boş sayfa. Kayıtlı eserlerden tek farkı
+     henüz kaydedilmemiş olması; aralarında gezinmek aynı şey. */
+  const li = document.createElement('li');
+  li.className = 'bos';
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.setAttribute('aria-current', String(acikSlug === null));
+  const bosRozet = (acikSlug === null && kirli)
+    ? '<span class="rozet r-kayit">KAYDEDİLMEDİ</span>'
+    : '<span class="rozet r-bos">BOŞ SAYFA</span>';
+  b.innerHTML = '<span class="kutu">＋</span>' +
+    '<span><span class="ad">' + (eserler.length + 1) + '. Yeni eser</span><br>' +
+    bosRozet + '</span>';
+  b.addEventListener('click', () => gecis(null));
+  li.appendChild(b);
+  u.appendChild(li);
+
   yerleriKur();
+}
+
+/* GEÇİŞ — eserler ve boş sayfa arasında dolaşmanın tek kapısı.
+   Hiçbir geçiş "temizleme" değil; yalnızca yer değiştirme. Kaydedilmemiş
+   bir şey varsa sessizce kaybolmasın diye önce soruluyor. */
+function gecis(slug) {
+  if (kirli && !confirm('Bu sayfada kaydedilmemiş değişiklikler var. Kaydetmeden geçilsin mi?')) return;
+  if (slug) formaDoldur(slug); else bosSayfa();
 }
 
 /* Sira listesi: numaraya gore, esitlikte slug'a gore. Depoda ayni numaradan
@@ -566,10 +641,10 @@ function secenekleriKur() {
     .map((s) => '<option value="' + s.anahtar + '">' + s.ad + '</option>').join('');
 }
 
-/* TAM SIFIRLAMA. Kaydettikten sonra form o eserle dolu kalıyordu; kullanıcı
-   yeni eser eklemek isteyince eski fotoğrafın ve künyenin üstüne yazıyordu.
-   Buradan çıkan form her zaman boş. */
-function formuTemizle() {
+/* BOŞ SAYFAYA GEÇ. Bir silme işlemi değil: listenin son satırındaki henüz
+   kaydedilmemiş sayfayı açıyor. bilgi_kalsin, kaydetmenin hemen ardından
+   çağrıldığında "yayında" kutusunu ayakta tutuyor. */
+function bosSayfa(bilgi_kalsin) {
   acikSlug = null;
   eserOrani = 0;
   $('#oran-uyari').classList.add('gizli');
@@ -582,7 +657,8 @@ function formuTemizle() {
   $('#onizleme-ortam').removeAttribute('src');
   $('#yil').value = new Date().getFullYear();
   $('#sil').classList.add('gizli');
-  $('#kayit-bilgi').classList.add('gizli');
+  if (!bilgi_kalsin) $('#kayit-bilgi').classList.add('gizli');
+  kirli = false;
   kipYaz(null);
   listeCiz();
   window.scrollTo(0, 0);      // telefonda form listenin altında
@@ -618,6 +694,7 @@ function formaDoldur(slug, onizleme_kalsin) {
   }
   $('#sil').classList.remove('gizli');
   if (!onizleme_kalsin) $('#kayit-bilgi').classList.add('gizli');
+  kirli = false;
   kipYaz(slug);
   listeCiz();
   window.scrollTo(0, 0);
@@ -664,12 +741,12 @@ async function sayfaDamgasi() {
   return '';
 }
 
-async function yayiniIzle(onceki, slug, baslik) {
+async function yayiniIzle(onceki, slug, baslik, dugmeGoster) {
   const kayit = '<a href="https://github.com/' + DEPO +
                 '/actions" target="_blank" rel="noopener">yayın kaydı</a>';
   if (!onceki) {         // panel yerelde açılmış: bekleyecek bir şey yok
     bilgiYaz('Kaydedildi. Site birkaç dakika içinde güncellenir — ' + kayit + '.');
-    bitisDugmesi();
+    if (dugmeGoster) bitisDugmesi();
     return;
   }
   for (let i = 0; i < 80; i++) {
@@ -684,12 +761,14 @@ async function yayiniIzle(onceki, slug, baslik) {
           '" target="_blank" rel="noopener">eser sayfası</a>'
         : ' <a href="' + SITE + '/sergi.html" target="_blank" rel="noopener">Sergi duvarını aç</a>';
       bilgiYaz('<b>Yayında.</b> ' + kacir(baslik) + ' sitede.' + nerede);
-      bitisDugmesi();
+      if (dugmeGoster) bitisDugmesi();
+      await yayindakileriOku();     // rozetler tazelensin
+      listeCiz();
       return;
     }
   }
   bilgiYaz('Kaydedildi ama yayın sekiz dakikadan uzun sürdü. ' + kayit + ' sayfasına bakın.', true);
-  bitisDugmesi();
+  if (dugmeGoster) bitisDugmesi();
 }
 
 /* ── ölçü / görsel oranı denetimi ─────────────────────────────────────────
@@ -802,9 +881,14 @@ async function kaydet(olay) {
     await tekCommit(dosyalar, (mevcut ? 'Eser güncellendi: ' : 'Yeni eser: ') + baslik);
 
     tazelenen[slug] = Date.now();     // görsel değiştiyse önbellek kırılsın
+    const yeniydi = !mevcut;
+    kirli = false;
     await eserleriYukle();
-    formaDoldur(slug, true);          // yerel önizleme kalsın: site henüz derlemedi
-    yayiniIzle(damga, slug, baslik);
+    /* Boş sayfa doldurulup kaydedildiyse o sayfa artık bir eser; listenin
+       sonunda yenisi açıldı ve imleç oraya geçiyor. Var olan bir eser
+       düzenlendiyse o eserde kalınıyor. */
+    if (yeniydi) bosSayfa(true); else formaDoldur(slug, true);
+    yayiniIzle(damga, slug, baslik, !yeniydi);
   } catch (e) {
     bilgiYaz('Kaydedilemedi: ' + e.message +
              '<br><small>Site değişmedi; son yayın olduğu gibi duruyor.</small>', true);
@@ -834,7 +918,7 @@ async function sil() {
     });
     const damga = await sayfaDamgasi();
     await tekCommit(dosyalar, 'Eser silindi: ' + ad);
-    formuTemizle();
+    bosSayfa();
     await eserleriYukle();
     yayiniIzle(damga, '', ad + ' silindi;');
   } catch (err) {
@@ -850,7 +934,7 @@ async function baslat() {
   secenekleriKur();
   $('#giris').classList.add('gizli');
   $('#panel').classList.remove('gizli');
-  formuTemizle();
+  bosSayfa();
   await eserleriYukle();
 }
 
@@ -878,10 +962,16 @@ $('#cik').addEventListener('click', () => {
   localStorage.removeItem('cs-panel-jeton');
   location.reload();
 });
-$('#yeni').addEventListener('click', formuTemizle);
-$('#vazgec').addEventListener('click', () => (acikSlug ? formaDoldur(acikSlug) : formuTemizle()));
+$('#vazgec').addEventListener('click', () => (acikSlug ? formaDoldur(acikSlug) : bosSayfa()));
 $('#sil').addEventListener('click', sil);
 $('#form').addEventListener('submit', kaydet);
+/* Kaydedilmemiş değişiklik takibi: geçişler bunu soruyor, liste rozeti
+   bunu gösteriyor. */
+['input', 'change'].forEach((olay) => $('#form').addEventListener(olay, () => {
+  if (kirli) return;
+  kirli = true;
+  listeCiz();
+}));
 
 /* Oran hem yeni yuklenen dosyadan hem de duzenlemede sitedeki gorselden
    geliyor: ikisi de ayni <img>'in load olayini tetikliyor. */

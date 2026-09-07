@@ -105,7 +105,27 @@ def main():
                      'surum': os.environ.get('GITHUB_SHA', 'yerel')[:12]}) + chr(10))
     print('yayin.json        ' + damga)
 
-    # 5) favicon, robots, sitemap, 404
+    # 5) yayindaki eserlerin parmak izi
+    #    Panel "bu eser sitede mi, yoksa daha derlenmedi mi" sorusunu buradan
+    #    cevapliyor. Deger, kaynak JSON'un GIT BLOB SHA'si: panel zaten ayni
+    #    degeri contents API'sinden aliyor, yani karsilastirma tahminsiz.
+    import hashlib
+    izler = {}
+    for ad in sorted(os.listdir(os.path.join(KOK, 'icerik', 'eserler'))):
+        if not ad.endswith('.json'):
+            continue
+        ham = open(os.path.join(KOK, 'icerik', 'eserler', ad), 'rb').read()
+        # Depo LF sakliyor; Windows'ta yerel dosya CRLF olabilir.
+        # Depodaki baytlara gore hesapla, yoksa yerel iz tutmaz.
+        ham = ham.replace(bytes([13, 10]), bytes([10]))
+        h = hashlib.sha1()
+        h.update(b'blob ' + str(len(ham)).encode() + bytes([0]) + ham)
+        izler[ad[:-5]] = h.hexdigest()
+    io.open(os.path.join(CIKTI, 'eserler.json'), 'w', encoding='utf-8').write(
+        _json.dumps(izler, ensure_ascii=False, indent=1) + chr(10))
+    print('eserler.json       %d eser parmak izi' % len(izler))
+
+    # 6) favicon, robots, sitemap, 404
     print(calistir('site_ek.py'))
 
     toplam = sum(os.path.getsize(os.path.join(r, f))
