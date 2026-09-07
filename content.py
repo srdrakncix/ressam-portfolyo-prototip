@@ -141,6 +141,11 @@ COLLECTION_OF = {
     69844: ('Van Doorn Koleksiyonu, Rotterdam', 2022),
 }
 
+# 360Artwork'te kurulan gezilebilir sanal salonun paylasim adresi.
+# BOS ise sergi sayfasinda salon karti hic cikmiyor. Adres degisirse
+# yalnizca burasi degisir; sablonlara dokunulmuyor.
+SANAL_SALON = 'https://www.360artwork.com/show/gallery/view?u=kp_a3cb376a0e9445ff80278527fba61bc7&g=cmtrit6780005l704z1c2pjis'
+
 # Yonetim panelinin giris sunucusu (Cloudflare Worker).
 # BOS ise panel GitHub anahtarini dogrudan kullanicidan ister — teknik
 # olmayan biri icin anlasilmaz. Adres yazilirsa panel kullanici adi + sifre
