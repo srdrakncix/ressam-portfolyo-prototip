@@ -292,8 +292,9 @@ main { max-width: var(--en); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px) 9
    ÜSTÜNÜ örtebiliriz.
    Dürüst sınır: salonun ne zaman GERÇEKTEN hazır olduğunu bilemiyoruz —
    iframe'in load olayı belgeyi haber veriyor, WebGL sahnesini değil. Bu
-   yüzden örtü süreli: load + 2,6 sn. Salon daha uzun sürerse ziyaretçi yine
-   onların ekranını görür; tıklayarak da geçilebiliyor. */
+   yüzden örtü süreli. Süre ÖLÇÜLEREK belirlendi: 2,6 sn ile 360Artwork'ün
+   kendi açılışı hâlâ görünüyordu, load + 6 sn ile örtülüyor. Bekleyen için
+   "Geç" var; hiçbir şey olmazsa 20 sn'de kendiliğinden kalkıyor. */
 #salonYuk {
   position: absolute; inset: 0; z-index: 2; background: var(--kagit);
   display: grid; place-content: center; justify-items: center; gap: 22px;
@@ -308,6 +309,12 @@ main { max-width: var(--en); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px) 9
 #salonYuk .metin {
   font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--silik);
 }
+#salonYuk .gec {
+  margin-top: 6px; background: none; border: 0; cursor: pointer; padding: 8px 12px;
+  font: 400 10px/1 var(--sans); letter-spacing: .18em; text-transform: uppercase;
+  color: var(--silik); border-bottom: 1px solid transparent;
+}
+#salonYuk .gec:hover { color: var(--murekkep); border-color: var(--cizgi); }
 #salonYuk .cizgi { width: 190px; height: 1px; background: var(--cizgi); overflow: hidden; }
 #salonYuk .cizgi i {
   display: block; width: 34%; height: 100%; background: var(--bronz);
@@ -498,6 +505,7 @@ main { max-width: var(--en); margin: 0 auto; padding: 0 clamp(18px, 4vw, 34px) 9
       <div class="marka"></div>
       <div class="cizgi"><i></i></div>
       <div class="metin"></div>
+      <button type="button" class="gec"></button>
     </div>
   </div>
 </div>
@@ -832,7 +840,7 @@ function salonYukGizle() {
 salonCerceve.addEventListener('load', () => {
   if (!salonCerceve.getAttribute('src')) return;
   clearTimeout(salonSayac);
-  salonSayac = setTimeout(salonYukGizle, 2600);
+  salonSayac = setTimeout(salonYukGizle, 6000);
 });
 salonYuk.addEventListener('click', salonYukGizle);
 
@@ -843,7 +851,7 @@ function salonAc() {
   try { history.replaceState(null, '', SALON_ADRES); } catch (e) {}
   salonYuk.hidden = false;
   clearTimeout(salonSayac);
-  salonSayac = setTimeout(salonYukGizle, 12000);   // hiçbir şey olmazsa yine de aç
+  salonSayac = setTimeout(salonYukGizle, 20000);   // hiçbir şey olmazsa yine de aç
   salonCerceve.src = SITE.salon;
   document.documentElement.classList.add('durdur');
   salonKatman.classList.add('acik');
@@ -906,6 +914,7 @@ function dilUygula() {
     salonYuk.querySelector('.marka').innerHTML =
       ad[0] + ' <b>' + upTR(ad.slice(1).join(' ')) + '</b>';
     salonYuk.querySelector('.metin').textContent = t('salon_yuk');
+    salonYuk.querySelector('.gec').textContent = t('salon_gec');
     salonKatman.querySelector('.kapa').textContent = t('gal_close');
     salonCerceve.title = t('salon_bas');
   }
@@ -951,5 +960,15 @@ addEventListener('resize', olcekle, { passive: true });
    ekran genişliğine bağlı tek şey çıkış etiketi. */
 addEventListener('resize', cikisEtiketi, { passive: true });
 addEventListener('load', olcekle);
+/* Adres değişince de tepki ver. Eskiden yalnızca ilk açılışta bakılıyordu:
+   salondan çıkıp tarayıcının İLERİ tuşuna basınca adres #/salon'a dönüyor
+   ama hiçbir şey açılmıyordu. */
+addEventListener('hashchange', () => {
+  if (location.hash === SALON_ADRES) { salonAc(); return; }
+  if (salonKatman.classList.contains('acik')) salonKapat();
+  if (location.hash.indexOf(ONEK) === 0) adrestenAc();
+  else if (acikIdx >= 0) kapat();
+});
+
 adrestenAc();
 </script>

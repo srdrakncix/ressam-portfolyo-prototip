@@ -31,6 +31,7 @@ UI = {
         'salon_ac': 'Salonu aç',
         'salon_yeni': 'Yeni sekmede aç',
         'salon_yuk': 'Sanal salon hazırlanıyor',
+        'salon_gec': 'Geç',
         'gal_room': 'Üzerine gelin: eser bir evin duvarında.',
         'gal_empty': 'Bu seride henüz eser yok.',
         'gal_exit_k': 'Çık',   # dar ekran kısaltmaları
@@ -89,6 +90,7 @@ UI = {
         'salon_ac': 'Enter the room',
         'salon_yeni': 'Open in a new tab',
         'salon_yuk': 'Preparing the virtual room',
+        'salon_gec': 'Skip',
         'gal_room': 'Hover: the work on the wall of a home.',
         'gal_empty': 'No works in this series yet.',
         'gal_exit_k': 'Exit', 
@@ -146,6 +148,7 @@ UI = {
         'salon_ac': 'Entrer dans la salle',
         'salon_yeni': 'Ouvrir dans un nouvel onglet',
         'salon_yuk': 'Préparation de la salle virtuelle',
+        'salon_gec': 'Passer',
         'gal_room': 'Survolez : l’œuvre sur le mur d’un intérieur.',
         'gal_empty': 'Aucune œuvre dans cette série pour l’instant.',
         'gal_exit_k': 'Sortir', 
