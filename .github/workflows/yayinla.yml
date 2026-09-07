@@ -55,6 +55,7 @@ jobs:
           gerekli = ['site/index.html', 'site/mekan.html', 'site/sergi.html',
                      'site/404.html', 'site/favicon.svg', 'site/robots.txt',
                      'site/sitemap.xml', 'site/assets/duvar/salon.webp',
+                     'site/yayin.json',
                      'site/panel/index.html', 'site/panel/secenekler.json']
           eksik = [y for y in gerekli if not os.path.exists(y)]
           if eksik:

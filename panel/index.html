@@ -539,11 +539,19 @@ function birakKur(kutuId, girisId, onizId, ata) {
    değişince yeni derleme sunuluyor demektir. Panel siteyle aynı adreste
    durduğu için bunun için ek bir yetki gerekmiyor. */
 async function sayfaDamgasi() {
+  /* Sorgu dizesi ONEMLI: Pages'in onunde 10 dakikalik bir onbellek var,
+     cache:'no-store' yalnizca tarayiciyi atlatiyor. Benzersiz adres CDN'i
+     de atlatiyor, yoksa yayin inmisken panel dakikalarca bekliyor. */
+  const t = '?t=' + Date.now();
   try {
-    const y = await fetch('../sergi.html', { method: 'HEAD', cache: 'no-store' });
-    if (!y.ok) return '';
-    return y.headers.get('etag') || y.headers.get('last-modified') || '';
-  } catch (e) { return ''; }
+    const y = await fetch('../yayin.json' + t, { cache: 'no-store' });
+    if (y.ok) return (await y.json()).zaman || '';
+  } catch (e) { /* eski yayinda bu dosya yok; asagi dus */ }
+  try {
+    const y = await fetch('../sergi.html' + t, { method: 'HEAD', cache: 'no-store' });
+    if (y.ok) return y.headers.get('etag') || y.headers.get('last-modified') || '';
+  } catch (e) { /* yerelde acilmis olabilir */ }
+  return '';
 }
 
 async function yayiniIzle(onceki, slug, baslik) {

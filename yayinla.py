@@ -96,7 +96,16 @@ def main():
         }, ensure_ascii=False, indent=2))
     print('panel/            index.html + secenekler.json')
 
-    # 4) favicon, robots, sitemap, 404
+    # 4) yayin damgasi
+    #    Panel "site guncellendi mi" sorusunu buradan cevapliyor: her
+    #    derlemede degisen tek dosya. ETag'e bakmak da isliyordu ama onun
+    #    degismesi Pages'in dosya zaman damgasina bagli - burada olcut acik.
+    io.open(os.path.join(CIKTI, 'yayin.json'), 'w', encoding='utf-8').write(
+        _json.dumps({'zaman': datetime.now(timezone.utc).isoformat(timespec='seconds'),
+                     'surum': os.environ.get('GITHUB_SHA', 'yerel')[:12]}) + chr(10))
+    print('yayin.json        ' + damga)
+
+    # 5) favicon, robots, sitemap, 404
     print(calistir('site_ek.py'))
 
     toplam = sum(os.path.getsize(os.path.join(r, f))
