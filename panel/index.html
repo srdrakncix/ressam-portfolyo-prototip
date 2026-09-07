@@ -36,6 +36,9 @@ header {
 header h1 { font-size: 17px; font-weight: 600; margin: 0; }
 header .ara { margin-left: auto; display: flex; gap: 10px; align-items: center; }
 #durum { font-size: 13px; color: var(--soft); }
+/* Yapim damgasi: tarayici eski surumu onbellekten sunarsa hemen belli olsun.
+   Bir kez panel eski kodla acildi ve hata mesaji yaniltti. */
+#surum { font-size: 11px; color: #9aa1a6; font-variant-numeric: tabular-nums; }
 #durum.iyi { color: var(--vurgu); } #durum.kotu { color: var(--uyari); }
 
 .sarmal { display: grid; grid-template-columns: 300px 1fr; gap: 0; min-height: calc(100vh - 60px); }
@@ -133,6 +136,7 @@ button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; m
 <header>
   <h1>Eser Yönetimi</h1>
   <div class="ara">
+    <span id="surum" title="Yüklü panel sürümü">__YAPIM__</span>
     <span id="durum"></span>
     <button class="eylem ikincil" id="yeni">+ Yeni eser</button>
     <button class="eylem ikincil" id="cik">Çık</button>

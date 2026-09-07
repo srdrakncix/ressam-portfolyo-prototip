@@ -82,8 +82,12 @@ def main():
     import content as _C
     panel_hedef = os.path.join(CIKTI, 'panel')
     os.makedirs(panel_hedef, exist_ok=True)
-    shutil.copy2(os.path.join(KOK, 'panel', 'index.html'),
-                 os.path.join(panel_hedef, 'index.html'))
+    from datetime import datetime, timezone
+    damga = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')
+    panel_kod = io.open(os.path.join(KOK, 'panel', 'index.html'),
+                        encoding='utf-8').read().replace('__YAPIM__', damga)
+    io.open(os.path.join(panel_hedef, 'index.html'), 'w',
+            encoding='utf-8').write(panel_kod)
     io.open(os.path.join(panel_hedef, 'secenekler.json'), 'w', encoding='utf-8').write(
         _json.dumps({
             'seriler': [{'anahtar': x['key'], 'ad': x['title']} for x in _C.SERIES],
