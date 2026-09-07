@@ -266,7 +266,14 @@ let yeniEserDosya = null, yeniOrtamDosya = null;
 
 /* ── GitHub ────────────────────────────────────────────────────────────── */
 async function gh(yol, secim = {}) {
-  const y = await fetch('https://api.github.com/repos/' + DEPO + '/' + yol, {
+  /* Sondaki egik cizgi onemli: .../repos/sahip/depo/ adresi tarayicida
+     "Failed to fetch" ile dusuyor (olculdu — ayni istek egik cizgisiz
+     HTTP 401 donuyor, yani sunucuya ulasiyor). Bos yol icin egik cizgi
+     eklenmemeli. */
+  const taban = 'https://api.github.com/repos/' + DEPO;
+  let y;
+  try {
+    y = await fetch(yol ? taban + '/' + yol : taban, {
     ...secim,
     headers: {
       Authorization: 'Bearer ' + jeton,
@@ -274,7 +281,13 @@ async function gh(yol, secim = {}) {
       'X-GitHub-Api-Version': '2022-11-28',
       ...(secim.headers || {}),
     },
-  });
+    });
+  } catch (e) {
+    /* Ag katmani hatasi: yanlis adres, engelleyici eklenti ya da baglanti.
+       Yetki hatasindan ayirt edilebilsin diye ayri mesaj. */
+    throw new Error('GitHub'a ulasilamadi (' + e.message + '). ' +
+                    'Baglantinizi ve reklam engelleyici eklentileri kontrol edin.');
+  }
   if (!y.ok) {
     const m = await y.text();
     throw new Error(y.status + ' ' + (m.slice(0, 180) || y.statusText));
@@ -552,7 +565,11 @@ $('#gir').addEventListener('click', async () => {
     await baslat();
   } catch (e) {
     jeton = '';
-    $('#giris-hata').textContent = 'Anahtar kabul edilmedi: ' + e.message;
+    const m = String(e.message);
+    $('#giris-hata').textContent =
+      m.startsWith('401') ? 'Anahtar geçersiz ya da süresi dolmuş.' :
+      m.startsWith('403') ? 'Anahtarın bu depoya yetkisi yok. Contents: Read and write verin.' :
+      m.startsWith('404') ? 'Depo görünmüyor. Anahtarda bu depo seçili mi?' : m;
   }
 });
 $('#jeton').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#gir').click(); });
