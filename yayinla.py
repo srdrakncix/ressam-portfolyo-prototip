@@ -9,6 +9,7 @@ calistirmasi onemli: "bende calisiyordu" durumunu bastan siliyor.
 site/ klasoru TAMAMEN URETILMIS ciktidir ve depoya girmez (.gitignore).
 Depoda duran sey kaynaktir: sablonlar, build.py, icerik ve varlik/.
 """
+import io
 import os
 import shutil
 import subprocess
@@ -40,6 +41,19 @@ def calistir(*args):
 
 
 def main():
+    # Ciktiyi SIFIRDAN uret: eski derlemelerden kalan olu dosyalar birikmesin.
+    # (Eser gorsellerinin adi degistiginde eskiler sessizce kaliyordu.)
+    # Windows klasorun kendisini kilitleyebiliyor; ICERIGI siliyoruz.
+    if os.path.isdir(CIKTI):
+        for ad in os.listdir(CIKTI):
+            yol = os.path.join(CIKTI, ad)
+            if os.path.isdir(yol):
+                shutil.rmtree(yol, ignore_errors=True)
+            else:
+                try:
+                    os.remove(yol)
+                except OSError:
+                    pass
     os.makedirs(CIKTI, exist_ok=True)
 
     # 1) sayfalar (build.py assets/ icine eser gorsellerini de yaziyor)
@@ -61,7 +75,24 @@ def main():
             n += 1
     print(f'varlik/            {n} dosya kopyalandi')
 
-    # 3) favicon, robots, sitemap, 404
+    # 3) panel + secenekleri
+    #    Seri ve durum listeleri content.py'den turetiliyor: panelde elle
+    #    yazilirsa iki yer birbirinden kopar.
+    import json as _json
+    import content as _C
+    panel_hedef = os.path.join(CIKTI, 'panel')
+    os.makedirs(panel_hedef, exist_ok=True)
+    shutil.copy2(os.path.join(KOK, 'panel', 'index.html'),
+                 os.path.join(panel_hedef, 'index.html'))
+    io.open(os.path.join(panel_hedef, 'secenekler.json'), 'w', encoding='utf-8').write(
+        _json.dumps({
+            'seriler': [{'anahtar': x['key'], 'ad': x['title']} for x in _C.SERIES],
+            'durumlar': [{'anahtar': k, 'ad': v} for k, v in _C.STATUS_TR.items()],
+            'teknik': _C.MEDIUM_TR,
+        }, ensure_ascii=False, indent=2))
+    print('panel/            index.html + secenekler.json')
+
+    # 4) favicon, robots, sitemap, 404
     print(calistir('site_ek.py'))
 
     toplam = sum(os.path.getsize(os.path.join(r, f))

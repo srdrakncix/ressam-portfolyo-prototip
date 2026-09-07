@@ -1,0 +1,28 @@
+{
+  "slug": "bastiran",
+  "sira": 7,
+  "baslik": "Bastıran",
+  "gloss": {
+    "en": "Bearing Down",
+    "fr": "L’imminence"
+  },
+  "seri": "hava",
+  "yil": 2022,
+  "durum": "satilik",
+  "olcu": {
+    "yukseklik_cm": 88,
+    "genislik_cm": 132
+  },
+  "koleksiyon": {
+    "ad": "",
+    "yil": null
+  },
+  "gorsel": "bastiran.webp",
+  "ortam_gorseli": "",
+  "not": {
+    "tr": "Bir saat içinde bitti. Nadiren öyle olur.",
+    "en": "Finished within an hour. That rarely happens.",
+    "fr": "Achevé en une heure. Cela arrive rarement."
+  },
+  "kaynak_kredisi": "George Inness, “Threatening”, 1891 · Art Institute of Chicago, kamu malı"
+}

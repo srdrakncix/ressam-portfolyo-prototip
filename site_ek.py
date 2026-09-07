@@ -33,7 +33,7 @@ d.rectangle([5.5*k, 7*k, 26.5*k, 25*k], outline=(201, 168, 106), width=max(1, in
 im.save(os.path.join(SITE, 'apple-touch-icon.png'))
 
 open(os.path.join(SITE, 'robots.txt'), 'w', encoding='utf-8').write(
-    'User-agent: *\nAllow: /\n\nSitemap: %ssitemap.xml\n' % KOK)
+    'User-agent: *\nAllow: /\nDisallow: /panel/\n\nSitemap: %ssitemap.xml\n' % KOK)
 
 SAYFALAR = [('', '1.0'), ('mekan.html', '0.9'), ('sergi.html', '0.8')]
 sm = ['<?xml version="1.0" encoding="UTF-8"?>',

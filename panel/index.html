@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Eser Yönetimi — Cemal Sağlam</title>
+<style>
+/* ── Yönetim paneli ───────────────────────────────────────────────────────
+   Bu bir araç, vitrin değil: sade, okunur, hedefleri iri. Sitenin serif
+   dünyasını taklit etmiyor — burada iş yapılıyor.
+
+   Sunucu YOK. Panel doğrudan GitHub'a yazıyor, GitHub Actions siteyi
+   derleyip yayınlıyor.
+
+   SİTEYİ BOZMAMA GÜVENCESİ: Kaydedilen veri bozuksa build.py derlemeyi
+   durduruyor; Pages son başarılı yayını sunmaya devam ediyor. Yani hatalı
+   bir kayıt en fazla "yayınlanmaz", asla "siteyi bozar" olmuyor. */
+:root {
+  --ink: #16181a; --soft: #5b6166; --line: #dfe3e6; --zemin: #f6f7f8;
+  --kart: #ffffff; --vurgu: #2f6b4f; --uyari: #a3401f; --altin: #8a6d2e;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--zemin); color: var(--ink);
+  font: 400 15px/1.55 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+header {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 14px clamp(14px, 3vw, 28px);
+  background: var(--kart); border-bottom: 1px solid var(--line);
+}
+header h1 { font-size: 17px; font-weight: 600; margin: 0; }
+header .ara { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+#durum { font-size: 13px; color: var(--soft); }
+#durum.iyi { color: var(--vurgu); } #durum.kotu { color: var(--uyari); }
+
+.sarmal { display: grid; grid-template-columns: 300px 1fr; gap: 0; min-height: calc(100vh - 60px); }
+@media (max-width: 860px) { .sarmal { grid-template-columns: 1fr; } }
+
+/* liste */
+aside { border-right: 1px solid var(--line); background: var(--kart); padding: 14px; }
+@media (max-width: 860px) { aside { border-right: 0; border-bottom: 1px solid var(--line); } }
+#liste { list-style: none; margin: 10px 0 0; padding: 0; }
+#liste li { margin-bottom: 4px; }
+#liste button {
+  display: flex; gap: 10px; align-items: center; width: 100%; text-align: left;
+  font: inherit; padding: 8px; border: 1px solid transparent; border-radius: 8px;
+  background: none; cursor: pointer;
+}
+#liste button:hover { background: var(--zemin); }
+#liste button[aria-current="true"] { border-color: var(--altin); background: #fdf8ee; }
+#liste img { width: 46px; height: 34px; object-fit: cover; border-radius: 3px; background: var(--line); }
+#liste .ad { font-size: 14px; line-height: 1.2; }
+#liste .yil { font-size: 12px; color: var(--soft); }
+
+/* form */
+main { padding: clamp(16px, 3vw, 32px); max-width: 860px; }
+fieldset { border: 1px solid var(--line); border-radius: 10px; background: var(--kart);
+           padding: 18px; margin: 0 0 18px; }
+legend { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--soft); padding: 0 6px; }
+.satir { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+label { display: block; font-size: 13px; color: var(--soft); margin-bottom: 5px; }
+label .zorunlu { color: var(--uyari); }
+input[type=text], input[type=number], select, textarea {
+  width: 100%; font: inherit; padding: 9px 11px;
+  border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--ink);
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--altin); outline-offset: 1px; border-color: var(--altin); }
+textarea { min-height: 76px; resize: vertical; }
+.ipucu { font-size: 12px; color: var(--soft); margin-top: 5px; }
+
+/* gorsel birakma alani */
+.birak {
+  border: 2px dashed var(--line); border-radius: 10px; padding: 14px;
+  display: flex; gap: 14px; align-items: center; cursor: pointer;
+  transition: border-color 160ms, background 160ms;
+}
+.birak:hover, .birak.uzerinde { border-color: var(--altin); background: #fdf8ee; }
+.birak img { width: 130px; height: 96px; object-fit: contain; background: var(--zemin); border-radius: 5px; }
+.birak .yazi { font-size: 13px; color: var(--soft); }
+.birak input[type=file] { display: none; }
+
+.dugmeler { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+button.eylem {
+  font: inherit; font-weight: 500; padding: 11px 20px; border-radius: 8px;
+  border: 1px solid var(--ink); background: var(--ink); color: #fff; cursor: pointer;
+}
+button.eylem[disabled] { opacity: .45; cursor: default; }
+button.ikincil { background: #fff; color: var(--ink); }
+button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; margin-left: auto; }
+
+#giris { max-width: 520px; margin: 60px auto; padding: 26px; background: var(--kart);
+         border: 1px solid var(--line); border-radius: 12px; }
+#giris h2 { margin-top: 0; font-size: 18px; }
+#giris ol { padding-left: 20px; color: var(--soft); font-size: 14px; }
+#giris code { background: var(--zemin); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+.gizli { display: none !important; }
+
+#kayit-bilgi {
+  margin-top: 14px; padding: 12px 14px; border-radius: 8px; font-size: 14px;
+  background: #eef6f1; border: 1px solid #cfe5d9; color: #1e4d38;
+}
+#kayit-bilgi.kotu { background: #fdf1ec; border-color: #f0d2c5; color: #8a3618; }
+</style>
+</head>
+<body>
+
+<!-- ── giriş ───────────────────────────────────────────────────────────── -->
+<section id="giris">
+  <h2>Eser Yönetimi</h2>
+  <p style="color:var(--soft);font-size:14px">
+    Panel doğrudan siteye yazar. Girmek için bir GitHub erişim anahtarı gerekiyor —
+    bir kez yapıştırılır, bu tarayıcıda saklanır.
+  </p>
+  <ol>
+    <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">Bu bağlantıdan</a> yeni bir anahtar oluşturun.</li>
+    <li><b>Repository access</b> → yalnızca <code>ressam-portfolyo-prototip</code>.</li>
+    <li><b>Permissions</b> → <code>Contents</code>: <b>Read and write</b>.</li>
+    <li>Oluşturulan anahtarı aşağıya yapıştırın.</li>
+  </ol>
+  <label for="jeton">Erişim anahtarı</label>
+  <input type="text" id="jeton" placeholder="github_pat_..." autocomplete="off" spellcheck="false">
+  <div class="dugmeler"><button class="eylem" id="gir">Gir</button></div>
+  <div id="giris-hata" class="ipucu" style="color:var(--uyari)"></div>
+</section>
+
+<!-- ── panel ───────────────────────────────────────────────────────────── -->
+<div id="panel" class="gizli">
+<header>
+  <h1>Eser Yönetimi</h1>
+  <div class="ara">
+    <span id="durum"></span>
+    <button class="eylem ikincil" id="yeni">+ Yeni eser</button>
+    <button class="eylem ikincil" id="cik">Çık</button>
+  </div>
+</header>
+
+<div class="sarmal">
+  <aside>
+    <div class="ipucu">Eserler</div>
+    <ul id="liste"></ul>
+  </aside>
+
+  <main>
+    <form id="form" autocomplete="off">
+      <fieldset>
+        <legend>Görseller</legend>
+        <div class="satir">
+          <div>
+            <label>Eser görseli <span class="zorunlu">*</span></label>
+            <label class="birak" id="birak-eser">
+              <img id="onizleme-eser" alt="">
+              <span class="yazi">Fotoğrafı buraya sürükleyin<br>ya da tıklayıp seçin</span>
+              <input type="file" id="dosya-eser" accept="image/*">
+            </label>
+            <div class="ipucu">Düz reprodüksiyon. Duvarda, listede ve künyede bu kullanılır.</div>
+          </div>
+          <div>
+            <label>Ortam görseli</label>
+            <label class="birak" id="birak-ortam">
+              <img id="onizleme-ortam" alt="">
+              <span class="yazi">İsteğe bağlı<br>Smartist maketi</span>
+              <input type="file" id="dosya-ortam" accept="image/*">
+            </label>
+            <div class="ipucu">Eserin ev ortamındaki hâli. Detay sayfasında ikinci kare olarak görünür.</div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Künye</legend>
+        <div class="satir">
+          <div style="grid-column:1/-1">
+            <label for="baslik">Eser adı <span class="zorunlu">*</span></label>
+            <input type="text" id="baslik" required>
+            <div class="ipucu">Bu ad hiçbir dilde çevrilmez — bir isimdir. Yabancı dillerde altına açıklayıcı karşılığı düşer.</div>
+          </div>
+          <div>
+            <label for="seri">Seri <span class="zorunlu">*</span></label>
+            <select id="seri" required></select>
+          </div>
+          <div>
+            <label for="yil">Yıl <span class="zorunlu">*</span></label>
+            <input type="number" id="yil" min="1900" max="2100" required>
+          </div>
+          <div>
+            <label for="yukseklik">Yükseklik (cm) <span class="zorunlu">*</span></label>
+            <input type="number" id="yukseklik" min="1" max="1000" required>
+          </div>
+          <div>
+            <label for="genislik">Genişlik (cm) <span class="zorunlu">*</span></label>
+            <input type="number" id="genislik" min="1" max="1000" required>
+          </div>
+          <div>
+            <label for="durumu">Durum <span class="zorunlu">*</span></label>
+            <select id="durumu" required></select>
+          </div>
+          <div>
+            <label for="sira">Sıra</label>
+            <input type="number" id="sira" min="1" max="999">
+            <div class="ipucu">Duvardaki asılma sırası. Boş bırakılırsa sona eklenir.</div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset id="alan-koleksiyon">
+        <legend>Koleksiyon</legend>
+        <div class="satir">
+          <div><label for="kol-ad">Koleksiyon adı</label><input type="text" id="kol-ad"></div>
+          <div><label for="kol-yil">Edinme yılı</label><input type="number" id="kol-yil" min="1900" max="2100"></div>
+        </div>
+        <div class="ipucu">Yalnızca durum “koleksiyonda” ya da “ayrıldı” ise doldurun.</div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Sanatçı notu</legend>
+        <div>
+          <label for="not-tr">Türkçe</label>
+          <textarea id="not-tr"></textarea>
+        </div>
+        <div class="satir" style="margin-top:14px">
+          <div>
+            <label for="not-en">İngilizce</label>
+            <textarea id="not-en"></textarea>
+            <label for="gloss-en" style="margin-top:10px">Eser adının İngilizce karşılığı</label>
+            <input type="text" id="gloss-en" placeholder="örn. The Ridge">
+          </div>
+          <div>
+            <label for="not-fr">Fransızca</label>
+            <textarea id="not-fr"></textarea>
+            <label for="gloss-fr" style="margin-top:10px">Eser adının Fransızca karşılığı</label>
+            <input type="text" id="gloss-fr" placeholder="örn. La crête">
+          </div>
+        </div>
+      </fieldset>
+
+      <div class="dugmeler">
+        <button type="submit" class="eylem" id="kaydet">Kaydet ve yayınla</button>
+        <button type="button" class="eylem ikincil" id="vazgec">Vazgeç</button>
+        <button type="button" class="eylem tehlike gizli" id="sil">Eseri sil</button>
+      </div>
+      <div id="kayit-bilgi" class="gizli"></div>
+    </form>
+  </main>
+</div>
+</div>
+
+<script>
+'use strict';
+const DEPO = 'srdrakncix/ressam-portfolyo-prototip';
+const ESER_YOL = 'icerik/eserler';
+const GORSEL_YOL = 'icerik/gorseller';
+const SITE = 'https://srdrakncix.github.io/ressam-portfolyo-prototip';
+const EN_BUYUK = 2000;          // yuklenen fotograf bu boyuta indirilir
+
+const $ = (s) => document.querySelector(s);
+let jeton = '';
+let secenekler = { seriler: [], durumlar: [] };
+let eserler = [];               // {slug, sha, veri}
+let acikSlug = null;            // duzenlenen eser (yeni ise null)
+let yeniEserDosya = null, yeniOrtamDosya = null;
+
+/* ── GitHub ────────────────────────────────────────────────────────────── */
+async function gh(yol, secim = {}) {
+  const y = await fetch('https://api.github.com/repos/' + DEPO + '/' + yol, {
+    ...secim,
+    headers: {
+      Authorization: 'Bearer ' + jeton,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(secim.headers || {}),
+    },
+  });
+  if (!y.ok) {
+    const m = await y.text();
+    throw new Error(y.status + ' ' + (m.slice(0, 180) || y.statusText));
+  }
+  return y.status === 204 ? null : y.json();
+}
+
+async function dosyaYaz(yol, base64, mesaj, sha) {
+  const govde = { message: mesaj, content: base64 };
+  if (sha) govde.sha = sha;
+  return gh('contents/' + yol, { method: 'PUT', body: JSON.stringify(govde) });
+}
+
+/* ── yardimcilar ───────────────────────────────────────────────────────── */
+function slugla(s) {
+  const tr = { 'ı': 'i', 'İ': 'i', 'ş': 's', 'Ş': 's', 'ğ': 'g', 'Ğ': 'g',
+               'ü': 'u', 'Ü': 'u', 'ö': 'o', 'Ö': 'o', 'ç': 'c', 'Ç': 'c' };
+  return String(s).split('').map((c) => tr[c] || c).join('')
+    .normalize('NFKD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
+}
+
+/* Fotograf tarayicida kucultuluyor: telefon fotografi 8 MB gelebiliyor ve
+   depoyu sisiriyor. 2000 px yeterli — site zaten 1686 px uretiyor. */
+async function kucult(dosya) {
+  const bmp = await createImageBitmap(dosya);
+  const k = Math.min(1, EN_BUYUK / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(bmp.width * k);
+  c.height = Math.round(bmp.height * k);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  const blob = await new Promise((r) => c.toBlob(r, 'image/webp', 0.88));
+  bmp.close && bmp.close();
+  return blob;
+}
+
+function base64le(blob) {
+  return new Promise((c, h) => {
+    const f = new FileReader();
+    f.onload = () => c(String(f.result).split(',')[1]);
+    f.onerror = h;
+    f.readAsDataURL(blob);
+  });
+}
+
+function durumYaz(m, sinif) {
+  const d = $('#durum');
+  d.textContent = m || '';
+  d.className = sinif || '';
+}
+
+function bilgiYaz(m, kotu) {
+  const b = $('#kayit-bilgi');
+  b.innerHTML = m;
+  b.classList.remove('gizli');
+  b.classList.toggle('kotu', !!kotu);
+}
+
+/* ── yukleme ───────────────────────────────────────────────────────────── */
+async function eserleriYukle() {
+  durumYaz('Yükleniyor…');
+  let liste = [];
+  try {
+    liste = await gh('contents/' + ESER_YOL);
+  } catch (e) {
+    if (!String(e).includes('404')) throw e;
+  }
+  const json = liste.filter((f) => f.name.endsWith('.json'));
+  eserler = await Promise.all(json.map(async (f) => {
+    const y = await fetch(f.download_url, { cache: 'no-store' });
+    return { slug: f.name.replace(/\.json$/, ''), sha: f.sha, veri: await y.json() };
+  }));
+  eserler.sort((a, b) => (a.veri.sira || 999) - (b.veri.sira || 999));
+  listeCiz();
+  durumYaz(eserler.length + ' eser', 'iyi');
+}
+
+function listeCiz() {
+  const u = $('#liste');
+  u.innerHTML = '';
+  eserler.forEach((e) => {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('aria-current', String(e.slug === acikSlug));
+    b.innerHTML = '<img src="' + SITE + '/assets/' + e.slug + '.webp" alt="" loading="lazy">' +
+      '<span><span class="ad">' + e.veri.baslik + '</span><br>' +
+      '<span class="yil">' + (e.veri.yil || '') + ' · ' + (e.veri.olcu ? e.veri.olcu.yukseklik_cm + '×' + e.veri.olcu.genislik_cm + ' cm' : '') + '</span></span>';
+    b.addEventListener('click', () => formaDoldur(e.slug));
+    li.appendChild(b);
+    u.appendChild(li);
+  });
+}
+
+/* ── form ──────────────────────────────────────────────────────────────── */
+function secenekleriKur() {
+  $('#seri').innerHTML = secenekler.seriler
+    .map((s) => '<option value="' + s.anahtar + '">' + s.ad + '</option>').join('');
+  $('#durumu').innerHTML = secenekler.durumlar
+    .map((s) => '<option value="' + s.anahtar + '">' + s.ad + '</option>').join('');
+}
+
+function formuTemizle() {
+  acikSlug = null;
+  yeniEserDosya = yeniOrtamDosya = null;
+  $('#form').reset();
+  $('#onizleme-eser').removeAttribute('src');
+  $('#onizleme-ortam').removeAttribute('src');
+  $('#yil').value = new Date().getFullYear();
+  $('#sil').classList.add('gizli');
+  $('#kayit-bilgi').classList.add('gizli');
+  listeCiz();
+}
+
+function formaDoldur(slug) {
+  const e = eserler.find((x) => x.slug === slug);
+  if (!e) return;
+  const v = e.veri;
+  acikSlug = slug;
+  yeniEserDosya = yeniOrtamDosya = null;
+  $('#baslik').value = v.baslik || '';
+  $('#seri').value = v.seri || '';
+  $('#yil').value = v.yil || '';
+  $('#yukseklik').value = (v.olcu || {}).yukseklik_cm || '';
+  $('#genislik').value = (v.olcu || {}).genislik_cm || '';
+  $('#durumu').value = v.durum || 'satilik';
+  $('#sira').value = v.sira || '';
+  $('#kol-ad').value = (v.koleksiyon || {}).ad || '';
+  $('#kol-yil').value = (v.koleksiyon || {}).yil || '';
+  $('#not-tr').value = (v['not'] || {}).tr || '';
+  $('#not-en').value = (v['not'] || {}).en || '';
+  $('#not-fr').value = (v['not'] || {}).fr || '';
+  $('#gloss-en').value = (v.gloss || {}).en || '';
+  $('#gloss-fr').value = (v.gloss || {}).fr || '';
+  $('#onizleme-eser').src = SITE + '/assets/' + slug + '.webp';
+  if (v.ortam_gorseli) $('#onizleme-ortam').src = SITE + '/assets/ortam-' + slug + '.webp';
+  else $('#onizleme-ortam').removeAttribute('src');
+  $('#sil').classList.remove('gizli');
+  $('#kayit-bilgi').classList.add('gizli');
+  listeCiz();
+  window.scrollTo(0, 0);
+}
+
+function birakKur(kutuId, girisId, onizId, ata) {
+  const kutu = $(kutuId), giris = $(girisId), oniz = $(onizId);
+  const al = (d) => {
+    if (!d || !d.type.startsWith('image/')) return;
+    ata(d);
+    oniz.src = URL.createObjectURL(d);
+  };
+  giris.addEventListener('change', () => al(giris.files[0]));
+  ['dragenter', 'dragover'].forEach((t) => kutu.addEventListener(t, (e) => {
+    e.preventDefault(); kutu.classList.add('uzerinde');
+  }));
+  ['dragleave', 'drop'].forEach((t) => kutu.addEventListener(t, (e) => {
+    e.preventDefault(); kutu.classList.remove('uzerinde');
+  }));
+  kutu.addEventListener('drop', (e) => al(e.dataTransfer.files[0]));
+}
+
+/* ── kaydetme ──────────────────────────────────────────────────────────── */
+async function kaydet(olay) {
+  olay.preventDefault();
+  const baslik = $('#baslik').value.trim();
+  if (!baslik) return bilgiYaz('Eser adı boş olamaz.', true);
+
+  const slug = acikSlug || slugla(baslik);
+  if (!slug) return bilgiYaz('Eser adından geçerli bir dosya adı üretilemedi.', true);
+  if (!acikSlug && eserler.some((e) => e.slug === slug))
+    return bilgiYaz('Bu adda bir eser zaten var. Adı değiştirin ya da soldan seçip düzenleyin.', true);
+  if (!acikSlug && !yeniEserDosya)
+    return bilgiYaz('Eser görseli zorunlu.', true);
+
+  const dugme = $('#kaydet');
+  dugme.disabled = true;
+  try {
+    /* SIRALAMA ONEMLI: once gorseller, en son JSON.
+       JSON gorselden once yazilirsa derleme "gorsel bulunamadi" diyip durur
+       ve yayin gecmez. Tersi zararsiz: sahipsiz bir gorsel kalir, o kadar. */
+    if (yeniEserDosya) {
+      bilgiYaz('Eser görseli yükleniyor…');
+      const b64 = await base64le(await kucult(yeniEserDosya));
+      const v = eserler.find((e) => e.slug === slug);
+      let sha;
+      try { sha = (await gh('contents/' + GORSEL_YOL + '/' + slug + '.webp')).sha; } catch (e) {}
+      await dosyaYaz(GORSEL_YOL + '/' + slug + '.webp', b64, 'Eser görseli: ' + baslik, sha);
+    }
+    let ortamAd = '';
+    const mevcut = eserler.find((e) => e.slug === slug);
+    if (yeniOrtamDosya) {
+      bilgiYaz('Ortam görseli yükleniyor…');
+      const b64 = await base64le(await kucult(yeniOrtamDosya));
+      ortamAd = 'ortam-' + slug + '.webp';
+      let sha;
+      try { sha = (await gh('contents/' + GORSEL_YOL + '/' + ortamAd)).sha; } catch (e) {}
+      await dosyaYaz(GORSEL_YOL + '/' + ortamAd, b64, 'Ortam görseli: ' + baslik, sha);
+    } else if (mevcut) {
+      ortamAd = mevcut.veri.ortam_gorseli || '';
+    }
+
+    const kayit = {
+      slug: slug,
+      sira: Number($('#sira').value) || (eserler.length + 1),
+      baslik: baslik,
+      gloss: { en: $('#gloss-en').value.trim(), fr: $('#gloss-fr').value.trim() },
+      seri: $('#seri').value,
+      yil: Number($('#yil').value),
+      durum: $('#durumu').value,
+      olcu: { yukseklik_cm: Number($('#yukseklik').value), genislik_cm: Number($('#genislik').value) },
+      koleksiyon: { ad: $('#kol-ad').value.trim(), yil: Number($('#kol-yil').value) || null },
+      gorsel: slug + '.webp',
+      ortam_gorseli: ortamAd,
+      'not': { tr: $('#not-tr').value.trim(), en: $('#not-en').value.trim(), fr: $('#not-fr').value.trim() },
+      kaynak_kredisi: (mevcut && mevcut.veri.kaynak_kredisi) || '',
+    };
+    if (!kayit.yil || !kayit.olcu.yukseklik_cm || !kayit.olcu.genislik_cm)
+      throw new Error('Yıl ve ölçüler zorunlu.');
+
+    bilgiYaz('Künye kaydediliyor…');
+    const b64json = btoa(unescape(encodeURIComponent(JSON.stringify(kayit, null, 2) + '\n')));
+    await dosyaYaz(ESER_YOL + '/' + slug + '.json', b64json,
+                   (mevcut ? 'Eser güncellendi: ' : 'Yeni eser: ') + baslik,
+                   mevcut && mevcut.sha);
+
+    bilgiYaz('Kaydedildi. Site birkaç dakika içinde güncellenir — ' +
+      '<a href="https://github.com/' + DEPO + '/actions" target="_blank" rel="noopener">yayın durumu</a>.');
+    await eserleriYukle();
+    formaDoldur(slug);
+  } catch (e) {
+    bilgiYaz('Kaydedilemedi: ' + e.message + '<br><small>Site değişmedi; son yayın olduğu gibi duruyor.</small>', true);
+  } finally {
+    dugme.disabled = false;
+  }
+}
+
+async function sil() {
+  if (!acikSlug) return;
+  const e = eserler.find((x) => x.slug === acikSlug);
+  if (!e) return;
+  if (!confirm('“' + e.veri.baslik + '” silinecek. Emin misiniz?')) return;
+  try {
+    await gh('contents/' + ESER_YOL + '/' + acikSlug + '.json', {
+      method: 'DELETE',
+      body: JSON.stringify({ message: 'Eser silindi: ' + e.veri.baslik, sha: e.sha }),
+    });
+    bilgiYaz('Silindi. Görsel dosyası depoda kaldı, siteye çıkmaz.');
+    formuTemizle();
+    await eserleriYukle();
+  } catch (err) {
+    bilgiYaz('Silinemedi: ' + err.message, true);
+  }
+}
+
+/* ── giris / cikis ─────────────────────────────────────────────────────── */
+async function baslat() {
+  try {
+    secenekler = await (await fetch('secenekler.json', { cache: 'no-store' })).json();
+  } catch (e) { /* yerelde acilirsa bos kalir */ }
+  secenekleriKur();
+  $('#giris').classList.add('gizli');
+  $('#panel').classList.remove('gizli');
+  formuTemizle();
+  await eserleriYukle();
+}
+
+$('#gir').addEventListener('click', async () => {
+  const t = $('#jeton').value.trim();
+  if (!t) return;
+  jeton = t;
+  $('#giris-hata').textContent = 'Denetleniyor…';
+  try {
+    await gh('');                       // depoya erisim var mi?
+    localStorage.setItem('cs-panel-jeton', t);
+    $('#giris-hata').textContent = '';
+    await baslat();
+  } catch (e) {
+    jeton = '';
+    $('#giris-hata').textContent = 'Anahtar kabul edilmedi: ' + e.message;
+  }
+});
+$('#jeton').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#gir').click(); });
+$('#cik').addEventListener('click', () => {
+  localStorage.removeItem('cs-panel-jeton');
+  location.reload();
+});
+$('#yeni').addEventListener('click', formuTemizle);
+$('#vazgec').addEventListener('click', () => (acikSlug ? formaDoldur(acikSlug) : formuTemizle()));
+$('#sil').addEventListener('click', sil);
+$('#form').addEventListener('submit', kaydet);
+
+birakKur('#birak-eser', '#dosya-eser', '#onizleme-eser', (d) => (yeniEserDosya = d));
+birakKur('#birak-ortam', '#dosya-ortam', '#onizleme-ortam', (d) => (yeniOrtamDosya = d));
+
+/* daha once girilmisse dogrudan ac */
+(async () => {
+  const t = localStorage.getItem('cs-panel-jeton');
+  if (!t) return;
+  jeton = t;
+  try { await gh(''); await baslat(); }
+  catch (e) { jeton = ''; localStorage.removeItem('cs-panel-jeton'); }
+})();
+</script>
+</body>
+</html>

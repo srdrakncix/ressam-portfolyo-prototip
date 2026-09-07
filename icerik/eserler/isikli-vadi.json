@@ -1,0 +1,28 @@
+{
+  "slug": "isikli-vadi",
+  "sira": 8,
+  "baslik": "Işıklı Vadi",
+  "gloss": {
+    "en": "Sunlit Valley",
+    "fr": "Vallée ensoleillée"
+  },
+  "seri": "sabah",
+  "yil": 2022,
+  "durum": "satilik",
+  "olcu": {
+    "yukseklik_cm": 87,
+    "genislik_cm": 132
+  },
+  "koleksiyon": {
+    "ad": "",
+    "yil": null
+  },
+  "gorsel": "isikli-vadi.webp",
+  "ortam_gorseli": "",
+  "not": {
+    "tr": "Uzaktaki ışık yakındakinden daha sıcak olmalı.",
+    "en": "Distant light must be warmer than near light.",
+    "fr": "La lumière lointaine doit être plus chaude que la proche."
+  },
+  "kaynak_kredisi": "George Inness, “Sunlit Valley”, 1893 · Art Institute of Chicago, kamu malı"
+}

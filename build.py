@@ -7,6 +7,7 @@ Kullanım:  python build.py <sablon.html> <cikti.html>
 Base64 görseller asla şablonda durmaz — böylece tasarım dosyası okunabilir kalır.
 """
 import json, re, sys, io, os, base64
+from PIL import Image, ImageFilter
 import content as C
 try:
     import ceviri as T
@@ -55,53 +56,102 @@ SERIES_YEARS = {
 }
 
 
-def build_data():
-    images = json.load(open(os.path.join(HERE, 'images.json'), encoding='utf-8'))
-    counters = {k: 0 for k in SERIES_YEARS}
-    works = []
+ESER_DIZIN = os.path.join(HERE, 'icerik', 'eserler')
+GORSEL_DIZIN = os.path.join(HERE, 'icerik', 'gorseller')
+TAM_EN, TAM_KALITE, LQIP_EN, LQIP_KALITE = 1686, 78, 20, 40
 
-    for idx, im in enumerate(images):
-        wid = im['id']
-        if wid not in C.WORKS:
+
+def _kodla(im, en, kalite, bulanik=0):
+    """Gorseli webp'e cevirip base64 dondurur."""
+    k = im.copy()
+    k.thumbnail((en, en * 10), Image.LANCZOS)
+    if bulanik:
+        k = k.filter(ImageFilter.GaussianBlur(bulanik))
+    b = io.BytesIO()
+    k.save(b, 'WEBP', quality=kalite, method=6)
+    return base64.b64encode(b.getvalue()).decode()
+
+
+def _baskin_renk(im):
+    k = im.copy(); k.thumbnail((1, 1))
+    r, g, b = k.convert('RGB').getpixel((0, 0))
+    return f'#{r:02x}{g:02x}{b:02x}'
+
+
+def eserleri_oku():
+    """icerik/eserler/*.json -> sira'ya gore listelenmis kayitlar.
+
+    Panelin yazdigi tek yer burasi. Bozuk bir kayit sessizce gecmesin diye
+    zorunlu alanlar burada denetleniyor: eksikse derleme DURUR, yarim bir
+    site yayinlanmaz.
+    """
+    if not os.path.isdir(ESER_DIZIN):
+        return []
+    kayitlar = []
+    for ad in sorted(os.listdir(ESER_DIZIN)):
+        if not ad.endswith('.json'):
             continue
-        title, series, note, status = C.WORKS[wid]
-        pool = SERIES_YEARS[series]
-        year = pool[counters[series] % len(pool)]
-        counters[series] += 1
+        yol = os.path.join(ESER_DIZIN, ad)
+        try:
+            k = json.load(io.open(yol, encoding='utf-8'))
+        except Exception as e:
+            sys.exit(f'BOZUK KAYIT {ad}: {e}')
+        for alan in ('slug', 'baslik', 'seri', 'yil', 'durum', 'olcu', 'gorsel'):
+            if not k.get(alan):
+                sys.exit(f'{ad}: zorunlu alan eksik -> {alan}')
+        o = k['olcu']
+        if not o.get('yukseklik_cm') or not o.get('genislik_cm'):
+            sys.exit(f'{ad}: olcu eksik (yukseklik_cm / genislik_cm)')
+        if not os.path.exists(os.path.join(GORSEL_DIZIN, k['gorsel'])):
+            sys.exit(f'{ad}: gorsel bulunamadi -> icerik/gorseller/{k["gorsel"]}')
+        kayitlar.append(k)
+    kayitlar.sort(key=lambda k: (k.get('sira') or 999, k['slug']))
+    return kayitlar
 
-        ch, cw = cm_pair(im.get('src_dim'))          # yükseklik, genişlik (cm)
-        # Bölünmez boşluk: mobilde ölçü "83 × 132 / CM | 32⅝ × 52 in" diye
-        # ortadan kopuyordu. Bir ölçü ifadesi hiçbir zaman ikiye ayrılmamalı.
-        NB = ' '
-        size_tr = f'{ch}{NB}×{NB}{cw}{NB}cm' if ch else '—'
-        size_en = f'{inches(ch)}{NB}×{NB}{inches(cw)}{NB}in' if ch else '—'
+
+def build_data():
+    works = []
+    for idx, k in enumerate(eserleri_oku()):
+        im = Image.open(os.path.join(GORSEL_DIZIN, k['gorsel'])).convert('RGB')
+        ch = int(k['olcu']['yukseklik_cm'])
+        cw = int(k['olcu']['genislik_cm'])
+        # Bolunmez bosluk: mobilde olcu "83 × 132 / CM | 32⅝ × 52 in" diye
+        # ortadan kopuyordu. Bir olcu ifadesi hicbir zaman ikiye ayrilmamali.
+        NB = '\u00a0'
+        kol = (k.get('koleksiyon') or {})
+        ortam = (k.get('ortam_gorseli') or '').strip()
 
         works.append({
-            'id':     str(wid),
-            'no':     f'{idx + 1:02d}',              # katalog numarası
-            'slug':   slugify(title),
-            'title':  title,
-            'series': series,
-            'note':   note,
-            'status': status,
-            # hangi koleksiyonda ve hangi yıl edinildi (varsa)
-            'collection': (C.COLLECTION_OF.get(wid) or ('', 0))[0],
-            'collYear':   (C.COLLECTION_OF.get(wid) or ('', 0))[1],
-            'year':   year,
+            'id':     k['slug'],
+            'no':     f'{idx + 1:02d}',
+            'slug':   k['slug'],
+            'title':  k['baslik'],
+            'series': k['seri'],
+            'note':   (k.get('not') or {}).get('tr', ''),
+            'status': k['durum'],
+            'collection': kol.get('ad') or '',
+            'collYear':   kol.get('yil') or 0,
+            'year':   int(k['yil']),
             'medium': C.MEDIUM_TR,
-            'size':   size_tr,
-            'sizeIn': size_en,
-            'cw':     cw,                            # gerçek genişlik, cm
-            'ch':     ch,                            # gerçek yükseklik, cm
-            'area':   (cw * ch) if cw else 0,        # fiziksel alan — indeks ölçeklemesi
-            'ratio':  im['ratio'],
-            'px':     [im['w'], im['h']],
-            'portrait': im['ratio'] < 1,
-            'tone':   im['tone'],
-            'lqip':   'data:image/webp;base64,' + im['lqip'],
-            'src':    'data:image/webp;base64,' + im['full'],
-            'credit': f"{im['src_artist']}, “{im['src_title']}”, {im['src_date']} · "
-                      f"Art Institute of Chicago, kamu malı",
+            'size':   f'{ch}{NB}×{NB}{cw}{NB}cm',
+            'sizeIn': f'{inches(ch)}{NB}×{NB}{inches(cw)}{NB}in',
+            'cw':     cw,
+            'ch':     ch,
+            'area':   cw * ch,
+            'ratio':  round(im.width / im.height, 4),
+            'px':     [im.width, im.height],
+            'portrait': im.width < im.height,
+            'tone':   _baskin_renk(im),
+            'lqip':   'data:image/webp;base64,' + _kodla(im, LQIP_EN, LQIP_KALITE, 1),
+            'src':    'data:image/webp;base64,' + _kodla(im, TAM_EN, TAM_KALITE),
+            'ortam':  '',
+            'ortamSrc': ('data:image/webp;base64,' + _kodla(
+                Image.open(os.path.join(GORSEL_DIZIN, ortam)).convert('RGB'),
+                TAM_EN, TAM_KALITE)) if ortam and os.path.exists(
+                    os.path.join(GORSEL_DIZIN, ortam)) else '',
+            'credit': k.get('kaynak_kredisi', ''),
+            '_gloss': k.get('gloss') or {},
+            '_not':   k.get('not') or {},
         })
 
     # ── seri yıl aralıkları ESERLERDEN türetiliyor ──────────────────────
@@ -148,7 +198,7 @@ def build_i18n(works):
     out = {'tr': {'ui': T.UI['tr'], 'bio': C.BIO, 'statement': C.STATEMENT,
                   'collections': getattr(C, 'COLLECTIONS', []),
                   'series': {s['key']: {'title': s['title'], 'blurb': s['blurb']} for s in C.SERIES},
-                  'works': {w['id']: {'gloss': '', 'note': w['note']} for w in works},
+                  'works': {w['id']: {'gloss': '', 'note': w['_not'].get('tr', '')} for w in works},
                   'cv': [list(r) for r in C.CV],
                   'publications': [list(r) for r in C.PUBLICATIONS],
                   'press': [list(r) for r in getattr(C, 'PRESS', [])],
@@ -162,10 +212,12 @@ def build_i18n(works):
             series[s['key']] = {'title': tr[0], 'blurb': tr[1]} if tr else \
                                {'title': s['title'], 'blurb': s['blurb']}
         # eserler: ad çevrilmez, altına gloss düşer; not çevrilir
+        # Eser adi CEVRILMEZ: kaydin icinde dile gore baslik alani YOK.
+        # gloss = adin altinda gosterilen aciklayici karsilik.
         wmap = {}
         for w in works:
-            tr = T.WORKS.get(int(w['id']), {}).get(lang)
-            wmap[w['id']] = {'gloss': tr[0], 'note': tr[1]} if tr else {'gloss': '', 'note': w['note']}
+            wmap[w['id']] = {'gloss': w['_gloss'].get(lang, ''),
+                             'note': w['_not'].get(lang) or w['_not'].get('tr', '')}
         # CV: ad korunur, tanımlayıcı çevrilir
         cv = []
         for year, title, venue in C.CV:
@@ -224,6 +276,17 @@ def write_assets(data, out_dir):
             f.write(raw)
         total += len(raw)
         w['src'] = 'assets/' + name          # lqip veri-URI kalır: 160 bayt, istek yok
+
+        # Ortam gorseli (Smartist ev maketi): eserin YERINE gecmiyor, yanina
+        # dusuyor. Detay sayfasinda ikinci kare olarak gosteriliyor.
+        if w.get('ortamSrc'):
+            ham = base64.b64decode(w['ortamSrc'].split(',', 1)[1])
+            oad = f"ortam-{w['id']}.webp"
+            with open(os.path.join(adir, oad), 'wb') as f:
+                f.write(ham)
+            total += len(ham)
+            w['ortam'] = 'assets/' + oad
+        w.pop('ortamSrc', None)
     return total
 
 

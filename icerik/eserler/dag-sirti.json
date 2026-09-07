@@ -1,0 +1,28 @@
+{
+  "slug": "dag-sirti",
+  "sira": 10,
+  "baslik": "Dağ Sırtı",
+  "gloss": {
+    "en": "The Ridge",
+    "fr": "La crête"
+  },
+  "seri": "topografya",
+  "yil": 2023,
+  "durum": "satilik",
+  "olcu": {
+    "yukseklik_cm": 88,
+    "genislik_cm": 132
+  },
+  "koleksiyon": {
+    "ad": "",
+    "yil": null
+  },
+  "gorsel": "dag-sirti.webp",
+  "ortam_gorseli": "",
+  "not": {
+    "tr": "Sırtın arkasında ne olduğunu bilmeden çalıştım.",
+    "en": "I worked without knowing what lay behind the ridge.",
+    "fr": "J’ai travaillé sans savoir ce qu’il y avait derrière la crête."
+  },
+  "kaynak_kredisi": "George Inness, “Catskill Mountains”, 1870 · Art Institute of Chicago, kamu malı"
+}
