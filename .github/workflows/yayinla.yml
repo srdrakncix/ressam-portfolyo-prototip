@@ -53,6 +53,7 @@ jobs:
           import json, os, sys
 
           gerekli = ['site/index.html', 'site/mekan.html', 'site/sergi.html',
+                     'site/salon.html',
                      'site/404.html', 'site/favicon.svg', 'site/robots.txt',
                      'site/sitemap.xml', 'site/assets/duvar/salon.webp',
                      'site/yayin.json',
@@ -94,7 +95,7 @@ jobs:
           import re, subprocess, sys, io, os
           hatali = []
           for yol in ['site/index.html', 'site/mekan.html', 'site/sergi.html',
-                      'site/panel/index.html']:
+                      'site/salon.html', 'site/panel/index.html']:
               kod = io.open(yol, encoding='utf-8').read()
               js = '\n'.join(re.findall(
                   r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', kod, re.S))

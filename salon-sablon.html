@@ -1,0 +1,573 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Salon — deneme</title>
+<style>
+:root {
+  --sans:  "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --serif: "Cormorant Garamond", Garamond, "EB Garamond", Georgia, serif;
+  --ease:  cubic-bezier(.19, 1, .22, 1);
+  --ppc:  5.4px;         /* piksel / santimetre — JS yazıyor */
+  --ufuk: 44%;
+  --kamera: 1800px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #100e0b; }
+body { font: 400 14px/1.5 var(--sans); color: #1c211a; }
+
+/* ── SAHNE ────────────────────────────────────────────────────────────────
+   Oda bir fotoğraf değil: arkada düz bir pano, iki yanında izleyiciye doğru
+   kırılan kanatlar, altında zemin, üstünde ışıklı tavan. Perspektifi
+   tarayıcının kendi 3B motoru çeviriyor — yani her eser künyesindeki gerçek
+   santimetresinde duruyor ve boyları birbirine göre doğru. */
+#sahne {
+  position: fixed; inset: 0; overflow: hidden;
+  perspective: var(--kamera);
+  perspective-origin: 50% var(--ufuk);
+  /* Kalan cizim delikleri siyah bosluk yerine duvar tonunda gorunsun. */
+  background: linear-gradient(to bottom,
+              #f1eee7 0%, #eae5dc 42%, #ddd7cb 74%, #c9c2b1 92%, #bfb8a6 100%);
+}
+#oda { position: absolute; inset: 0; transform-style: preserve-3d;
+       transition: opacity 200ms var(--ease); }
+.panel { position: absolute; left: 50%; top: var(--ufuk); }
+
+/* Duvar tek düz beyaz değil: ışık yukarıdan geliyor, aşağı doğru sönüyor.
+   Gradyan yalnızca dikey — duvar dilimlere bölündüğü için yatay bir gradyan
+   her dilimde baştan başlar, dikiş belli olurdu. */
+.duvar, .zemin, .tavan { background-repeat: no-repeat; }
+.duvar {
+  background-image: linear-gradient(to bottom,
+              #f6f4ee 0%, #f1ede5 30%, #e6e1d6 66%, #d2cbbb 92%, #c6bfae 100%);
+}
+.duvar.sol::before, .duvar.sag::before { content: ''; position: absolute; inset: 0; }
+.duvar.sol::before { background: rgba(38,31,20,.055); }
+.duvar.sag::before { background: rgba(38,31,20,.110); }
+
+.duvar.altSira::after {          /* süpürgelik — yalnız en alt sırada */
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0;
+  height: calc(8 * var(--ppc));
+  background: linear-gradient(to bottom, #dbd5c7 0%, #ccc5b4 55%, #b8b09d 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.4) inset;
+}
+/* arka panonun tepesine düşen ışık — yalnız orada, tek parça olduğu için */
+.duvar.arka {
+  background:
+    radial-gradient(112% 56% at 50% -4%, rgba(255,254,251,.9), rgba(255,254,251,0) 66%),
+    linear-gradient(to bottom, #f6f4ee 0%, #f1ede5 30%, #e6e1d6 66%, #d2cbbb 92%, #c6bfae 100%);
+}
+
+/* Zemin ve tavanda da yerel yukarı = duvar dibi, aşağı = izleyiciye yakın. */
+.zemin {
+  background-image:
+    linear-gradient(to bottom, rgba(48,40,26,.36) 0%, rgba(48,40,26,0) 5%),
+    linear-gradient(to bottom, #cec6b3 0%, #c5bca9 38%, #b9b09d 100%);
+}
+.tavan { background-image: linear-gradient(to bottom, #bdb5a3 0%, #cdc6b5 45%, #dad3c2 100%); }
+.serit {                         /* tavandaki uzun ışık bandı — kendi 3B nesnesi */
+  background: linear-gradient(to right,
+    rgba(255,252,240,0) 0%, rgba(255,252,240,.22) 26%, rgba(255,253,246,.62) 42%,
+    rgba(255,254,250,.80) 50%, rgba(255,253,246,.62) 58%, rgba(255,252,240,.22) 74%,
+    rgba(255,252,240,0) 100%);
+}
+
+/* ── ESER ───────────────────────────────────────────────────────────────── */
+.eser { margin: 0; cursor: pointer; }
+.eser .cerceve {
+  position: relative; width: 100%; height: 100%;
+  padding: calc(2.4 * var(--ppc));
+  background: linear-gradient(158deg, #2d2820 0%, #17140f 55%, #262019 100%);
+  box-shadow:
+    0 calc(.8 * var(--ppc)) calc(1.4 * var(--ppc)) rgba(34,28,19,.42),
+    0 calc(4 * var(--ppc)) calc(9 * var(--ppc)) calc(-2 * var(--ppc)) rgba(34,28,19,.48),
+    0 0 0 1px rgba(20,17,12,.6);
+}
+.eser img { display: block; width: 100%; height: 100%; object-fit: cover;
+            box-shadow: 0 0 calc(2 * var(--ppc)) rgba(0,0,0,.34) inset; }
+.eser .cerceve::after {          /* tuvale düşen ışık */
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(255,252,245,.20), rgba(255,252,245,0) 46%,
+                              rgba(24,20,14,.13) 100%);
+}
+.hale {                          /* eserin arkasındaki duvara vuran spot */
+  pointer-events: none;
+  background: radial-gradient(50% 50% at 50% 38%,
+              rgba(255,250,233,.70), rgba(255,250,233,.20) 44%, rgba(255,250,233,0) 74%);
+}
+.yansima {                       /* cilalı zeminde ana eserin yansıması */
+  pointer-events: none; overflow: hidden; opacity: .19;
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent 76%);
+          mask-image: linear-gradient(to bottom, #000, transparent 76%);
+}
+.yansima img { display: block; width: 100%; height: 100%; object-fit: cover;
+               transform: scaleY(-1); filter: blur(2px); }
+
+/* ── KÜNYE ──────────────────────────────────────────────────────────────── */
+.kunye {
+  width: calc(33 * var(--ppc));
+  padding-top: calc(1.7 * var(--ppc));
+  border-top: 1px solid rgba(28,33,26,.34);
+  color: rgba(28,33,26,.80);
+  font-size: calc(2.4 * var(--ppc)); line-height: 1.4; letter-spacing: .015em;
+  text-shadow: 0 1px 0 rgba(255,255,255,.55);
+}
+.kunye b { font-family: var(--serif); font-weight: 500; font-style: italic;
+           font-size: calc(3.5 * var(--ppc)); display: block; }
+.kunye span { display: block; color: rgba(28,33,26,.52); }
+
+/* ── ATMOSFER ───────────────────────────────────────────────────────────── */
+#pus {
+  position: fixed; inset: 0; pointer-events: none; z-index: 5;
+  background: radial-gradient(126% 100% at 50% 42%,
+              rgba(0,0,0,0) 40%, rgba(20,16,10,.38) 100%);
+}
+#tane {
+  position: fixed; inset: -50%; pointer-events: none; z-index: 6; opacity: .04;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+}
+
+/* ── ARAYÜZ ─────────────────────────────────────────────────────────────── */
+#ust {
+  position: fixed; z-index: 8; top: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 18px clamp(16px, 3vw, 34px);
+  color: rgba(250,249,246,.95); text-shadow: 0 1px 5px rgba(0,0,0,.55);
+}
+#ust .ad { font-family: var(--serif); font-size: 19px; letter-spacing: .012em; }
+#ust .kip { display: flex; gap: 3px; }
+#ust button {
+  font: 400 10.5px/1 var(--sans); letter-spacing: .15em;
+  color: rgba(250,249,246,.62); background: rgba(20,17,12,.22); cursor: pointer;
+  border: 1px solid rgba(250,249,246,.22); padding: 9px 15px;
+  transition: color 200ms, border-color 200ms, background 200ms;
+}
+#ust button:hover { color: #faf9f6; border-color: rgba(250,249,246,.5); }
+#ust button[aria-pressed="true"] {
+  color: #17150f; background: rgba(250,249,246,.92); border-color: rgba(250,249,246,.92);
+}
+
+#oklar { position: fixed; z-index: 8; inset: 0; pointer-events: none; }
+#oklar button {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  pointer-events: auto; cursor: pointer;
+  width: 52px; height: 52px; border-radius: 50%;
+  border: 1px solid rgba(250,249,246,.28); background: rgba(20,17,12,.30);
+  color: rgba(250,249,246,.9); font-size: 16px; line-height: 1;
+  transition: background 220ms, border-color 220ms;
+}
+#oklar button:hover { background: rgba(20,17,12,.58); border-color: rgba(250,249,246,.55); }
+#geri  { left: clamp(10px, 2vw, 28px); }
+#ileri { right: clamp(10px, 2vw, 28px); }
+</style>
+
+<div id="sahne">
+  <div id="oda"></div>
+</div>
+<div id="pus"></div>
+<div id="tane"></div>
+
+<header id="ust">
+  <span class="ad">Cemal Sağlam</span>
+  <span class="kip">
+    <button type="button" id="kipVitrin" aria-pressed="true">VİTRİN</button>
+    <button type="button" id="kipToplu"  aria-pressed="false">TOPLU</button>
+  </span>
+</header>
+
+<div id="oklar">
+  <button type="button" id="geri"  aria-label="Önceki eser">&#8592;</button>
+  <button type="button" id="ileri" aria-label="Sonraki eser">&#8594;</button>
+</div>
+
+<script>
+/*__SITE_DATA__*/
+/*__KIT__*/
+
+/* Sayfanın ihtiyacı olan alanlar yalnız bunlar: ad, yıl, künye satırları ve
+   iki ölçü. Ölçüler santimetre — duvara asarken gerçek boyutu onlar veriyor. */
+const ESERLER = SITE.works.map((w) => ({
+  slug: w.slug, ad: w.title, yil: w.year, teknik: w.medium,
+  gen: w.cw, yuk: w.ch, olcu: w.size, src: w.src,
+}));
+
+/* ── ODANIN ÖLÇÜLERİ ─────────────────────────────────────────────────────
+   Hepsi santimetre. Göz hizası orijin: +y aşağı, -z içeri. */
+const O = {
+  panoEn:    240,   // arka panonun genişliği — kipe göre kur() değiştiriyor
+  duvarYuk:  310,
+  gozYuk:    155,
+  panoZ:    -300,
+  kanatBoy:  620,   // yan kanatların menteşeden itibaren uzunluğu
+  kanatAci:   38,   // kanatların arka panoya göre kırılma açısı
+  bindirme:   40,   // kanat menteşeyi bu kadar geçiyor (arka panonun ardına)
+  askiYuk:   150,   // eserin merkezi yerden kaç cm (müze standardı)
+  kamera:    330,
+  derinlik:  230,   // zemin/tavan panellerinin duvardan öne uzunluğu
+  seritEn:   150,   // tavandaki ışık bandının genişliği
+};
+O.zeminY  =  O.gozYuk;
+O.tavanY  = -(O.duvarYuk - O.gozYuk);
+O.duvarCY = (O.zeminY + O.tavanY) / 2;
+O.askiY   =  O.gozYuk - O.askiYuk;
+
+/* ÇİZİM SINIRI — Chromium, 3B döndürülmüş geniş bir paneli boyamıyor
+   (ölçtük: kutu ~1400 pikseli geçince düşüyor, kadraj dışına taşan kısmı
+   olanlarda daha da erken). Bu yüzden duvarlar küçük dilimlerden kuruluyor
+   ve eserler dilimlerin çocuğu DEĞİL: her biri kendi 3B nesnesi olarak
+   duvarın önüne asılıyor. Böylece dilim boyu eserden bağımsız küçülebiliyor.
+   Gradyanlar dikey olduğu için dilim dikişleri görünmüyor. */
+const DILIM_ENCOK = 95;    // bir duvar tuğlasının en uzun hali, cm
+const SIRA_ENCOK  = 58;    // bir duvar tuğlasının en yüksek hali, cm
+const DILIM_BIND  = 3;     // tuğlalar arası bindirme
+const PAY_PX      = 90;    // kadraj kenarında bırakılan pay, piksel
+const AYIRMA      = 0.7;   // eser duvardan kaç cm önde (z-kavgası olmasın)
+
+/* İki kamera ayarı — iki ayrı ekran gibi davranıyorlar.
+   Vitrin: dar bir niş, içeri girilmiş, tavan kesilmiş, seçilen eser büyük.
+   Toplu: geniş bir duvar, geri çekilmiş, oda bütün olarak görünüyor. */
+const KAMERALAR = {
+  vitrin: { ufuk: 0.420, taban: 1.020, pano: 240 },
+  toplu:  { ufuk: 0.515, taban: 0.885, pano: 400 },
+};
+
+const oda   = document.getElementById('oda');
+const sahne = document.getElementById('sahne');
+const RAD   = Math.PI / 180;
+let ppc = 5.4;
+let secili = 0;
+let kip = 'vitrin';
+let darMi = false;      // telefon kadrajı mı
+
+const cm = (v) => (v * ppc).toFixed(2) + 'px';
+
+function merkezle(el, wCm, hCm) {
+  el.style.width  = cm(wCm);
+  el.style.height = cm(hCm);
+  el.style.marginLeft = cm(-wCm / 2);
+  el.style.marginTop  = cm(-hCm / 2);
+}
+
+/* ── ÖLÇEK ───────────────────────────────────────────────────────────────
+   Arka duvarın taban çizgisi kadrajın neresine düşsün — ppc'yi bu belirliyor.
+   Dar ekranda arka duvarın kadraja sığması öne geçiyor, yoksa oda kaybolur. */
+function olcekle() {
+  const g = sahne.getBoundingClientRect();
+  const k = KAMERALAR[kip];
+  const kArka = O.kamera / (O.kamera - O.panoZ);
+  const yukFit = ((k.taban - k.ufuk) * g.height) / (O.zeminY * kArka);
+  // Dar ekranda arka duvar kadrajın tamamını kaplamasın: kaplarsa kanatlar
+  // görünmez olur, oda da tek düz duvara döner.
+  const enFit  = ((darMi ? 0.80 : 1.06) * g.width) / (O.panoEn * kArka);
+  ppc = Math.min(yukFit, enFit);
+  const kok = document.documentElement.style;
+  kok.setProperty('--ppc', ppc.toFixed(4) + 'px');
+  kok.setProperty('--kamera', (O.kamera * ppc).toFixed(1) + 'px');
+  kok.setProperty('--ufuk', (k.ufuk * 100).toFixed(2) + '%');
+}
+
+/* ── YERLEŞTİRME ─────────────────────────────────────────────────────────
+   Vitrin: seçilen eser arka panonun ortasında, komşuları kanatlarda,
+   menteşeden dışa doğru. Toplu: hepsi üç panele yayılıyor. */
+function yerlesim() {
+  const n = ESERLER.length;
+  const yer = [];
+  const ARA = 46, BAS = 34;
+
+  const diz = (dizi, panel) => {
+    let s = BAS;
+    for (const e of dizi) {
+      s += e.gen / 2;
+      if (s + e.gen / 2 > O.kanatBoy) break;
+      yer.push({ e, panel, s });
+      s += e.gen / 2 + ARA;
+    }
+  };
+
+  if (kip === 'vitrin') {
+    yer.push({ e: ESERLER[secili], panel: 'arka', s: 0, ana: true });
+    const sag = [], sol = [];
+    for (let k = 1; k <= 5; k++) {
+      sag.push(ESERLER[(secili + k) % n]);
+      sol.push(ESERLER[(secili - k + n * 5) % n]);
+    }
+    diz(sag, 'sag');
+    diz(sol, 'sol');
+  } else {
+    /* Toplu görünüm iki sıralı asıyor — 19. yüzyıl salon asımı. Tek sıra
+       olsaydı kadraja ancak dört eser sığardı; iki sırayla sekiz görünüyor
+       ve duvar da boş kalmıyor. */
+    const ustY = O.gozYuk - 202, altY = O.gozYuk - 100;
+
+    const sutunlar = (dizi) => {              // eserleri ikişerli sütunlara böl
+      const s = [];
+      for (let i = 0; i < dizi.length; i += 2) s.push([dizi[i], dizi[i + 1]]);
+      return s;
+    };
+    const koy = (sutun, panel, s) => {
+      if (sutun[0]) yer.push({ e: sutun[0], panel, s, y: sutun[1] ? ustY : O.askiY });
+      if (sutun[1]) yer.push({ e: sutun[1], panel, s, y: altY });
+    };
+    const genlik = (sutun) => Math.max(sutun[0].gen, sutun[1] ? sutun[1].gen : 0);
+
+    const hepsi = sutunlar(ESERLER);
+    const arka = [], sol = [], sag = [];
+    let genArka = 0;
+    for (const su of hepsi) {
+      const g = genlik(su);
+      if (genArka + g + ARA <= O.panoEn - 30) { arka.push(su); genArka += g + ARA; }
+      else if (sag.length <= sol.length) sag.push(su);
+      else sol.push(su);
+    }
+
+    let x = -(genArka - ARA) / 2;
+    for (const su of arka) { const g = genlik(su); x += g / 2; koy(su, 'arka', x); x += g / 2 + ARA; }
+
+    for (const [ad, dizi] of [['sol', sol], ['sag', sag]]) {
+      let s = BAS;
+      for (const su of dizi) {
+        const g = genlik(su);
+        s += g / 2;
+        if (s + g / 2 > O.kanatBoy) break;
+        koy(su, ad, s);
+        s += g / 2 + ARA;
+      }
+    }
+  }
+  return yer;
+}
+
+/* Duvar üzerindeki bir noktanın (panel, s) dünyadaki yeri ve açısı.
+   s: arka panoda merkezden yatay uzaklık, kanatlarda menteşeden uzaklık. */
+function nokta(panel, s) {
+  const kos = Math.cos(O.kanatAci * RAD), sin = Math.sin(O.kanatAci * RAD);
+  if (panel === 'arka') return { x: s, z: O.panoZ, aci: 0 };
+  const isaret = panel === 'sol' ? -1 : 1;
+  return {
+    x: isaret * (O.panoEn / 2 + s * kos),
+    z: O.panoZ + s * sin,
+    aci: isaret < 0 ? O.kanatAci : -O.kanatAci,
+  };
+}
+
+/* Duvara oturan bir nesnenin dönüşümü: yerine git, duvarın açısına dön,
+   duvardan `on` kadar öne çık. */
+function duvarda(panel, s, y, on) {
+  const p = nokta(panel, s);
+  return 'translate3d(' + cm(p.x) + ',' + cm(y) + ',' + cm(p.z) + ') ' +
+         'rotateY(' + p.aci + 'deg) translateZ(' + cm(on) + ')';
+}
+
+/* Bir tuğlanın yüzeyine, bütün duvarın gradyanının doğru dilimini bas.
+   background-size bütün duvarı, background-position da bu tuğlanın o duvar
+   içindeki yerini veriyor — böylece tuğlalar tek bir yüzey gibi görünüyor. */
+function doku(el, tamCm, ofsCm) {
+  el.style.backgroundSize = '100% ' + cm(tamCm);
+  el.style.backgroundPosition = '0 ' + cm(-ofsCm);
+}
+
+/* z derinliğinde kadrajın santimetre cinsinden yarıçapları: göz hizasından
+   yukarı, aşağı ve yana ne kadar dünya görünüyor. Kırpma buna göre. */
+function gorunur(z) {
+  const g = sahne.getBoundingClientRect();
+  const k = KAMERALAR[kip];
+  const f = ppc * (O.kamera / (O.kamera - z));
+  return {
+    ust: (k.ufuk * g.height + PAY_PX) / f,
+    alt: ((1 - k.ufuk) * g.height + PAY_PX) / f,
+    yan: (g.width / 2 + PAY_PX) / f,
+  };
+}
+
+/* [a,b] aralığını en çok `encok` uzunlukta parçalara böl, komşuları
+   `bind` kadar bindirerek. */
+function parcala(a, b, encok, bind) {
+  const out = [];
+  const adet = Math.max(1, Math.ceil((b - a) / encok));
+  const boy = (b - a) / adet;
+  for (let i = 0; i < adet; i++) {
+    const p0 = a + boy * i - (i === 0 ? 0 : bind);
+    const p1 = a + boy * (i + 1) + (i === adet - 1 ? 0 : bind);
+    out.push({ a: p0, b: p1, ilk: i === 0, son: i === adet - 1 });
+  }
+  return out;
+}
+
+/* ── ODAYI KUR ──────────────────────────────────────────────────────────── */
+function panelKur() {
+  oda.innerHTML = '';
+  const sin = Math.sin(O.kanatAci * RAD), kos = Math.cos(O.kanatAci * RAD);
+
+  const arka = document.createElement('div');
+  arka.className = 'panel duvar arka altSira';
+  merkezle(arka, O.panoEn, O.duvarYuk);
+  arka.style.transform = 'translate3d(0px,' + cm(O.duvarCY) + ',' + cm(O.panoZ) + ')';
+  oda.appendChild(arka);
+
+  /* Kanatlar tuğla tuğla. Tek parça bırakılırsa Chromium, döndürülmüş
+     yüzeyin kadrajı fazla taşan kısmıyla birlikte içeride kalan bölümünü
+     de boyamıyor; ölçtük, yarıdan azı görünen bir parça komple düşüyor.
+     Bu yüzden her tuğla kadraja kırpılıyor: görünmeyen hiçbir şey
+     üretilmiyor, üretilen her şey tamamen görünür oluyor. */
+  for (const yon of ['sol', 'sag']) {
+    for (const dl of parcala(-O.bindirme, O.kanatBoy, DILIM_ENCOK, DILIM_BIND)) {
+      const zUzak = O.panoZ + dl.a * sin;          // dilimin en uzak ucu
+      const g = gorunur(zUzak);
+      if (O.panoEn / 2 + dl.a * kos > g.yan) break;  // bu ve sonrası kadraj dışı
+      const y0 = Math.max(O.tavanY, -g.ust);
+      const y1 = Math.min(O.zeminY, g.alt);
+      if (y1 - y0 < 1) continue;
+      const sc = (dl.a + dl.b) / 2;
+      for (const sr of parcala(y0, y1, SIRA_ENCOK, DILIM_BIND)) {
+        const h = sr.b - sr.a;
+        const el = document.createElement('div');
+        el.className = 'panel duvar ' + yon +
+                       (sr.son && y1 >= O.zeminY - 0.5 ? ' altSira' : '');
+        merkezle(el, dl.b - dl.a, h);
+        el.style.transform = duvarda(yon, sc, (sr.a + sr.b) / 2, 0);
+        doku(el, O.duvarYuk, sr.a - O.tavanY);
+        oda.appendChild(el);
+      }
+    }
+  }
+
+  /* Zemin ve tavan: üst kenarları arka duvarın dibinde, oradan izleyiciye
+     doğru uzuyorlar. Onlar da kadraja kırpılıp karelere bölünüyor. */
+  for (const ad of ['zemin', 'tavan']) {
+    const yatay = ad === 'zemin' ? O.zeminY : O.tavanY;
+    for (const dr of parcala(0, O.derinlik, SIRA_ENCOK, DILIM_BIND)) {
+      const g = gorunur(O.panoZ + dr.a);
+      const sinir = ad === 'zemin' ? g.alt : g.ust;
+      if (Math.abs(yatay) > sinir) break;         // bu derinlikten sonrası kadraj dışı
+      const en = Math.min(O.yerEn / 2, g.yan);
+      for (const sut of parcala(-en, en, DILIM_ENCOK, DILIM_BIND)) {
+        const el = document.createElement('div');
+        el.className = 'panel ' + ad;
+        merkezle(el, sut.b - sut.a, dr.b - dr.a);
+        el.style.transform =
+          'translateY(' + cm(yatay) + ') translateX(' + cm((sut.a + sut.b) / 2) + ') ' +
+          'translateZ(' + cm(O.panoZ + (dr.a + dr.b) / 2) + ') rotateX(90deg)';
+        doku(el, O.derinlik, dr.a);
+        oda.appendChild(el);
+      }
+      if (ad === 'tavan') {                        // ışık bandı, tavanla aynı derinlikte
+        const el = document.createElement('div');
+        el.className = 'panel serit';
+        merkezle(el, O.seritEn, dr.b - dr.a);
+        el.style.transform =
+          'translateY(' + cm(O.tavanY + 0.4) + ') ' +
+          'translateZ(' + cm(O.panoZ + (dr.a + dr.b) / 2) + ') rotateX(90deg)';
+        oda.appendChild(el);
+      }
+    }
+  }
+}
+
+/* ── ESERLERİ AS ─────────────────────────────────────────────────────────
+   Her eser kendi 3B nesnesi: duvarın çocuğu değil, duvarın önünde duran
+   ayrı bir yüzey. Duvar dilimlerinin boyu bu sayede eserden bağımsız. */
+function ciz(yer) {
+  for (const y of yer) {
+    const hale = document.createElement('div');
+    hale.className = 'panel hale';
+    merkezle(hale, y.e.gen * 2.3, y.e.yuk * 3.0);
+    const asY = y.y === undefined ? O.askiY : y.y;
+    hale.style.transform = duvarda(y.panel, y.s, asY, AYIRMA * 0.3);
+    oda.appendChild(hale);
+
+    const f = document.createElement('figure');
+    f.className = 'panel eser';
+    merkezle(f, y.e.gen, y.e.yuk);
+    f.style.transform = duvarda(y.panel, y.s, asY, AYIRMA);
+    f.innerHTML = '<div class="cerceve"><img src="' + y.e.src + '" alt=""></div>';
+    f.addEventListener('click', () => {
+      secili = ESERLER.indexOf(y.e); kip = 'vitrin'; kipRozet(); kur(true);
+    });
+    oda.appendChild(f);
+
+    if (!y.ana) continue;
+
+    /* Künye: geniş ekranda eserin sağında, galeri duvarındaki gibi.
+       Dar ekranda sağda yer yok — eserin altına, ortalanmış olarak iniyor. */
+    const k = document.createElement('div');
+    k.className = 'panel kunye';
+    if (darMi) {
+      k.style.marginLeft = cm(-16.5);
+      k.style.marginTop  = '0px';
+      k.style.transformOrigin = '50% 0';
+      k.style.transform = duvarda(y.panel, y.s, asY + y.e.yuk / 2 + 13, AYIRMA * 0.7);
+    } else {
+      k.style.marginLeft = '0px';
+      k.style.marginTop  = cm(-8);
+      k.style.transformOrigin = '0 ' + cm(8);
+      k.style.transform = duvarda(y.panel, y.s + y.e.gen / 2 + 18, asY, AYIRMA * 0.7);
+    }
+    if (darMi) k.style.textAlign = 'center';
+    k.innerHTML = '<b>' + y.e.ad + '</b>' +
+                  '<span>' + y.e.yil + ' &middot; ' + y.e.teknik + '</span>' +
+                  '<span>' + y.e.olcu + '</span>';
+    oda.appendChild(k);
+
+    // zemindeki yansıma: duvarın dibinden izleyiciye doğru uzuyor
+    const boyY = y.e.yuk * 1.05;
+    const r = document.createElement('div');
+    r.className = 'panel yansima';
+    merkezle(r, y.e.gen, boyY);
+    r.style.transform =
+      'translateY(' + cm(O.zeminY - 0.4) + ') ' +
+      'translateZ(' + cm(O.panoZ + boyY / 2) + ') rotateX(90deg)';
+    r.innerHTML = '<img src="' + y.e.src + '" alt="">';
+    oda.appendChild(r);
+  }
+}
+
+function kipRozet() {
+  document.getElementById('kipVitrin').setAttribute('aria-pressed', String(kip === 'vitrin'));
+  document.getElementById('kipToplu').setAttribute('aria-pressed', String(kip === 'toplu'));
+  document.getElementById('oklar').style.display = kip === 'vitrin' ? '' : 'none';
+}
+
+function kur(gecis) {
+  /* İlk kuruluşta geçiş yok: sayfa açılır açılmaz sahne tam görünür olsun.
+     Eser ya da kip değişince kısa bir sönüp açılma, sert kesme yerine. */
+  if (gecis) {
+    oda.style.opacity = '0';
+    requestAnimationFrame(() => { oda.style.opacity = '1'; });
+  }
+  // Telefonda oda daralıyor: aynı genişlikte duvar, dar kadrajda eseri
+  // pul gibi bırakıyordu.
+  darMi = sahne.getBoundingClientRect().width < 760;
+  O.panoEn = darMi ? (kip === 'vitrin' ? 190 : 300) : KAMERALAR[kip].pano;
+  O.yerEn  = O.panoEn + 2 * O.kanatBoy * Math.cos(O.kanatAci * RAD) + 160;
+  olcekle();
+  const yer = yerlesim();
+  panelKur();
+  ciz(yer);
+}
+
+document.getElementById('kipVitrin').addEventListener('click', () => { kip = 'vitrin'; kipRozet(); kur(true); });
+document.getElementById('kipToplu').addEventListener('click',  () => { kip = 'toplu';  kipRozet(); kur(true); });
+document.getElementById('geri').addEventListener('click', () => {
+  secili = (secili - 1 + ESERLER.length) % ESERLER.length; kur(true);
+});
+document.getElementById('ileri').addEventListener('click', () => {
+  secili = (secili + 1) % ESERLER.length; kur(true);
+});
+addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft')  document.getElementById('geri').click();
+  if (e.key === 'ArrowRight') document.getElementById('ileri').click();
+});
+addEventListener('resize', kur);
+
+// adres: #/toplu  ya da  #/vitrin/slug
+(function adres() {
+  const h = location.hash;
+  if (h.indexOf('#/toplu') === 0) kip = 'toplu';
+  else {
+    const i = ESERLER.findIndex((e) => e.slug === h.replace('#/vitrin/', ''));
+    if (i >= 0) secili = i;
+  }
+})();
+
+kipRozet();
+kur();
+</script>

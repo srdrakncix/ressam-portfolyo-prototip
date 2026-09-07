@@ -28,6 +28,7 @@ SAYFALAR = [
     ('duz.html',   'index.html'),
     ('mekan.html', 'mekan.html'),
     ('sergi.html', 'sergi.html'),
+    ('salon-sablon.html', 'salon.html'),
 ]
 
 
