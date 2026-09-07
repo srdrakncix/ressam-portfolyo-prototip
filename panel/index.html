@@ -285,8 +285,8 @@ async function gh(yol, secim = {}) {
   } catch (e) {
     /* Ag katmani hatasi: yanlis adres, engelleyici eklenti ya da baglanti.
        Yetki hatasindan ayirt edilebilsin diye ayri mesaj. */
-    throw new Error('GitHub'a ulasilamadi (' + e.message + '). ' +
-                    'Baglantinizi ve reklam engelleyici eklentileri kontrol edin.');
+    throw new Error("GitHub sunucusuna ulasilamadi (" + e.message + "). " +
+                    "Baglantinizi ve reklam engelleyici eklentileri kontrol edin.");
   }
   if (!y.ok) {
     const m = await y.text();

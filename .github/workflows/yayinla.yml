@@ -84,6 +84,30 @@ jobs:
           print(f'{len(kayitlar)} eser, hepsinin gorseli uretildi. site/ {mb:.2f} MB')
           PY
 
+      # Tarayici tarafi da denetlensin: bozuk bir JS derlemeyi durdurmuyordu,
+      # cunku Python tarafi saglamdi. Panel calismaz halde yayina cikabiliyordu.
+      - name: JavaScript sözdizimi
+        run: |
+          python - <<'PY'
+          import re, subprocess, sys, io, os
+          hatali = []
+          for yol in ['site/index.html', 'site/mekan.html', 'site/sergi.html',
+                      'site/panel/index.html']:
+              kod = io.open(yol, encoding='utf-8').read()
+              js = '\n'.join(re.findall(
+                  r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', kod, re.S))
+              gec = '/tmp/_k.js'
+              io.open(gec, 'w', encoding='utf-8').write(js)
+              r = subprocess.run(['node', '--check', gec],
+                                 capture_output=True, text=True)
+              if r.returncode:
+                  hatali.append(yol + ': ' + r.stderr.strip().splitlines()[-1][:160])
+              else:
+                  print('  ' + os.path.basename(yol) + ' JS OK')
+          if hatali:
+              sys.exit('BOZUK JAVASCRIPT\n' + '\n'.join(hatali))
+          PY
+
       - uses: actions/upload-pages-artifact@v5
         with:
           path: site
