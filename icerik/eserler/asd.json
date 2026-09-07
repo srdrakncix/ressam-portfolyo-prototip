@@ -1,0 +1,28 @@
+{
+  "slug": "asd",
+  "sira": 3,
+  "baslik": "asd",
+  "gloss": {
+    "en": "",
+    "fr": ""
+  },
+  "seri": "alacakaranlik",
+  "yil": 2026,
+  "durum": "satilik",
+  "olcu": {
+    "yukseklik_cm": 111,
+    "genislik_cm": 111
+  },
+  "koleksiyon": {
+    "ad": "",
+    "yil": null
+  },
+  "gorsel": "asd.webp",
+  "ortam_gorseli": "ortam-asd.webp",
+  "not": {
+    "tr": "",
+    "en": "",
+    "fr": ""
+  },
+  "kaynak_kredisi": ""
+}
