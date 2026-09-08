@@ -269,36 +269,35 @@ a:hover { color: var(--link); }
 /* -- TELEFON: perde degil, basparmakla ulasilan alt tabaka ----------------
    Ekrani kaplayan bir ortu yerine alttan gelen bir tabaka. Satirlar asagida
    topluyor, karsilik ustte ince bir serit oluyor. */
+/* == TELEFON ==============================================================
+   Menu burada ekrani kaplayan bir tabaka DEGIL: hamburger dugmesinin
+   altindan cikan bir kart. Eskiden alttan gelen, ekranin %88'ini kaplayan
+   bir sayfa gibiydi ve tepesinde bir onizleme seridi vardi; dar ekranda o
+   serit menuyu listelikten cikarip yarim bir vitrine ceviriyordu.
+
+   Kapatma dugmesi de yok: karti disina dokunarak kapatiyorsun. O dokunus
+   zaten hamburgerin (artik carpi) durdugu yere denk geliyor, yani jest
+   aynen korunuyor - kapanmayi popover'in kendi hafif-kapanmasi yapiyor. */
 @media (max-width: 760px) {
   #menu {
-    inset: auto 0 0 0; width: 100%;
-    height: min(88dvh, 100%);
-    grid-template-columns: 1fr; grid-template-rows: auto 1fr;
-    border-radius: 16px 16px 0 0;
-    translate: 0 22px;
-    box-shadow: 0 -24px 60px -20px rgba(0,0,0,.8);
+    --ust: calc(clamp(16px, 2.4vw, 30px) + 44px + 10px);   /* dugmenin alti */
+    inset: auto;
+    top: var(--ust);
+    left: clamp(14px, 4vw, 22px);
+    width: min(306px, calc(100vw - 2 * clamp(14px, 4vw, 22px)));
+    height: auto;
+    max-height: calc(100dvh - var(--ust) - 20px);
+    grid-template-columns: 1fr; grid-template-rows: 1fr;
+    border-radius: 15px; overflow: hidden;
+    translate: -6px -10px;
+    box-shadow: 0 22px 55px -14px rgba(0,0,0,.72);
   }
-  @starting-style { #menu:popover-open { translate: 0 22px; } }
-  #menu::before {
-    content: ""; position: absolute; top: 9px; left: 50%; translate: -50% 0;
-    width: 42px; height: 4px; border-radius: 999px;
-    background: rgba(255,255,255,.22);
-  }
-  #mon {
-    order: -1; border-left: 0; border-bottom: 1px solid rgba(255,255,255,.07);
-    padding: 26px 68px 16px 20px;   /* sag: kapatma dugmesine pay */
-    flex-direction: row; align-items: center; gap: 16px; min-height: 118px;
-  }
-  #mon-kutu { flex: 0 0 128px; height: 92px; }
-  #mon-ad { font-size: 18px; }
-  #mon-alt {
-    font-size: 12.5px; max-width: none;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  #mon-ad { overflow-wrap: anywhere; }
-  #msol { padding: 14px 20px calc(22px + env(safe-area-inset-bottom)); }
-  #menu a { padding: 12px 2px 12px 19px; }   /* dokunma hedefi ~46px */
+  @starting-style { #menu:popover-open { translate: -6px -10px; } }
+  #menu::before, #mon { display: none; }
+  /* min-height:0 olmadan izgara ogesi kuculuemez, uzun liste karti tasar. */
+  #msol { min-height: 0; padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); }
+  #menu a { padding: 11px 2px 11px 18px; }   /* dokunma hedefi ~44px */
+  #lang { margin-top: 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -326,8 +325,10 @@ a:hover { color: var(--link); }
 #mkapat i:nth-child(1) { transform: rotate(45deg); }
 #mkapat i:nth-child(2) { transform: rotate(-45deg); }
 @media (max-width: 760px) {
-  #mkapat { top: 12px; left: auto; right: 14px; width: 44px; height: 44px; }
-  #mkapat i { width: 17px; height: 3px; }
+  /* Telefonda kart zaten kucuk ve disina dokununca kapaniyor; ustelik
+     o dokunus hamburgerin (carpi) durdugu yere denk geliyor. Ikinci bir
+     kapatma dugmesi ilk satirin uzerine biniyordu. */
+  #mkapat { display: none; }
 }
 
 /* dil anahtarı menünün dibinde */
@@ -802,9 +803,13 @@ function onizlemeIcin(route) {
 }
 
 let onizSon = '\u0000';
+/* Telefonda karşılık sütunu hiç gösterilmiyor. Gizli bir <img>'e src yazmak
+   tarayıcıya o görseli yine de indirtiyor — mobil bağlantıda bedava yük. */
+const onizVarMi = () => !matchMedia('(max-width: 760px)').matches;
+
 function onizYaz(route, hemen) {
   const mon = monEl();
-  if (!mon || route === onizSon) return;
+  if (!mon || !onizVarMi() || route === onizSon) return;
   onizSon = route;
   const d = onizlemeIcin(route);
   /* Menu acilirken ilk yazim beklemesin: solma gecikmesi orada bosluk
