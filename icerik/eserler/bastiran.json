@@ -18,7 +18,7 @@
     "yil": null
   },
   "gorsel": "bastiran.webp",
-  "ortam_gorseli": "",
+  "ortam_gorseli": "ortam-bastiran.png",
   "not": {
     "tr": "Bir saat içinde bitti. Nadiren öyle olur.",
     "en": "Finished within an hour. That rarely happens.",

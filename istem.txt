@@ -1,0 +1,106 @@
+ESERİ GALERİ DUVARINA ASTIRMA — İSTEM
+=====================================
+
+NASIL KULLANILIR
+----------------
+1. Gemini ya da ChatGPT'yi aç.
+2. Bu klasördeki eser dosyasını YÜKLE (üretmesini değil, yüklediğini
+   kullanmasını istiyoruz — tabloyu koruyan tek yol bu).
+3. Aşağıdaki metni kopyala, yapıştır.
+4. İçindeki ölçüyü o eserin dosya adından bak, değiştir.
+   Örnek: "09-Firtina-87x132cm.jpg" -> 87 x 132 cm
+
+
+--- BURADAN KOPYALA ---
+
+Use the uploaded painting EXACTLY as provided. Do not repaint, redraw,
+restyle, recolour, crop or regenerate any part of it. Treat it as a flat
+photograph to be composited onto a wall.
+
+Place it hanging in a contemporary white-cube gallery.
+
+SCALE: the painting is 87 x 132 cm (height x width). The wall behind it is
+280 cm wide and 300 cm tall, so the painting spans a little under half the
+wall width. Hang it with its centre 150 cm above the floor.
+
+CAMERA: documentary installation photograph. Full-frame camera, 35mm lens,
+sensor plane exactly parallel to the wall, camera at 150 cm eye height.
+Straight on, no perspective distortion, vertical lines perfectly parallel.
+
+ROOM: matte white plaster wall with faint roller texture and fine surface
+grain. The bottom 15% of the frame shows a polished pale concrete floor
+meeting the wall, with a narrow dark shadow gap at the base. The top 10%
+shows the ceiling plane with a track and two small spotlights aimed at the
+wall. On the left edge, the inside corner where a side wall meets the main
+wall is visible.
+
+LIGHT: the two spots throw soft overlapping pools that merge into one broad
+even wash centred on the painting at 150 cm. Brightness falls off only about
+20% toward the frame edges. No hard single hotspot.
+
+EXPOSURE: natural photographic exposure. The wall is the brightest element in
+the frame; the painting stays darker than the wall. No blown highlights,
+slight ambient flare lifting the blacks, subtle ISO 400 sensor noise across
+the whole frame including the painting.
+
+SHADOW: a 4 cm deep stretched canvas, no frame. Short soft contact shadow
+under the bottom edge, fainter down the sides. No long drop shadow.
+
+3:2 horizontal, highest resolution possible.
+
+Do not add: any other artwork, picture frames, wall labels, text, signage,
+people, furniture, plants. No vignette, no gradient background, no 3D
+render look.
+
+--- BURAYA KADAR ---
+
+
+TABLOYU DEĞİŞTİRİRSE
+--------------------
+Bu araçların ana hatası tabloyu kopyalamak yerine kendi yorumunu boyamak.
+Gelen kareyi yakınlaştır, fırça izlerine ve figürlere bak. Değişmişse:
+
+    You changed the painting. Use my uploaded image pixel for pixel,
+    unchanged. Only place it on the wall. Nothing inside the painting
+    may differ.
+
+
+ÖLÇEĞİ KONTROL ET
+-----------------
+132 cm'lik bir tablo, 300 cm yüksekliğindeki bir duvarın yarısından biraz
+fazlasını kaplar. Duvarı doldurmuşsa ölçek yanlıştır, tekrar iste.
+
+
+HANGİ SATIR NEYE KARŞI
+----------------------
+Her satır denemelerde yaşanmış bir hataya karşı yazıldı:
+
+"treat it as a flat photograph"
+    Araç tabloyu yeniden boyuyor. En sık ve en kötü hata.
+
+"the wall is 280 cm wide"
+    Duvar genişliği söylenmezse model kamerayı uzun bir holün dibine
+    koyuyor, tablo pul kalıyor.
+
+"bottom 15% floor / top 10% ceiling / left edge corner"
+    Oda ipuçlarını kadrajın kenarına itiyor; merkez temiz kalıyor ama
+    kare "duvar" değil "oda" gibi duruyor.
+
+"faint roller texture, fine grain, ISO 400 sensor noise"
+    Yapay levhalarda duvarın dokusu olmuyor; keskin tablo plastik
+    duvarın üstünde duruyor, ikisi aynı kareye ait görünmüyor.
+
+"the painting stays darker than the wall"
+    Mat yağlıboya, aynı ışık altındaki beyaz duvardan parlak olamaz.
+    Olduğunda kompozit olduğu anında belli oluyor.
+
+"no hard single hotspot"
+    "spotlight" denince model sahne spotu koyuyor; ışık üç kat düşüyor
+    ve tablonun üstünde sebebi görünmeyen bir hale kalıyor.
+
+
+TEK ESERLE BAŞLA
+----------------
+Beğendiğin kare çıkana kadar tek eserle uğraş. Sonra aynı istemi
+diğerlerine uygula, yalnızca ölçüyü değiştir. Aynı istem + aynı mekân
+tarifi = on bir kare tek serginin fotoğrafları gibi durur.

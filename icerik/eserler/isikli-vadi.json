@@ -18,7 +18,7 @@
     "yil": null
   },
   "gorsel": "isikli-vadi.webp",
-  "ortam_gorseli": "",
+  "ortam_gorseli": "ortam-isikli-vadi.png",
   "not": {
     "tr": "Uzaktaki ışık yakındakinden daha sıcak olmalı.",
     "en": "Distant light must be warmer than near light.",
