@@ -23,14 +23,14 @@ UI = {
         # katalog sayfasının sabit metinleri
         'gal_close': 'Kapat',
         'gal_all': 'Tümü',
-        'gal_room': 'Üzerine gelin: eser sergi duvarında.',
+        'gal_room': 'Üzerine gelin: eserin kendisi.',
         'gal_empty': 'Bu seride henüz eser yok.',
         'gal_exit_k': 'Çık',   # dar ekran kısaltmaları
         'gal_prev': 'Önceki eser', 'gal_next': 'Sonraki eser',
         'gal_works': 'Eserler',
         'gal_label': 'Katalog',
         'gal_title': 'Bütün eserler',
-        'gal_sub': 'Her eser diğerlerine göre gerçek ölçekte, aynı alanın içinde. '
+        'gal_sub': 'Her eser bir sergi duvarında, gerçek ölçüsüyle asılı. '
                     'Bir esere tıklayınca tam ekran açılır.',
         'gal_soon': 'Bu bölüm yapım aşamasında.',
         'nav_recent': 'Son Resimler',
@@ -74,14 +74,14 @@ UI = {
         'nav_about_grp': 'The artist',
         'gal_exit': 'Back to the site', 'gal_close': 'Close',
         'gal_all': 'All',
-        'gal_room': 'Hover: the work installed in the gallery.',
+        'gal_room': 'Hover: the work itself.',
         'gal_empty': 'No works in this series yet.',
         'gal_exit_k': 'Exit', 
         'gal_prev': 'Previous work', 'gal_next': 'Next work',
         'gal_works': 'Works',
         'gal_label': 'Catalogue',
         'gal_title': 'All works',
-        'gal_sub': 'Each work is shown to scale, relative to the others, within the same field. '
+        'gal_sub': 'Each work hangs on a gallery wall, at its true size. '
                     'Click a work to open it full screen.',
         'gal_soon': 'This section is under construction.',
         'nav_recent': 'Recent Paintings',
@@ -124,14 +124,14 @@ UI = {
         'nav_about_grp': 'L’artiste',
         'gal_exit': 'Retour au site', 'gal_close': 'Fermer',
         'gal_all': 'Tout',
-        'gal_room': 'Survolez : l’œuvre accrochée dans la galerie.',
+        'gal_room': 'Survolez : l’œuvre seule.',
         'gal_empty': 'Aucune œuvre dans cette série pour l’instant.',
         'gal_exit_k': 'Sortir', 
         'gal_prev': 'Œuvre précédente', 'gal_next': 'Œuvre suivante',
         'gal_works': 'Œuvres',
         'gal_label': 'Catalogue',
         'gal_title': 'Toutes les œuvres',
-        'gal_sub': 'Chaque œuvre est à l’échelle, par rapport aux autres, dans un même champ. '
+        'gal_sub': 'Chaque œuvre est accrochée au mur d’une galerie, à sa taille réelle. '
                     'Cliquez sur une œuvre pour l’ouvrir en plein écran.',
         'gal_soon': 'Cette section est en cours de construction.',
         'nav_recent': 'Peintures récentes',
