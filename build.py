@@ -153,6 +153,13 @@ def build_data():
             'lqip':   'data:image/webp;base64,' + _kodla(im, LQIP_EN, LQIP_KALITE, 1),
             'src':    'data:image/webp;base64,' + _kodla(im, TAM_EN, TAM_KALITE),
             'ortam':  '',
+            # Sergi karesinin kendi orani: hero onu 4:3'e ya da eserin
+            # oranina zorlamasin diye gerekiyor.
+            'ortamRatio': (lambda p: round(Image.open(p).width /
+                                           Image.open(p).height, 4))(
+                os.path.join(GORSEL_DIZIN, ortam))
+                if ortam and os.path.exists(
+                    os.path.join(GORSEL_DIZIN, ortam)) else 0,
             'ortamSrc': ('data:image/webp;base64,' + _kodla(
                 Image.open(os.path.join(GORSEL_DIZIN, ortam)).convert('RGB'),
                 TAM_EN, TAM_KALITE)) if ortam and os.path.exists(

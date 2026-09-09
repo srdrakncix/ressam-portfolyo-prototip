@@ -88,14 +88,17 @@ const K = (() => {
   /**
    * Bir eser için <figure> üretir.
    * @param {object} w   SITE.works elemanı
-   * @param {object} opt {eager:boolean, sizes:string, cls:string}
+   * @param {object} opt {eager, sizes, cls, src, ratio}
+   *   src/ratio verilirse eserin duz reproduksiyonu yerine baska bir
+   *   kare gosteriliyor (orn. sergi karesi). Oran da onunla gelmeli,
+   *   yoksa kare eserin oranina zorlanip kirpiliyor.
    */
   function figure(w, opt = {}) {
     const fig = document.createElement('figure');
     fig.className = 'k-fig ' + (opt.cls || '');
-    fig.style.setProperty('--ratio', w.ratio);
+    fig.style.setProperty('--ratio', opt.ratio || w.ratio);
     fig.style.setProperty('--tone', w.tone);
-    fig.dataset.src = w.src;
+    fig.dataset.src = opt.src || w.src;
     fig.dataset.alt = `${w.title}, ${w.year} — ${w.medium}, ${w.size}`;
 
     const lq = document.createElement('img');
