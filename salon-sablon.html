@@ -2,6 +2,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Salon — deneme</title>
 <style>
+/* Sayfalar arasi gecis. Galeri ayri bir HTML dosyasi oldugu icin
+   tiklayinca tam sayfa yenilemesi oluyordu: beyaz bir sicrama ve
+   "baska bir siteye gittim" hissi. Bu iki satir, destekleyen
+   tarayicida gecisi capraz sonmeye ceviriyor. Desteklemeyen
+   tarayicida hicbir sey degismiyor - sayfa eskisi gibi aciliyor. */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) {
+  animation-duration: 260ms;
+}
+
 :root {
   --sans:  "Helvetica Neue", Helvetica, Arial, sans-serif;
   --serif: "Cormorant Garamond", Garamond, "EB Garamond", Georgia, serif;
