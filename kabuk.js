@@ -253,9 +253,9 @@ function buildMenu() {
   let n = 0;
   kutu.querySelectorAll('li, .grouplbl').forEach((el) => {
     if (el.classList.contains('sep')) return;
-    el.style.setProperty('--d', (90 + (n++) * 34) + 'ms');
+    el.style.setProperty('--d', (150 + (n++) * 22) + 'ms');
   });
-  lang.style.setProperty('--d', (90 + n * 34) + 'ms');
+  lang.style.setProperty('--d', (150 + n * 22) + 'ms');
 
   /* satir uzerine gelince karsilik sutunu degissin */
   kutu.querySelectorAll('a[data-route]').forEach((a) => {
@@ -300,6 +300,20 @@ function menuGit(route) {
     if (KABUK.gecisBitti) KABUK.gecisBitti();
   });
 }
+
+/* Boya katmani markup'a degil buraya konuyor: iki sayfa da ayni menuyu
+   kullaniyor, markup'a yazilsaydi iki yerde durur ve zamanla ayrisirdi.
+   Kac darbe oldugunu firca.css soyluyor (--darbe), boylece darbe sayisi
+   degisince burayi duzeltmek gerekmiyor. */
+(function boyaKur() {
+  if (!menuEl || document.getElementById('boya')) return;
+  const boya = document.createElement('div');
+  boya.id = 'boya';
+  boya.setAttribute('aria-hidden', 'true');
+  menuEl.insertBefore(boya, menuEl.firstChild);
+  const n = parseInt(getComputedStyle(boya).getPropertyValue('--darbe'), 10);
+  for (let i = 0; i < (n > 0 ? n : 0); i++) boya.appendChild(document.createElement('i'));
+})();
 
 function openMenu() {
   buildMenu();

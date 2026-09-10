@@ -84,17 +84,27 @@
      hicbir sey gorunmuyordu. Liste sutunu da daraltildi. */
   width: min(600px, 92vw); max-width: 100%;
   border: 0; overflow: visible;
-  background: linear-gradient(126deg, #101013 0%, #0a0a0c 62%, #08080a 100%);
+  /* Zemin yok: panelin kendisi boya. Kutu rengi birakilsaydi darbelerin
+     tirtikli kenari o dikdortgenin uzerinde durur, hicbir sey kazanmazdik.
+     Golge de kutuya degil boyaya ait -- #boya uzerinde drop-shadow. */
+  background: none;
   color: var(--panel);
   display: grid; grid-template-columns: minmax(205px, 255px) 1fr;
-  box-shadow: 40px 0 90px -30px rgba(0,0,0,.8);
 
-  opacity: 0; translate: -14px 0;
-  transition: opacity 300ms var(--ease), translate 380ms var(--ease),
-              overlay 380ms allow-discrete, display 380ms allow-discrete;
+  opacity: 0;
+  transition: opacity 140ms var(--ease),
+              overlay 140ms allow-discrete, display 140ms allow-discrete;
 }
-#menu:popover-open { opacity: 1; translate: none; }
-@starting-style { #menu:popover-open { opacity: 0; translate: -14px 0; } }
+/* Acilista panel BIRDEN var olur; gorunur olmayi darbeler saglar. Panelin
+   kendisi de solarak gelseydi boyanin uzerine ikinci bir perde binerdi.
+   Bunu saglayan @starting-style: baslangic degeri de 1, yani acilista
+   gecilecek bir mesafe yok. Kapanista ise taban kuraldaki 0'a 140 ms'de
+   soniyor -- boya geri SILINMIYOR, sahne kapaniyor.
+   (Acik durumda `transition`i kisaltmak denendi ve birakildi: kisayaz
+    listeyi komple degistirdigi icin display/overlay'in allow-discrete
+    girisleri de dusuyor ve kapanis bozuluyor.) */
+#menu:popover-open { opacity: 1; }
+@starting-style { #menu:popover-open { opacity: 1; } }
 
 #menu::backdrop {
   background: rgba(6,7,5,0);
@@ -108,6 +118,39 @@
 #menu:popover-open::backdrop { background: rgba(26,22,16,.34); }
 @starting-style { #menu:popover-open::backdrop { background: rgba(6,7,5,0); } }
 
+/* ══ BOYA ═══════════════════════════════════════════════════════════════
+   Panel yedi firca darbesiyle boyaniyor. Darbeler gercek boya
+   fotograflarindan cikarildi; yerlesim ve gecikmeler firca.py'nin
+   olcumunden geliyor (asagida, uretilmis blok).
+
+   Supurme yonu her darbe icin ayri: firca boyayi BIRAKTIGI ucdan tasimaya
+   baslar, ters yone supuren darbe hemen sahte gorunur. Hangi ucun yuklu
+   oldugu maskeden olculuyor, tahmin edilmiyor.
+
+   clip-path secildi cunku bilesikte calisiyor; genislik animasyonu her
+   karede yeniden duzen kurardi. */
+#boya {
+  position: absolute; inset: 0; z-index: 0;
+  overflow: hidden; pointer-events: none;
+  filter: drop-shadow(26px 0 34px rgba(0,0,0,.55));
+}
+#boya i {
+  position: absolute; display: block;
+  background-repeat: no-repeat; background-size: 100% 100%;
+  animation-duration: 300ms;
+  animation-timing-function: var(--ease);
+  animation-fill-mode: both;
+}
+@keyframes sup-sol { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+@keyframes sup-sag { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0); } }
+@keyframes sup-ust { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
+@keyframes sup-alt { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0); } }
+
+/*__FIRCA_CSS__*/
+
+/* Sutunlar boyanin ustunde kalsin. */
+#msol, #mon { position: relative; z-index: 1; }
+
 #msol { padding: 104px clamp(18px, 2.2vw, 30px) 26px; overflow-y: auto; }
 #menu ul { list-style: none; margin: 0; padding: 0; }
 #menu li { margin-bottom: 1px; }
@@ -118,9 +161,19 @@
   transition: opacity 380ms var(--ease), translate 420ms var(--ease),
               filter 380ms var(--ease);
 }
-#menu:popover-open li, #menu:popover-open .grouplbl, #menu:popover-open #lang {
-  opacity: 1; translate: none; filter: none;
+#menu:popover-open li, #menu:popover-open .grouplbl, #menu:popover-open #lang,
+#menu.open li, #menu.open .grouplbl, #menu.open #lang {
+  opacity: 1; translate: none; transform: none; filter: none;
   transition-delay: var(--d, 0ms);
+}
+/* Bu blok olmadan satirlar HIC gecis yapmiyordu: eleman display:none'dan
+   geliyor, tarayicinin baslayacak bir onceki degeri yok, dolayisiyla
+   dogrudan son halinde beliriyor. Olculdu: 80 ms'de opaklik zaten 1.00
+   ve satirlar boyadan once ortaya cikiyordu. */
+@starting-style {
+  #menu:popover-open li, #menu:popover-open .grouplbl, #menu:popover-open #lang {
+    opacity: 0; translate: 0 9px; filter: blur(2px);
+  }
 }
 
 /* Satirlar duz: dolgu yok, cerceve yok, hap bicimi yok. Bir menu okunacak
@@ -231,11 +284,11 @@
     height: auto;
     max-height: calc(100dvh - var(--ust) - 20px);
     grid-template-columns: 1fr; grid-template-rows: 1fr;
-    border-radius: 15px; overflow: hidden;
-    translate: -6px -10px;
-    box-shadow: 0 22px 55px -14px rgba(0,0,0,.72);
+    /* Yuvarlak kose kalkti: kartin kenarini artik boya belirliyor.
+       Kose birakilsaydi tirtikli boya duzgun bir yayla kirpilirdi. */
+    overflow: visible;
   }
-  @starting-style { #menu:popover-open { translate: -6px -10px; } }
+  #boya { filter: drop-shadow(0 16px 34px rgba(0,0,0,.6)); }
   #menu::before, #mon { display: none; }
   /* min-height:0 olmadan izgara ogesi kuculuemez, uzun liste karti tasar. */
   #msol { min-height: 0; padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); }
@@ -245,6 +298,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   #menu li, #menu .grouplbl, #lang { filter: none; translate: none; }
+  /* Boya son halinde durur: supurme bir gosteri, islev degil. */
+  #boya i { animation: none; clip-path: none; }
 }
 
 /* Menu ust katmanda oldugu icin disaridaki hamburger dugmesi tiklanamaz
@@ -355,11 +410,8 @@
 
 html.menuacik #shell { --k: clamp(96px, 15vw, 210px); }
 
-/* menü satırları sırayla yükselsin */
-#menu li, #menu .grouplbl {
-  opacity: 0; transform: translateY(9px); transition-delay: 0ms;
-  transition: opacity 420ms var(--ease), transform 420ms var(--ease);
-}
-#menu.open li, #menu.open .grouplbl {
-  opacity: 1; transform: none; transition-delay: var(--d, 0ms);
-}
+/* Buradaki ikinci satir blogu kaldirildi. .open yolu icin yazilmisti ama
+   secicisi popover yolunda da eslesiyor ve transform: translateY(9px)
+   birakiyordu; ustteki kural yalnizca `translate`i sifirladigi icin
+   satirlar kalici olarak 9 px asagida duruyordu. Iki yol da artik tek
+   kuralda: yukaridaki blok hem :popover-open hem .open'i kapsiyor. */

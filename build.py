@@ -326,7 +326,10 @@ def render(tpl_path, data, standalone):
     # da ayni kabugu kullaniyor; kopyalanmis olsalardi zamanla ayrisirlardi.
     # Belirteci olmayan sablon da derlenir - her sayfanin kabugu olmasi
     # gerekmiyor.
+    # Sira onemli: KABUK_CSS once giriyor ve icinde FIRCA_CSS belirteci
+    # var; sonraki tur onu yakaliyor.
     for belirtec, dosya in (('/*__KABUK_CSS__*/', 'kabuk.css'),
+                            ('/*__FIRCA_CSS__*/', 'firca.css'),
                             ('/*__KABUK_JS__*/', 'kabuk.js')):
         if belirtec in out:
             yol = os.path.join(HERE, dosya)
