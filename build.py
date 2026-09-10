@@ -322,6 +322,18 @@ def render(tpl_path, data, standalone):
     kit = io.open(os.path.join(HERE, 'kit.js'), encoding='utf-8').read()
     out = tpl.replace('/*__KIT__*/', kit).replace('/*__SITE_DATA__*/', payload)
 
+    # Kabuk: tablo zemini, hamburger, menu paneli ve beyaz kagit. Iki sayfa
+    # da ayni kabugu kullaniyor; kopyalanmis olsalardi zamanla ayrisirlardi.
+    # Belirteci olmayan sablon da derlenir - her sayfanin kabugu olmasi
+    # gerekmiyor.
+    for belirtec, dosya in (('/*__KABUK_CSS__*/', 'kabuk.css'),
+                            ('/*__KABUK_JS__*/', 'kabuk.js')):
+        if belirtec in out:
+            yol = os.path.join(HERE, dosya)
+            if not os.path.exists(yol):
+                sys.exit(f'HATA: {tpl_path} {belirtec} istiyor ama {dosya} yok.')
+            out = out.replace(belirtec, io.open(yol, encoding='utf-8').read())
+
     if standalone:
         # Artifact ortamı <html>/<head>/<body> sarmalayıcısını kendi ekliyordu.
         # Bağımsız sitede onu biz kurmalıyız: ilk </style> head'in sonudur.

@@ -1,0 +1,365 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   KABUK — her sayfada aynı olan kısım: tablo zemini, hamburger, menü
+   paneli ve içeriğin üzerinde durduğu beyaz kâğıt.
+
+   Bu dosya derlemede mekan.html ve sergi.html içine enjekte ediliyor
+   (__KABUK_CSS__ belirteci — burada kasten yorum imi olmadan yazılı,
+   yoksa içindeki yıldız-eğik yorumu erken kapatıp altındaki kuralları
+   yutuyor; zemin bir kez böyle kayboldu). İki sayfaya kopyalansaydı zamanla
+   ayrışırdı; galeri "başka bir site" gibi durmasın diye birleştirildiler,
+   tek kaynakta durması da bunun şartı.
+   ═══════════════════════════════════════════════════════════════════════ */
+/* ── zemin: ressamın boyası, sabit, sayfa değişince yumuşak geçiş ────────── */
+
+/* Zemin tablosu sayfayla BİRLİKTE GELMEMELİ.
+   inset:0 tek başına yetmiyordu: mobilde adres çubuğu açılıp kapandıkça
+   100vh değişiyor, background-size:cover yeniden hesaplanıyor ve görsel
+   her kaydırmada yeniden çözülüyordu (gereksiz yükleme + takılma).
+   Çözüm: yüksekliği kaydırmayla değişmeyen 100lvh'ye sabitlemek, katmanı
+   kendi compositor katmanına almak ve lastik-bant esnemesini kapatmak. */
+.bg {
+  position: fixed; top: 0; left: 0; z-index: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100lvh;                 /* adres çubuğu gizlenince değişmez */
+  background-size: cover; background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0; transition: opacity 900ms var(--ease);
+  pointer-events: none;
+  transform: translateZ(0);       /* kendi katmanı: kaydırmada yeniden boyanmaz */
+  will-change: opacity;
+  backface-visibility: hidden;
+}
+.bg.on { opacity: 1; }
+.bg::after {                      /* okunurluk için hafif koyultma */
+  content: ""; position: absolute; inset: 0;
+  background: rgba(20,18,22,.18);
+}
+
+/* ── eser-hamburger ──────────────────────────────────────────────────────── */
+
+#menubtn {
+  position: fixed; top: clamp(16px, 2.4vw, 30px); left: clamp(16px, 2.4vw, 30px);
+  z-index: 40;
+  width: 62px; height: 62px; border-radius: 50%;
+  border: 0; padding: 13px 12px; cursor: pointer;
+  background: rgba(255,255,255,.92);
+  box-shadow: 0 2px 18px rgba(0,0,0,.28);
+  display: grid; align-content: center; gap: 6px;
+  transition: background 300ms var(--ease), transform 500ms var(--ease);
+}
+#menubtn:hover { transform: scale(1.04); }
+/* Üç çubuk: her biri gerçek bir tablodan kesilmiş boya şeridi. */
+#menubtn i {
+  display: block; height: 5px; border-radius: 1px;
+  background-size: 420px auto;
+  background-repeat: no-repeat;
+  transition: transform 340ms var(--ease), opacity 220ms var(--ease);
+}
+#menubtn i:nth-child(1) { background-position: 12% 22%; }
+#menubtn i:nth-child(2) { background-position: 52% 55%; }
+#menubtn i:nth-child(3) { background-position: 30% 82%; }
+#menubtn[aria-expanded="true"] { background: rgba(255,255,255,.98); }
+#menubtn[aria-expanded="true"] i:nth-child(1) { transform: translateY(11px) rotate(45deg); }
+#menubtn[aria-expanded="true"] i:nth-child(2) { opacity: 0; }
+#menubtn[aria-expanded="true"] i:nth-child(3) { transform: translateY(-11px) rotate(-45deg); }
+
+/* ── siyah menü paneli ───────────────────────────────────────────────────── */
+
+/* == ANA MENU ==============================================================
+   Menu artik elle yonetilen bir div degil, gercek bir popover: ust katman,
+   Esc, disina tiklayinca kapanma ve odak yonetimi tarayicidan geliyor.
+   Bunlari elle yazmistik (#scrim, K.trap, keydown dinleyicisi) - kalkti.
+
+   HAREKETIN GEREKCESI: bir galeride once isiklar soner, sonra etiketler
+   aydinlanir. Once zemin karartiliyor (::backdrop), sonra satirlar sirayla
+   netlesip geliyor. Panel kati bir blok gibi kaymiyor.
+
+   ILERLEMELI: @starting-style, allow-discrete, view-transition ve
+   :popover-open desteklenmezse menu yine tam calisir - yalniz gecissiz
+   belirir. Hicbir islev bu API'lere bagli degil. */
+#menu {
+  position: fixed; inset: 0 auto 0 0; margin: 0; padding: 0;
+  /* 780 pikselken ekranin yarisini yiyordu; menu acikken sayfadan
+     hicbir sey gorunmuyordu. Liste sutunu da daraltildi. */
+  width: min(600px, 92vw); max-width: 100%;
+  border: 0; overflow: visible;
+  background: linear-gradient(126deg, #101013 0%, #0a0a0c 62%, #08080a 100%);
+  color: var(--panel);
+  display: grid; grid-template-columns: minmax(205px, 255px) 1fr;
+  box-shadow: 40px 0 90px -30px rgba(0,0,0,.8);
+
+  opacity: 0; translate: -14px 0;
+  transition: opacity 300ms var(--ease), translate 380ms var(--ease),
+              overlay 380ms allow-discrete, display 380ms allow-discrete;
+}
+#menu:popover-open { opacity: 1; translate: none; }
+@starting-style { #menu:popover-open { opacity: 0; translate: -14px 0; } }
+
+#menu::backdrop {
+  background: rgba(6,7,5,0);
+  transition: background 420ms var(--ease),
+              overlay 420ms allow-discrete, display 420ms allow-discrete;
+}
+/* Zemin %58 siyahti: arkadaki sayfa tamamen kayboluyor, goz de
+   yoruluyordu. Simdi daha acik ve sitenin sicak murekkebinde.
+   backdrop-filter denendi ve kaldirildi: ::backdrop uzerinde
+   destegi oynak, GPU'suz cizimde paneli komple bozuyordu. */
+#menu:popover-open::backdrop { background: rgba(26,22,16,.34); }
+@starting-style { #menu:popover-open::backdrop { background: rgba(6,7,5,0); } }
+
+#msol { padding: 104px clamp(18px, 2.2vw, 30px) 26px; overflow-y: auto; }
+#menu ul { list-style: none; margin: 0; padding: 0; }
+#menu li { margin-bottom: 1px; }
+
+/* Satirlar sirayla netlesip geliyor: etiketlerin aydinlanmasi. */
+#menu li, #menu .grouplbl, #lang {
+  opacity: 0; translate: 0 9px; filter: blur(2px);
+  transition: opacity 380ms var(--ease), translate 420ms var(--ease),
+              filter 380ms var(--ease);
+}
+#menu:popover-open li, #menu:popover-open .grouplbl, #menu:popover-open #lang {
+  opacity: 1; translate: none; filter: none;
+  transition-delay: var(--d, 0ms);
+}
+
+/* Satirlar duz: dolgu yok, cerceve yok, hap bicimi yok. Bir menu okunacak
+   bir liste; her satiri kapsule koymak listeyi arayuz gurultusune ceviriyor.
+   Bulundugun sayfa ve uzerine geldigin satir soldaki ince cizgiyle
+   belirtiliyor - dolduran degil, isaret eden bir jest. */
+#menu a {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; text-align: left;
+  font: inherit; font-size: clamp(15px, .9rem + .26vw, 18px);
+  padding: 9px 2px 9px 19px; line-height: 1.3;
+  border: 0; background: none;
+  cursor: pointer; text-decoration: none;
+  transition: transform 300ms var(--ease), color 600ms ease-in-out,
+              opacity 300ms var(--ease);
+}
+#menu a::before {
+  content: ""; position: absolute; left: 0; top: 50%; translate: 0 -50%;
+  width: 10px; height: 1px; background: currentColor;
+  opacity: 0; transition: opacity 280ms var(--ease);
+}
+@media (hover: hover) {
+  #menu a:hover, #menu a:focus-visible { transform: translateX(4px); }
+  #menu a:hover::before, #menu a:focus-visible::before { opacity: .5; }
+}
+#menu a[aria-current="page"]::before { opacity: .9; }
+#menu a.ozel {
+  font-size: clamp(17px, 1rem + .42vw, 22px);
+  color: #e8cf9a !important;
+  padding-block: 11px; margin-bottom: 2px;
+}
+#menu a.ozel::after {
+  content: "\2192"; margin-left: auto; opacity: .7;
+  transition: transform 300ms var(--ease);
+}
+@media (hover: hover) {
+  #menu a.ozel:hover::after { transform: translateX(4px); }
+}
+#menu a.cikis { color: #d9b9a0 !important; }
+#menu .sep { height: 18px; }
+#menu .grouplbl {
+  font-size: var(--t-micro); letter-spacing: .14em; text-transform: uppercase;
+  color: #5d5d63; margin: 22px 0 8px;
+}
+
+/* -- karsilik sutunu ------------------------------------------------------
+   Vitrin DEGIL: satirin turune gore karsiligini gosteriyor. Seri satirinda
+   o serinin eseri, Sergiler'de surmekte olan sergi, Iletisim'de atolye
+   satiri. Boylece 7 metin sayfasinda bos kalmiyor, hicbir yerde de dukkan
+   vitrini gibi durmuyor. */
+#mon {
+  position: relative; overflow: hidden;
+  padding: 104px clamp(22px, 2.6vw, 42px) 34px;
+  display: flex; flex-direction: column; gap: 20px;
+  border-left: 1px solid rgba(255,255,255,.07);
+  background: radial-gradient(120% 90% at 30% 0%, rgba(255,244,222,.055), transparent 62%);
+}
+#mon-kutu { position: relative; flex: 1 1 auto; min-height: 0; display: grid; place-items: center; }
+#mon-img {
+  max-width: 100%; max-height: 100%; object-fit: contain; display: block;
+  box-shadow: 0 2px 5px rgba(0,0,0,.5), 0 26px 60px -22px rgba(0,0,0,.8);
+  transition: opacity 260ms var(--ease), scale 420ms var(--ease);
+}
+#mon-img[hidden] { display: none; }
+#mon.degisiyor #mon-img { opacity: 0; scale: .985; }
+#mon-yazi { flex: 1 1 auto; min-width: 0; transition: opacity 260ms var(--ease); }
+#mon.degisiyor #mon-yazi { opacity: 0; }
+#mon-ust {
+  font-size: var(--t-micro); letter-spacing: .16em; text-transform: uppercase;
+  color: #8d7c56; margin-bottom: 7px;
+}
+#mon-ad { font-size: clamp(19px, 1.1rem + .5vw, 26px); line-height: 1.2; color: #f2ede2; margin-bottom: 6px; }
+/* Gorseli olmayan satirlarda (biyografi, basin, iletisim...) sutun bos
+   kalmasin: yazi buyuyup alani kendisi tutuyor. */
+#mon.yazi-only #mon-kutu { display: none; }
+#mon.yazi-only { justify-content: center; }
+#mon.yazi-only #mon-ad { font-size: clamp(22px, 1.2rem + .8vw, 32px); }
+#mon.yazi-only #mon-alt { font-size: 15px; max-width: 34ch; }
+#mon-alt { font-size: 13.5px; line-height: 1.6; color: rgba(242,237,226,.62); max-width: 40ch; }
+
+#lang { display: flex; gap: 10px; align-items: baseline; margin-top: 30px; }
+#lang button {
+  font: inherit; font-size: var(--t-micro); letter-spacing: .06em;
+  background: none; border: 0; padding: 8px 4px; cursor: pointer; color: #6f6f76;
+}
+#lang button[aria-current="true"] { color: #fff; }
+
+/* -- TELEFON: perde degil, basparmakla ulasilan alt tabaka ----------------
+   Ekrani kaplayan bir ortu yerine alttan gelen bir tabaka. Satirlar asagida
+   topluyor, karsilik ustte ince bir serit oluyor. */
+/* == TELEFON ==============================================================
+   Menu burada ekrani kaplayan bir tabaka DEGIL: hamburger dugmesinin
+   altindan cikan bir kart. Eskiden alttan gelen, ekranin %88'ini kaplayan
+   bir sayfa gibiydi ve tepesinde bir onizleme seridi vardi; dar ekranda o
+   serit menuyu listelikten cikarip yarim bir vitrine ceviriyordu.
+
+   Kapatma dugmesi de yok: karti disina dokunarak kapatiyorsun. O dokunus
+   zaten hamburgerin (artik carpi) durdugu yere denk geliyor, yani jest
+   aynen korunuyor - kapanmayi popover'in kendi hafif-kapanmasi yapiyor. */
+@media (max-width: 760px) {
+  #menu {
+    --ust: calc(clamp(16px, 2.4vw, 30px) + 44px + 10px);   /* dugmenin alti */
+    inset: auto;
+    top: var(--ust);
+    left: clamp(14px, 4vw, 22px);
+    width: min(306px, calc(100vw - 2 * clamp(14px, 4vw, 22px)));
+    height: auto;
+    max-height: calc(100dvh - var(--ust) - 20px);
+    grid-template-columns: 1fr; grid-template-rows: 1fr;
+    border-radius: 15px; overflow: hidden;
+    translate: -6px -10px;
+    box-shadow: 0 22px 55px -14px rgba(0,0,0,.72);
+  }
+  @starting-style { #menu:popover-open { translate: -6px -10px; } }
+  #menu::before, #mon { display: none; }
+  /* min-height:0 olmadan izgara ogesi kuculuemez, uzun liste karti tasar. */
+  #msol { min-height: 0; padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); }
+  #menu a { padding: 11px 2px 11px 18px; }   /* dokunma hedefi ~44px */
+  #lang { margin-top: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #menu li, #menu .grouplbl, #lang { filter: none; translate: none; }
+}
+
+/* Menu ust katmanda oldugu icin disaridaki hamburger dugmesi tiklanamaz
+   hale geliyor. Sevilen "eser -> X" jesti kaybolmasin diye ayni yerde,
+   menunun kendi icinde bir kapatma dugmesi duruyor. */
+#mkapat {
+  position: absolute; z-index: 2;
+  top: clamp(16px, 2.4vw, 30px); left: clamp(16px, 2.4vw, 30px);
+  width: 58px; height: 58px; padding: 0;
+  display: grid; place-items: center;
+  border: 0; border-radius: 50%; cursor: pointer;
+  background: rgba(255,255,255,.96);
+  box-shadow: 0 8px 26px rgba(0,0,0,.45);
+  transition: transform 320ms var(--ease), background 300ms var(--ease);
+}
+#mkapat:hover { transform: scale(1.05); }
+#mkapat i {
+  position: absolute; width: 22px; height: 4px; border-radius: 1px;
+  background: #24241f;
+}
+#mkapat i:nth-child(1) { transform: rotate(45deg); }
+#mkapat i:nth-child(2) { transform: rotate(-45deg); }
+@media (max-width: 760px) {
+  /* Telefonda kart zaten kucuk ve disina dokununca kapaniyor; ustelik
+     o dokunus hamburgerin (carpi) durdugu yere denk geliyor. Ikinci bir
+     kapatma dugmesi ilk satirin uzerine biniyordu. */
+  #mkapat { display: none; }
+}
+
+/* dil anahtarı menünün dibinde */
+#lang { display: flex; gap: 10px; align-items: baseline; margin-top: 30px; }
+#lang button {
+  font: inherit; font-size: var(--t-micro); letter-spacing: .06em;
+  background: none; border: 0; padding: 6px 0; cursor: pointer; color: #6f6f76;
+}
+#lang button[aria-current="true"] { color: #fff; }
+#lang .sep2 { color: #35353a; font-size: var(--t-micro); }
+
+/* ── içerik paneli ───────────────────────────────────────────────────────── */
+
+#shell {
+  --k: 0px;                          /* katlanan köşenin boyu */
+  transition: --k 640ms cubic-bezier(.2,.86,.24,1);
+  /* Sayfa gölgesi panelde box-shadow olarak duramaz: clip-path onu da
+     kırpar. drop-shadow kesilmiş silueti takip ediyor. */
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,.16))
+          drop-shadow(0 16px 26px rgba(0,0,0,.20));
+  position: relative; z-index: 10;
+  max-width: 1180px;
+  margin: clamp(90px, 11vh, 150px) auto clamp(60px, 10vh, 130px);
+  padding-inline: var(--shell-pad);
+}
+#panel {
+  background: var(--panel);
+  padding: clamp(28px, 4.4vw, 68px);
+  min-height: 52vh;
+
+  /* ── MENÜ AÇILIŞI: sayfanın SAĞ ÜST KÖŞESİ çevriliyor ──────────────────
+     Menüyü açmak "bu sayfadan çıkıyorum" demek. Kitap sayfası da sağ üst
+     köşesinden tutulup çevrilir — jest budur, başka bir yeri değil.
+
+     İki deneme çöpe gitti, ikisi de aynı sebepten: hareketin fiziksel
+     karşılığı yoktu. Önce sayfa menteşeden KAPI GİBİ arkaya dönüyordu;
+     sonra sol kenarında gradyanla bir "kıvrım" beliriyordu. İkisi de
+     boyanmış görünüyordu, katlanmış değil.
+
+     Bu sefer geometri gerçek: köşedeki üçgen sayfadan KESİLİYOR (clip-path),
+     altındaki tablo görünüyor. Katlanan parça o üçgenin kat çizgisine göre
+     TAM AYNA görüntüsü — rotate(45deg) scaleY(-1) rotate(-45deg) birleşimi
+     45°'lik doğruya göre yansımanın kendisidir, yaklaşık bir taklit değil:
+     (W,0) köşesi tam olarak (W−k, k) noktasına düşer, kat çizgisi üstündeki
+     iki nokta yerinde kalır. Bu yüzden kesik kenarla katlanan parçanın ağzı
+     piksel piksel çakışır.
+
+     Yüzeyi de boyalı değil: kagit.webp gerçek lif dokusu (frekans uzayında
+     üretildiği için kusursuz döşenir), üstüne kat çizgisinde parlayıp uca
+     doğru sönen ışık çarpılıyor. Gölge box-shadow olamazdı — clip-path onu
+     kırpardı; drop-shadow kesilmiş şeklin kendisini takip ediyor. */
+  clip-path: polygon(0 0, calc(100% - var(--k)) 0, 100% var(--k), 100% 100%, 0 100%);
+}
+
+/* katlanan köşe: kâğıdın arka yüzü */
+#kivrim {
+  position: absolute; top: 0; right: var(--shell-pad);
+  width: var(--k); height: var(--k);
+  z-index: 3; pointer-events: none;
+  /* İki gölge: sıkı temas gölgesi + yumuşak ortam gölgesi. Tek gölge düz
+     bir yapıştırma gibi duruyordu. */
+  filter: drop-shadow(-3px 4px 4px rgba(0,0,0,.34))
+          drop-shadow(-11px 14px 18px rgba(0,0,0,.24));
+}
+#kivrim i {
+  position: absolute; inset: 0; display: block;
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  transform-origin: 0 0;
+  transform: rotate(45deg) scaleY(-1) rotate(-45deg);   /* kat çizgisine göre yansıma */
+  background-image:
+    /* Kat çizgisinde ışığın yakaladığı sırt (%50 tam kat yeridir), sonra
+       kâğıdın arka yüzüne doğru hızlanan düşüş. Ölçülen eski düşüş 252→200
+       idi; kâğıt gibi değil boyalı karton gibi duruyordu. */
+    linear-gradient(45deg,
+      #ffffff 50%, #fffdf6 53%, #f6f1e6 61%,
+      #e2dac8 74%, #c3b9a1 87%, #a2977c 96%, #90856b 100%),
+    url('assets/kagit.webp');
+  background-size: 100% 100%, 128px 128px;
+  background-blend-mode: multiply;
+}
+
+html.menuacik #shell { --k: clamp(96px, 15vw, 210px); }
+
+/* menü satırları sırayla yükselsin */
+#menu li, #menu .grouplbl {
+  opacity: 0; transform: translateY(9px); transition-delay: 0ms;
+  transition: opacity 420ms var(--ease), transform 420ms var(--ease);
+}
+#menu.open li, #menu.open .grouplbl {
+  opacity: 1; transform: none; transition-delay: var(--d, 0ms);
+}
