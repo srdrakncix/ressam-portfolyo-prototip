@@ -2,6 +2,7 @@
    bulunuyor, elle degistirilirse yazi altindaki opaklik garantisi
    bozulur. Kaynak: firca.py YERLESIM. */
 #boya { --darbe: 7; }   /* kabuk.js kac <i> uretecegini buradan okuyor */
+:root { --satir-doygunluk: 0.40; --satir-parlaklik: 0.90; --satir-adim: 0.015; }
 #boya i:nth-child(1) {
   left: -12.67%; top: -5.13%; width: 132.50%; height: 40.02%;
   background-image: url(assets/firca/panel-1.webp);

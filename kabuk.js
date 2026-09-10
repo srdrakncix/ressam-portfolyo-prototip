@@ -73,15 +73,32 @@ function hsl(hex) {
   return [h, d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1)), l];
 }
 
+/* Doygunluk ve parlaklık sayıları firca.css'ten geliyor (onu firca.py
+   yazıyor). Sebebi: aynı sayılar panelin okunurluk ölçümünde de
+   kullanılıyor. Burada elle tutulsalardı panelin tonu bir değiştiğinde
+   ölçüm artık gerçeği ölçmez olurdu — nitekim bir kez öyle oldu:
+   ölçüm 0.88 ile geçerken çalışan kod 0.72 kullanıyordu. */
+function satirAyari() {
+  const cs = getComputedStyle(document.documentElement);
+  const say = (ad, yedek) => {
+    const v = parseFloat(cs.getPropertyValue(ad));
+    return isNaN(v) ? yedek : v;
+  };
+  return { sat: say('--satir-doygunluk', 0.40),
+           lig: say('--satir-parlaklik', 0.90),
+           adim: say('--satir-adim', 0.015) };
+}
+
 function paintMenu(pal) {
+  const a = satirAyari();
   document.querySelectorAll('#menu .nav-item').forEach((el, i) => {
     if (el.classList.contains('ozel') || el.classList.contains('cikis')) return;
     if (!pal.length) { el.style.color = '#e9e9e4'; return; }
     const [h, sRaw] = hsl(pal[i % pal.length]);
-    const sat = Math.min(sRaw, 0.40);
-    const lig = 0.72 + ((i * 3) % 7) * 0.036;          /* satır satır ayrışsın */
+    const sat = Math.min(sRaw, a.sat);
+    const lig = a.lig + ((i * 3) % 7) * a.adim;        /* satır satır ayrışsın */
     el.style.color = 'hsl(' + h.toFixed(0) + ',' + (sat * 100).toFixed(0) + '%,' +
-                     (lig * 100).toFixed(0) + '%)';
+                     (lig * 100).toFixed(1) + '%)';
   });
 }
 

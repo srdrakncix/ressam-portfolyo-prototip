@@ -203,7 +203,7 @@
 #menu a[aria-current="page"]::before { opacity: .9; }
 #menu a.ozel {
   font-size: clamp(17px, 1rem + .42vw, 22px);
-  color: #e8cf9a !important;
+  color: #f2dea8 !important;
   padding-block: 11px; margin-bottom: 2px;
 }
 #menu a.ozel::after {
@@ -213,7 +213,12 @@
 @media (hover: hover) {
   #menu a.ozel:hover::after { transform: translateX(4px); }
 }
-#menu a.cikis { color: #d9b9a0 !important; }
+/* Iki altin ton panele gore acildi. Olculdu: nude panelde #d9b9a0
+   3.67:1, #e8cf9a 4.45:1 veriyordu -- ikisi de WCAG AA'nin altinda.
+   (Eski kirmizi panelde de 4.10 ve ~4.4 idi, yani bu zayiflik yeni
+   degil; kaba bir parlaklik olcutu kullandigim icin gorunmuyordu.)
+   Simdi 4.89:1 ve 5.11:1. Panel aciildiysa vurgu da acilmali. */
+#menu a.cikis { color: #ecd8c4 !important; }
 #menu .sep { height: 18px; }
 #menu .grouplbl {
   font-size: var(--t-micro); letter-spacing: .14em; text-transform: uppercase;

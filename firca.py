@@ -45,6 +45,7 @@ Gercek yagliboya da boyledir: ortu verici bir katta firca izini gordugun
 sey saydamlik degil, kalinlik farkindan gelen degerdir. Boya inceldiginde
 saydamlasmiyor, aciliyor.
 """
+import colorsys
 import io
 import json
 import math
@@ -64,7 +65,22 @@ OLCUM = os.path.join(KOK, 'kaynak', 'firca')
 # Panelin gercek olcusu -- tarayicidan okundu, goz karari degil.
 EN, BOY = 600, 857
 TABAN = 0.92        # yazi altinda en dusuk opaklik
-ISIK_TAVAN = 0.30   # yazi altinda en yuksek bagil parlaklik (acik yazi okunsun)
+KONTRAST_TABAN = 4.5   # WCAG AA, normal boy yazi
+
+# Menu satir renkleri sabit degil: zemin paletinden uretiliyor.
+# Bu ucu kabuk.js/paintMenu ile BIREBIR ayni olmak zorunda.
+# Olculdu: 0.72'de satir00, satir05 ve satir07 WCAG AA'yi gecmiyordu
+# (3.32:1, 4.31:1, 4.23:1) -- eski kirmizi panelde de gecmiyorlardi, ben
+# kaba bir parlaklik olcutu kullandigim icin gormemistim. 0.88'de hepsi
+# geciyor, en kotu 4.92:1.
+# Menudeki iki vurgu murekkebi: paintMenu bu iki satira renk YAZMIYOR,
+# rengi CSS'ten geliyor. Hangi satirin ozel oldugu sayfaya gore
+# degistigi icin ikisi de HER kutuda denetleniyor.
+ALTINLAR = [(236, 216, 196),   # #ecd8c4  .cikis  ('Ana sayfa')
+            (242, 222, 168)]   # #f2dea8  .ozel   (bulundugun sayfa)
+SAT_TAVAN = 0.40
+LIG_TABAN = 0.90
+LIG_ADIM = 0.015
 
 SURE = 300          # bir darbenin supurme suresi (ms)
 ARALIK = 66         # darbeler arasi gecikme (ms)
@@ -100,10 +116,25 @@ YERLESIM = [
     ('karakter-1',   4,  29,  74,  -7, False),
 ]
 
-# Fransiz kirmizisi. Ton panel boyunca capraz iniyor: ust darbe ile alt
-# darbe ayni renkte olmasin, tuvalde de olmaz.
-FR = [(0.00, (163, 30, 44)), (0.28, (134, 21, 35)), (0.60, (103, 17, 28)),
-      (0.85, (78, 18, 26)), (1.00, (63, 22, 29))]
+# Mat kil gulu. Onceki hal doygun Fransiz kirmizisiydi ve cirtlak
+# geliyordu; doygunluk %69'dan %28'e indi, ton biraz isindi.
+#
+# Daha da nude'a gitmenin bir tavani var ve olculdu: baglayici kisit
+# panelin EN ACIK noktasi, cunku menu satirlari ACIK murekkeple yaziliyor.
+# Daha acik iki aday (tarcin gulu, nude gul) satir parlakligi 0.92 olsa
+# bile WCAG AA'yi (4.5:1) gecemedi. Bunun otesi ancak yaziyi KOYU murekkebe
+# cevirmekle olur -- o da menunun butun karakterini degistirir, ayri bir
+# karar.
+#
+# Ton ayrica DUZLESTIRILDI: tepe parlakligi kontrasti belirliyor, ortalama
+# ise gozun gordugu tonu. Tepeyi koyultmak ayni kontrastta daha nude bir
+# ortalama veriyor.
+# Ton 14 derece: sicak ama hala gul. Denenip birakilanlar --  7 derece
+# mor-kahveye kaciyor, 20 ve 26 derece kahveye doniyor; nude pembe-bej
+# bir yer, kahve degil. Bes aday zemin uzerinde yan yana bakilarak
+# secildi, sayiyla degil.
+FR = [(0.00, (112, 74, 63)), (0.28, (106, 69, 59)), (0.60, (96, 60, 52)),
+      (0.85, (84, 51, 46)), (1.00, (72, 44, 41))]
 
 EGRI_LO, EGRI_HI = 14, 168   # ham yogunluk egrisi: pus sifira, cekirdek opak
 
@@ -350,6 +381,53 @@ def isik(r, g, b):
     return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255.0
 
 
+def _dogrusal(k):
+    k = k / 255.0
+    return k / 12.92 if k <= 0.03928 else ((k + 0.055) / 1.055) ** 2.4
+
+
+def parlaklik(r, g, b):
+    """WCAG bagil parlaklik. Dogrusallastirma sart: sRGB degerlerinin
+    agirlikli ortalamasi doygun renklerde iki kat yanilabiliyor."""
+    return (0.2126 * _dogrusal(r) + 0.7152 * _dogrusal(g) + 0.0722 * _dogrusal(b))
+
+
+def kontrast(a, b):
+    la, lb = parlaklik(*a), parlaklik(*b)
+    if la < lb:
+        la, lb = lb, la
+    return (la + 0.05) / (lb + 0.05)
+
+
+def satir_renkleri(palet):
+    """kabuk.js/paintMenu'nun urettigi renkler. 14 nav satiri."""
+    renkler = []
+    for i in range(len(SATIR_Y)):
+        hx = palet[i % len(palet)]
+        n = int(hx[1:], 16)
+        r, g, b = (n >> 16) & 255, (n >> 8) & 255, n & 255
+        h, l, sat = colorsys.rgb_to_hls(r / 255.0, g / 255.0, b / 255.0)
+        sat = min(sat, SAT_TAVAN)
+        lig = LIG_TABAN + ((i * 3) % 7) * LIG_ADIM
+        rr, gg, bb = colorsys.hls_to_rgb(h, lig, sat)
+        renkler.append((int(rr * 255), int(gg * 255), int(bb * 255)))
+    return renkler
+
+
+def tum_paletler():
+    """Butun sayfa zeminlerinin paletleri.
+
+    Menu her sayfada O SAYFANIN paletinden renk aliyor; yalnizca galeriyi
+    olcmek eksik olurdu. Parlaklik LIG_TABAN'dan geldigi icin sayfalar
+    arasi fark kucuk ama garantiyi tahmine birakmanin anlami yok.
+    """
+    yol = os.path.join(KOK, 'zeminler.json')
+    if not os.path.exists(yol):
+        return {'yedek': ['#e4cecd'] * 9}
+    d = json.load(io.open(yol, encoding='utf-8'))
+    return {k: (v.get('palette') or ['#e4cecd'] * 9) for k, v in d.items()}
+
+
 def ic_kontrol(panel, pay=45):
     """Panelin ICINDE delik olmamali.
 
@@ -378,9 +456,21 @@ def ic_kontrol(panel, pay=45):
 
 def olc(panel):
     px = panel.load()
+    paletler = tum_paletler()
+    # Her kutu icin her sayfanin satir rengi denenip EN KOTUSU aliniyor.
+    tum_satirlar = {k: satir_renkleri(v) for k, v in paletler.items()}
     rapor = []
-    for ad, x, y, w, h in YAZI_KUTULARI:
-        dusuk, altta, n, en_isik = 255, 0, 0, 0.0
+    for i, (ad, x, y, w, h) in enumerate(YAZI_KUTULARI):
+        # Satirin kendi rengi. Ama menudeki iki satira paintMenu renk
+        # YAZMIYOR: 'Ana sayfa' ve bulundugun sayfa altin kaliyor
+        # (#d9b9a0). Hangi satirin ozel oldugu sayfaya gore degistigi
+        # icin ALTIN her kutuda ayrica denetleniyor -- menudeki en sonuk
+        # murekkep o, gecerse otekiler de geciyor.
+        if ad.startswith('satir'):
+            adaylar = [s[i] for s in tum_satirlar.values()] + ALTINLAR
+        else:
+            adaylar = [(233, 233, 228)]
+        dusuk, altta, n, en_kotu = 255, 0, 0, 99.0
         for yy in range(y + 2, y + h - 2, 2):
             for xx in range(x + 2, x + w - 2, 2):
                 if not (0 <= xx < EN and 0 <= yy < BOY):
@@ -389,10 +479,12 @@ def olc(panel):
                 dusuk = min(dusuk, a)
                 if a < TABAN * 255:
                     altta += 1
-                en_isik = max(en_isik, isik(r, g, b))
+                for yz in adaylar:
+                    en_kotu = min(en_kotu, kontrast(yz, (r, g, b)))
                 n += 1
         rapor.append({'ad': ad, 'dusuk': dusuk / 255.0,
-                      'delik': altta / max(1, n), 'isik': en_isik})
+                      'delik': altta / max(1, n), 'kontrast': en_kotu,
+                      'yazi': adaylar[0]})
     return rapor
 
 
@@ -447,6 +539,12 @@ def css_yaz(satirlar):
          '   bozulur. Kaynak: firca.py YERLESIM. */']
     p.append('#boya { --darbe: %d; }   /* kabuk.js kac <i> uretecegini buradan okuyor */'
              % len(satirlar))
+    # Satir renk parametreleri de buradan cikiyor: ayni sayilar hem
+    # olcumde (firca.py) hem calisan kodda (kabuk.js/paintMenu) gecerli
+    # olmak zorunda. Iki yerde elle tutulsaydi ilk degisiklikte ayrisir
+    # ve olcum artik gercegi olcmez olurdu.
+    p.append(':root { --satir-doygunluk: %.2f; --satir-parlaklik: %.2f;'
+             ' --satir-adim: %.3f; }' % (SAT_TAVAN, LIG_TABAN, LIG_ADIM))
     # Konum ve gorsel her zaman gecerli; ANIMASYON yalnizca menu acikken
     # tanimli. Yoksa animasyon sayfa yuklenirken kosuyor ve menu acildiginda
     # coktan bitmis oluyor -- olculdu: acilistan 80 ms sonra darbe %99
@@ -483,13 +581,15 @@ def main():
     panel, parcalar = kur(darbeler)
     rapor = olc(panel)
 
-    print('\n%-14s %9s %8s %8s' % ('yazi kutusu', 'en dusuk', 'delik', 'en isik'))
+    print('\n%-14s %9s %8s %10s  %s'
+          % ('yazi kutusu', 'en dusuk', 'delik', 'kontrast', 'yazi rengi'))
     kalan = 0
     for r in rapor:
-        tamam = r['dusuk'] >= TABAN and r['isik'] <= ISIK_TAVAN
+        tamam = r['dusuk'] >= TABAN and r['kontrast'] >= KONTRAST_TABAN
         kalan += 0 if tamam else 1
-        print('%-14s %8.0f%% %7.2f%% %8.2f   %s'
-              % (r['ad'], r['dusuk'] * 100, r['delik'] * 100, r['isik'],
+        print('%-14s %8.0f%% %7.2f%% %8.2f:1  #%02x%02x%02x  %s'
+              % (r['ad'], r['dusuk'] * 100, r['delik'] * 100, r['kontrast'],
+                 r['yazi'][0], r['yazi'][1], r['yazi'][2],
                  'tamam' if tamam else 'KALDI'))
 
     ic_oran, ic_kutu = ic_kontrol(panel)
