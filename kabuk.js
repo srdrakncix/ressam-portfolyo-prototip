@@ -9,7 +9,6 @@
      sayfa   'mekan' | 'sergi'   — menü hangi sayfada olduğunu bilsin diye
      git     (route) => {}       — bir menü satırına tıklanınca ne olacak
      yenile  () => {}            — dil değişince sayfa kendini yeniden çizsin
-     oniz    (route, hemen) => {} | yok — menüdeki karşılık sütunu (mekâna özel)
 
    Neden ortak dosya: galeri "başka bir site" gibi durmasın diye iki sayfa
    aynı kabuğu paylaşıyor. Kopyalanmış olsalardı biri değişip öteki kalırdı;
@@ -17,7 +16,9 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 const KABUK = window.KABUK || {};
-const kOniz = (r, hemen) => { if (KABUK.oniz) KABUK.oniz(r, hemen); };
+/* Menudeki karsilik sutunu kabugun kendi isi: iki sayfada da ayni menu
+   dursun diye buraya tasindi. */
+const kOniz = (r, hemen) => { if (hemen) onizSon = '\u0000'; onizYaz(r, hemen); };
 
 /* ── dil ─────────────────────────────────────────────────────────────────── */
 
@@ -89,6 +90,104 @@ function paintBurger(src) {
   document.querySelectorAll('#menubtn i').forEach((el) => {
     el.style.backgroundImage = 'url(' + src + ')';
   });
+}
+
+/* == KARSILIK SUTUNU =======================================================
+   Vitrin degil: her satirin turune gore karsiligini gosteriyor. Seri
+   satirinda o serinin eseri, Sergiler'de surmekte olan sergi, Iletisim'de
+   atolye satiri. 13 satirin 7'si metin sayfasi; saf vitrin yapilsaydi o
+   yedisinde bos kalirdi, saf metin yapilsaydi ressamin isi menude hic
+   gorunmezdi. */
+const monEl = () => document.getElementById('mon');
+
+function kisalt(x, n) {
+  const t = String(x || '');
+  return t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : t;
+}
+
+function seriEserleri(key) { return SITE.works.filter((w) => w.series === key); }
+/* Menü önizlemesi: sergi karesi olan eserlerin en yenisi. Yalnızca yıla
+   bakılırken, sergi karesi olmayan bir kayıt hep öne çıkıyordu. */
+function yeniEser() {
+  const sirali = SITE.works.slice().sort((a, b) => b.year - a.year);
+  return sirali.find((w) => w.ortam) || sirali[0];
+}
+
+function onizlemeIcin(route) {
+  const cv = (L().cv || SITE.cv || []);
+  const yay = (L().publications || SITE.publications || []);
+  const bas = (L().press || SITE.press || []);
+  const yillar = SITE.works.map((w) => w.year);
+  const aralik = Math.min(...yillar) + ' — ' + Math.max(...yillar);
+
+  if (!route) {
+    return { ust: SITE.artist.mark, ad: SITE.artist.name,
+             alt: SITE.works.length + ' eser · ' + SITE.series.length + ' seri · ' + aralik,
+             img: yeniEser() };
+  }
+  if (route === '/galeri') {
+    return { ust: t('gal_label'), ad: t('gal_title'), alt: kisalt(t('gal_sub'), 150), img: yeniEser() };
+  }
+  if (route === '/son') {
+    return { ust: t('nav_recent'), ad: SITE.works.length + ' eser · ' + SITE.series.length + ' seri',
+             alt: aralik + ' · ' + t('medium'), img: yeniEser() };
+  }
+  const m = route.match(/^\/seri\/(.+)$/);
+  if (m) {
+    const key = m[1];
+    const base = K.seriesOf(key) || {};
+    const cev = (L().series || {})[key] || base;
+    const es = seriEserleri(key);
+    return { ust: es.length + ' eser · ' + (base.years || ''), ad: cev.title || base.title,
+             alt: kisalt(cev.blurb || base.blurb, 160), img: es[0] };
+  }
+  if (route === '/atolye')    return { ust: t('nav_studio'),  ad: kisalt((L().statement || SITE.statement || [''])[0], 62),
+                                       alt: kisalt((L().statement || SITE.statement || ['', ''])[1] || '', 150) };
+  if (route === '/biyografi') return { ust: t('nav_bio'), ad: SITE.artist.name,
+                                       alt: kisalt((L().bio || SITE.bio || [''])[0], 165) };
+  if (route === '/sergiler' && cv[0])
+    return { ust: t('nav_exh') + ' · ' + cv[0][0], ad: cv[0][1], alt: cv[0][2] };
+  if (route === '/koleksiyon') {
+    const k = SITE.works.filter((w) => w.status === 'koleksiyonda').length;
+    const kl = (L().collections || SITE.collections || []);
+    return { ust: t('nav_coll'), ad: k + ' / ' + SITE.works.length, alt: kisalt(kl.slice(0, 3).join(' · '), 150) };
+  }
+  if (route === '/yayinlar' && yay[0])
+    return { ust: t('nav_pub') + ' · ' + yay[0][0], ad: yay[0][1], alt: yay[0][2] };
+  if (route === '/basin' && bas[0])
+    return { ust: t('nav_press') + ' · ' + bas[0][0], ad: bas[0][1], alt: bas[0][2] };
+  if (route === '/iletisim')
+    return { ust: t('nav_contact'), ad: SITE.artist.email, alt: SITE.artist.studio };
+  return { ust: SITE.artist.mark, ad: SITE.artist.name, alt: '', img: yeniEser() };
+}
+
+let onizSon = '\u0000';
+/* Telefonda karşılık sütunu hiç gösterilmiyor. Gizli bir <img>'e src yazmak
+   tarayıcıya o görseli yine de indirtiyor — mobil bağlantıda bedava yük. */
+const onizVarMi = () => !matchMedia('(max-width: 760px)').matches;
+
+function onizYaz(route, hemen) {
+  const mon = monEl();
+  if (!mon || !onizVarMi() || route === onizSon) return;
+  onizSon = route;
+  const d = onizlemeIcin(route);
+  /* Menu acilirken ilk yazim beklemesin: solma gecikmesi orada bosluk
+     olarak goruluyordu. Capraz gecis yalniz satirdan satira gecerken. */
+  const yaz = () => {
+    const img = document.getElementById('mon-img');
+    // Önizlemede de asıl kare sergi duvarı.
+    if (d.img) { img.hidden = false; img.src = d.img.ortam || d.img.src;
+                 img.alt = d.img.title; }
+    else { img.hidden = true; img.removeAttribute('src'); }
+    mon.classList.toggle('yazi-only', !d.img);
+    document.getElementById('mon-ust').textContent = d.ust || '';
+    document.getElementById('mon-ad').textContent = d.ad || '';
+    document.getElementById('mon-alt').textContent = d.alt || '';
+    mon.classList.remove('degisiyor');
+  };
+  if (hemen) return yaz();
+  mon.classList.add('degisiyor');
+  setTimeout(yaz, 170);
 }
 
 /* ── menü ────────────────────────────────────────────────────────────────── */
