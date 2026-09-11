@@ -644,8 +644,22 @@ function arkaPlanDondur(kapat, haric) {
      kendilerini inert etmemeleri gerekiyor. */
   if (haric) birak.add(haric);
   Array.prototype.forEach.call(document.body.children, (el) => {
-    if (birak.has(el) || el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return;
-    el.toggleAttribute('inert', !!kapat);
+    if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return;
+    /* Muaf oge ATLANMIYOR, inert'i DUSURULUYOR. Onceki hali `return`
+       ediyordu ve gercek akista yakinlastirma katmanini olduruyordu:
+       karta tiklaninca #detay aciliyor ve govdenin butun cocuklarini
+       inert ediyor (#zoom dahil); sonra gorsele tiklaninca zoomAc
+       #zoom'u muaf listesine koyuyor, dongu onu ATLIYOR ve daha once
+       aldigi inert hic silinmiyor. Sonuc: katman ekranda kusursuz
+       gorunuyor ama surukleme, tekerlek, pinch, cift tik ve kapatma
+       dugmesi CALISMIYOR ([inert]{pointer-events:none}), ekran okuyucu
+       agacinda da yok. Tek cikis Escape'ti (o window'da yakalama
+       fazinda oldugu icin hayatta kalmis).
+       Kendi testlerim bunu kacirdi: dispatchEvent ile gonderilen
+       sentetik olaylar pointer-events:none'i ATLIYOR ve dinleyiciyi
+       yine calistiriyor. Yani "kod dogru" olcumu "kullanici yapabilir"
+       demiyor -- isabet denetimi elementFromPoint ile yapilmali. */
+    el.toggleAttribute('inert', !!kapat && !birak.has(el));
   });
 }
 /* Sayfa tarafina aciliyor. KABUK nesnesi SAYFADAN kabuga dogru bilgi
