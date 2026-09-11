@@ -36,8 +36,7 @@ UI = {
         'hero_alt': 'Sekiz eser bir sergi salonunda, duvarlara asili.',
         'gal_label': 'Katalog',
         'gal_title': 'Bütün eserler',
-        'gal_sub': 'Her eser bir sergi duvarında asılı. '
-                    'Bir esere tıklayınca tam ekran açılır.',
+        'gal_sub': 'Bir esere tıklayınca tam ekran açılır.',
         'gal_soon': 'Bu bölüm yapım aşamasında.',
         'nav_recent': 'Son Resimler',
         'nav_studio': 'Atölye Notu',
@@ -90,8 +89,7 @@ UI = {
         'hero_alt': 'Eight paintings hung together in a gallery room.',
         'gal_label': 'Catalogue',
         'gal_title': 'All works',
-        'gal_sub': 'Each work hangs on a gallery wall. '
-                    'Click a work to open it full screen.',
+        'gal_sub': 'Click a work to open it full screen.',
         'gal_soon': 'This section is under construction.',
         'nav_recent': 'Recent Paintings',
         'nav_studio': 'Studio Note',
@@ -144,8 +142,7 @@ UI = {
                     " salle d'exposition.",
         'gal_label': 'Catalogue',
         'gal_title': 'Toutes les œuvres',
-        'gal_sub': 'Chaque œuvre est accrochée au mur d’une galerie. '
-                    'Cliquez sur une œuvre pour l’ouvrir en plein écran.',
+        'gal_sub': 'Cliquez sur une œuvre pour l’ouvrir en plein écran.',
         'gal_soon': 'Cette section est en cours de construction.',
         'nav_recent': 'Peintures récentes',
         'nav_studio': 'Note d’atelier',

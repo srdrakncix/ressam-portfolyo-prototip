@@ -194,13 +194,30 @@ a { color: inherit; }
   transition: transform 620ms var(--ease), box-shadow 620ms var(--ease),
               opacity 620ms var(--ease);
 }
-/* Odasi olan eserde asil kare SERGI karesi; tuvalin kendisi imlecle
-   geliyor. Odasi olmayan eserde tuval eskisi gibi duruyor - yoksa kart
-   bombos kalirdi. */
-.kart.var-ortam .tuval { opacity: 0; }
-@media (hover: hover) { .kart.var-ortam:hover .tuval { opacity: 1; } }
+
+/* OLCU YOKKEN gercek-olcu sistemi devre disi: eser kareyi doldurur.
+   Sebep olculdu -- kunyede olcu olmadigi icin derleme her esere nominal
+   bir cm degeri turetiyor ve hepsi 120'de tavanlaniyor. Sistem "en
+   buyuk eser 120 cm YUKSEK olabilir" diye yer ayiriyor ama hicbiri
+   degil, dolayisiyla 120x90'lik bir eser karenin ancak %58'ini
+   kapliyordu. Yani olcu karsilastirmasi hicbir sey karsilastirmiyor,
+   yalnizca eseri kucultuyordu; oda kurgusu bunu gizliyordu.
+   Gercek olculer gelince `olcusuz` sinifi dusuyor ve karsilastirma
+   kendiliginden geri geliyor. */
+.kart.olcusuz .tuval {
+  width: auto; height: auto;
+  max-width: 92%; max-height: 92%;
+}
+/* Asil ve TEK goruntu eserin kendisi. Once oda kurgusu asildi ve
+   tuval imlecle geliyordu; iki sebeple kaldirildi:
+   - Musteri duz tablo istedi.
+   - `hover: hover` kapisi yuzunden dokunmatik cihazda duz eser izgarada
+     HIC gorunmuyordu, yani ziyaretcilerin cogu galeri sayfasinda eserin
+     kendisini hic gormuyordu. Ustelik kurgularda eser karenin ancak
+     %25-45'ini kapliyordu.
+   Imlec artik yalnizca kagittan kaldiriyor -- her eserde ayni. */
 @media (hover: hover) {
-  .kart:not(.var-ortam):hover .tuval {
+  .kart:hover .tuval {
     transform: translateY(-3px);
     box-shadow: 0 2px 4px rgba(30,26,18,.18), 0 26px 44px -16px rgba(30,26,18,.40);
   }
@@ -215,16 +232,9 @@ a { color: inherit; }
    — yani maketin BÜTÜN anlamı olan oda bağlamı — kadrajın dışında kalıyor,
    geriye eseri dolduran bir yakın plan kalıyordu. contain her oranı
    olduğu gibi gösteriyor; artan yer zaten alanın kendi grisi. */
-.ortam {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  /* cover, contain DEGIL: sergi kareleri artik tek ve ayni oranda
-     (16:9) geliyor ve eser her birinde ortada. contain birakinca
-     kartlarin alti ustu gri bantla dolup izgara mektup kutusuna
-     donuyordu. cover yanlardan kirpiyor, eser kadrajda kaliyor. */
-  object-fit: cover; opacity: 1; pointer-events: none;
-  transition: opacity 620ms var(--ease);
-}
-@media (hover: hover) { .kart:hover .ortam { opacity: 0; } }
+/* .ortam kurallari KALDIRILDI: galeri izgarasi artik oda kurgusu
+   basmiyor, eserin kendisini basiyor. Varliklar duruyor -- ana
+   sayfadaki giris karti ve paylasim gorseli hala onlari kullaniyor. */
 
 /* künye — Zwirner mantığı: ad ve yıl bir satır, sonra teknik, sonra ölçü */
 .kunye { padding-top: 16px; }
@@ -501,7 +511,9 @@ function kartlariKur() {
   izgara.innerHTML = '';
   WORKS.forEach((w) => {
     const a = document.createElement('a');
-    a.className = w.ortam ? 'kart var-ortam' : 'kart';
+    /* Kunyede gercek olcu yoksa gercek-olcu cizimi anlamsiz: nominal
+       cm degerleri uydurma ve hepsi ayni tavanda. */
+    a.className = w.size ? 'kart' : 'kart olcusuz';
     a.href = '#/eser/' + encodeURIComponent(w.slug);
     a.dataset.slug = w.slug;
     a.dataset.seri = w.series;
@@ -510,9 +522,11 @@ function kartlariKur() {
     a.style.setProperty('--ch', w.ch);
     a.innerHTML =
       '<div class="alan">' +
-        '<img class="tuval" src="' + w.src + '" alt="" loading="lazy" ' +
+        /* alt metni BOS DEGIL: izgaradaki 16 gorselin hicbirinde alt
+           metni yoktu. Bagimsiz okunabilir olsun diye eser adi. */
+        '<img class="tuval" src="' + w.src + '" alt="' +
+             w.title.replace(/"/g, '&quot;') + '" loading="lazy" ' +
              'style="background:' + (w.tone || '#e6e3dc') + '">' +
-        (w.ortam ? '<img class="ortam" src="' + w.ortam + '" alt="" loading="lazy">' : '') +
       '</div><div class="kunye"></div>';
     a.addEventListener('click', (e) => {
       e.preventDefault();
@@ -604,7 +618,9 @@ function ac(idx) {
   const seriAd = ((L().series || {})[w.series] || K.seriesOf(w.series) || {}).title || '';
 
   buyuk.style.opacity = '0';
-  buyuk.src = w.ortam || w.src;
+  /* Duz eser. Once oda kurgusu aciliyordu ve eser karenin kucuk bir
+     parcasi kaliyordu; detay gorunumunun isi eseri gostermek. */
+  buyuk.src = w.src;
   buyuk.alt = w.title + ', ' + w.year;
   requestAnimationFrame(() => { buyuk.style.opacity = ''; });
 
@@ -621,11 +637,10 @@ function ac(idx) {
     (not ? '<div class="not">“' + not + '”</div>' : '') +
     (w.status ? '<div class="durum">' + durumMetni(w.status) + '</div>' : '');
 
-  /* Once sergi karesi: sitenin ana gorseli o. Eserin duz reproduksiyonu
-     hemen yaninda, tek tikla. */
-  const kareler = w.ortam
-    ? [{ src: w.ortam, ad: t('kare_ortam') }, { src: w.src, ad: t('kare_eser') }]
-    : [{ src: w.src, ad: t('kare_eser') }];
+  /* Tek kare: eserin kendisi. Sergi karesi sekmesi kaldirildi.
+     kareler.length < 2 oldugu icin sekme cubugu kendiliginden bos
+     kaliyor -- asagidaki satir zaten bunu yapiyor. */
+  const kareler = [{ src: w.src, ad: t('kare_eser') }];
   karelerEl.innerHTML = kareler.length < 2 ? '' : kareler.map((k, i) =>
     '<button type="button" data-src="' + k.src + '" aria-current="' + (i === 0) + '">' +
     '<img src="' + k.src + '" alt=""><span>' + k.ad + '</span></button>').join('');
@@ -766,7 +781,10 @@ function dilUygula() {
   $('#kapat').textContent = t('gal_close');
   $('#lede h1').textContent = t('gal_works');
   $('#lede .alt').textContent = t('gal_sub');
-  $('#notlar').textContent = WORKS.some((w) => w.ortam) ? t('gal_room') : '';
+  /* "Uzerine gelin: eserin kendisi." notu kaldirildi: izgara artik
+     zaten eserin kendisini basiyor, yani talimat yanlis olurdu.
+     (Dokunmatikte de bastan beri anlamsizdi.) */
+  $('#notlar').textContent = '';
 
   document.querySelectorAll('.onceki, .sonraki').forEach((b) => {
     const geri = b.classList.contains('onceki');
