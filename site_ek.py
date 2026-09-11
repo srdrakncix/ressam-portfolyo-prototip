@@ -35,7 +35,7 @@ im.save(os.path.join(SITE, 'apple-touch-icon.png'))
 open(os.path.join(SITE, 'robots.txt'), 'w', encoding='utf-8').write(
     'User-agent: *\nAllow: /\nDisallow: /panel/\n\nSitemap: %ssitemap.xml\n' % KOK)
 
-SAYFALAR = [('', '1.0'), ('mekan.html', '0.9'), ('sergi.html', '0.8')]
+SAYFALAR = [('', '1.0'), ('galeri/', '0.8')]
 sm = ['<?xml version="1.0" encoding="UTF-8"?>',
       '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
 for yol, oncelik in SAYFALAR:
@@ -43,6 +43,7 @@ for yol, oncelik in SAYFALAR:
            '    <priority>%s</priority>' % oncelik, '  </url>']
 sm.append('</urlset>')
 open(os.path.join(SITE, 'sitemap.xml'), 'w', encoding='utf-8').write('\n'.join(sm) + '\n')
+
 
 # 404 — sitenin sade sayfasının diliyle, üç dilde tek satır
 open(os.path.join(SITE, '404.html'), 'w', encoding='utf-8').write('''<!doctype html>

@@ -24,11 +24,18 @@ except Exception:
 KOK = os.path.dirname(os.path.abspath(__file__))
 CIKTI = os.path.join(KOK, 'site')
 
+# Kok adres SECILEN tasarimi verir. Eskiden duz.html index.html olarak
+# yaziliyordu, yani adresi acan herkes PARKTA duran surumu goruyordu;
+# gelistirdigimiz sayfa mekan.html'de duruyordu ve kimse oraya ugramiyordu.
+# Adreste sayfa adi gorunmesin: musterinin kafasi karismasin diye
+# yayinlanan sayfa iki tane ve ikisi de "temiz" adres.
+#   /         ana sayfa
+#   /galeri/  sergi duvari
+# duz.html (parktaki duz surum) ve salon.html (parktaki 3B salon) yayindan
+# cikarildi; ikisine de hicbir yerden baglanti yoktu. Kaynaklari depoda.
 SAYFALAR = [
-    ('duz.html',   'index.html'),
-    ('mekan.html', 'mekan.html'),
-    ('sergi.html', 'sergi.html'),
-    ('salon-sablon.html', 'salon.html'),
+    ('mekan.html', 'index.html'),
+    ('sergi.html', os.path.join('galeri', 'index.html')),
 ]
 
 
@@ -59,7 +66,33 @@ def main():
 
     # 1) sayfalar (build.py assets/ icine eser gorsellerini de yaziyor)
     for sablon, hedef in SAYFALAR:
-        print(calistir('build.py', sablon, os.path.join('site', hedef), '--standalone'))
+        cikis = os.path.join('site', hedef)
+        os.makedirs(os.path.dirname(os.path.join(KOK, cikis)), exist_ok=True)
+        print(calistir('build.py', sablon, cikis, '--standalone'))
+        # Alt dizindeki sayfanin goreli yollari bir ust dizine bakmali.
+        # Sessiz kalirsa galeri sayfasi butun gorsellerini kaybeder ve bunu
+        # yalnizca tarayicida gorursun -- derleme uyarmaz.
+        derinlik = hedef.replace(chr(92), '/').count('/')
+        if derinlik:
+            ust = '../' * derinlik
+            yol = os.path.join(KOK, cikis)
+            s = io.open(yol, encoding='utf-8').read()
+            once = s
+            for ham in ('assets/', 'favicon.svg', 'apple-touch-icon.png'):
+                s = s.replace('"' + ham, '"' + ust + ham)
+                s = s.replace("'" + ham, "'" + ust + ham)
+                s = s.replace('(' + ham, '(' + ust + ham)
+            s = s.replace('href="./"', 'href="' + ust + '"')
+            s = s.replace("location.href = './#'", "location.href = '" + ust + "#'")
+            if s == once:
+                raise SystemExit('HATA: %s icinde duzeltilecek goreli yol '
+                                 'bulunamadi' % hedef)
+            io.open(yol, 'w', encoding='utf-8').write(s)
+            # build.py varliklari ciktinin YANINA yaziyor; yollar bir ust
+            # dizine cevrildigi icin o kopya artik olu. 1.1 MB'lik ikiz.
+            ikiz = os.path.join(os.path.dirname(yol), 'assets')
+            if os.path.isdir(ikiz):
+                shutil.rmtree(ikiz, ignore_errors=True)
 
     # 2) sabit varliklar: cerceve, duvar, zemin dokulari ve kagit
     #    Bunlar bir kez uretilip depoya alindi (duvar.py, kagit.py, _cerceve.py).

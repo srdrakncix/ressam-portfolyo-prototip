@@ -830,7 +830,7 @@ async function sayfaDamgasi() {
     if (y.ok) return (await y.json()).zaman || '';
   } catch (e) { /* eski yayinda bu dosya yok; asagi dus */ }
   try {
-    const y = await fetch('../sergi.html' + t, { method: 'HEAD', cache: 'no-store' });
+    const y = await fetch('../galeri/' + t, { method: 'HEAD', cache: 'no-store' });
     if (y.ok) return y.headers.get('etag') || y.headers.get('last-modified') || '';
   } catch (e) { /* yerelde acilmis olabilir */ }
   return '';
@@ -850,11 +850,11 @@ async function yayiniIzle(onceki, slug, baslik, dugmeGoster) {
     const simdi = await sayfaDamgasi();
     if (simdi && simdi !== onceki) {
       const nerede = slug
-        ? ' <a href="' + SITE + '/sergi.html#/eser/' + encodeURIComponent(slug) +
+        ? ' <a href="' + SITE + '/galeri/#/eser/' + encodeURIComponent(slug) +
           '" target="_blank" rel="noopener">Duvarda gör</a> · ' +
-          '<a href="' + SITE + '/mekan.html#/eser/' + encodeURIComponent(slug) +
+          '<a href="' + SITE + '/#/eser/' + encodeURIComponent(slug) +
           '" target="_blank" rel="noopener">eser sayfası</a>'
-        : ' <a href="' + SITE + '/sergi.html" target="_blank" rel="noopener">Sergi duvarını aç</a>';
+        : ' <a href="' + SITE + '/galeri/" target="_blank" rel="noopener">Sergi duvarını aç</a>';
       bilgiYaz('<b>Yayında.</b> ' + kacir(baslik) + ' sitede.' + nerede);
       if (dugmeGoster) bitisDugmesi();
       await yayindakileriOku();     // rozetler tazelensin
