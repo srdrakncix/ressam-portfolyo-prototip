@@ -713,7 +713,10 @@ function ac(idx) {
   /* Duz eser. Once oda kurgusu aciliyordu ve eser karenin kucuk bir
      parcasi kaliyordu; detay gorunumunun isi eseri gostermek. */
   buyuk.src = w.src;
-  buyuk.alt = w.title + ', ' + w.year;
+  /* Yil 0 iken alt metne basilmiyordu -- basiliyordu: ekran okuyucu
+     "Eser 1, sifir" diyordu. Kod her yerde bu korumayi yapiyor
+     (kunye, dl, duyuru), tek istisna burasiydi. */
+  buyuk.alt = [w.title, w.year || null].filter(Boolean).join(', ');
   requestAnimationFrame(() => { buyuk.style.opacity = ''; });
 
   kunyeEl.innerHTML =
@@ -907,9 +910,15 @@ buyuk.addEventListener('keydown', (e) => {
 });
 
 $('#zkapat').addEventListener('click', zoomKapat);
-/* Arka plana tiklamak kapatir; gorselin kendisi kapatmaz (surukleme
-   bittiginde de click atesleniyor, yoksa her gezinme kapatirdi). */
-zkat.addEventListener('click', (e) => { if (e.target === zkat) zoomKapat(); });
+/* Arka plana tiklamak kapatir -- ama SURUKLEME sonrasi tik yutuluyor.
+   Olculdu: karanlik zeminde baslayan bir surukleme bitince #zoom'a
+   click gidiyor ve katman kapaniyordu; 390 px'te o zemin ekranin
+   %42'si, yani gezinmek isteyen kullanici sik sik disari atiliyordu. */
+let sonKaydi = false;
+zkat.addEventListener('click', (e) => {
+  if (sonKaydi) return;                      /* okur, tuketmez */
+  if (e.target === zkat) zoomKapat();
+});
 
 /* tekerlek: imlece gore olcek */
 zkat.addEventListener('wheel', (e) => {
@@ -931,7 +940,12 @@ let jest = null;                 /* o anki gezinme/olcek baslangici */
 function jestKur() {
   const p = [...isaretci.values()];
   if (p.length === 1) {
-    jest = { tip: 'gez', x: p[0].x, y: p[0].y, zx: zx, zy: zy };
+    /* kaydi: bu jestte gercekten gezinildi mi. Cift-tik dedektoru bunu
+       sormak zorunda -- yoksa yakinlastirmis durumda iki ardisik
+       surukleme "cift tik" sayiliyor ve olcek 1x'e sifirlaniyor
+       (olculdu: 1.93x'te 200 ms arayla iki pan -> scale(1)). */
+    jest = { tip: 'gez', x: p[0].x, y: p[0].y, zx: zx, zy: zy,
+             kaydi: false };
   } else if (p.length >= 2) {
     const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
     jest = { tip: 'olcek', d: d || 1, o: zOlcek,
@@ -943,9 +957,16 @@ function jestKur() {
 
 zkat.addEventListener('pointerdown', (e) => {
   if (e.pointerType === 'mouse' && e.button !== 0) return;
+  /* Bayrak HER YENI JESTTE sifirlaniyor; tuketiciler (pointerup ve
+     click) yalniz OKUYOR. Onceden cift-tik dinleyicisi bayragi
+     sifirliyordu ve hemen ardindan gelen click onu goremeyip katmani
+     kapatiyordu -- yani surukleme korumasi kendi kendini yiyordu. */
+  sonKaydi = false;
   isaretci.set(e.pointerId, { x: e.clientX, y: e.clientY });
   jestKur();
-  zkat.setPointerCapture(e.pointerId);
+  /* Sentetik olaylarda ve bazi tarayicilarda istisna atiyor; dinleyici
+     yarida kesilmesin. */
+  try { zkat.setPointerCapture(e.pointerId); } catch (err) {}
 });
 
 zkat.addEventListener('pointermove', (e) => {
@@ -954,8 +975,10 @@ zkat.addEventListener('pointermove', (e) => {
   const p = [...isaretci.values()];
 
   if (jest.tip === 'gez' && p.length === 1) {
-    zx = jest.zx + (p[0].x - jest.x);
-    zy = jest.zy + (p[0].y - jest.y);
+    const dx = p[0].x - jest.x, dy = p[0].y - jest.y;
+    if (Math.abs(dx) + Math.abs(dy) > 6) { jest.kaydi = true; sonKaydi = true; }
+    zx = jest.zx + dx;
+    zy = jest.zy + dy;
     zKelepce(); zYaz(false);
   } else if (jest.tip === 'olcek' && p.length >= 2) {
     const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
@@ -974,15 +997,22 @@ function isaretciBirak(e) {
 zkat.addEventListener('pointerup', isaretciBirak);
 zkat.addEventListener('pointercancel', isaretciBirak);
 
-/* Cift dokunma / cift tik: 1x <-> 2.6x. Tek islev, iki girdi tipi. */
-let zSonTik = 0;
+/* Cift dokunma / cift tik: 1x <-> 2.6x. Tek islev, iki girdi tipi.
+   UC kosul birlikte: jest sirasinda gezinilmemis olmali, iki tik 340 ms
+   icinde olmali ve aralarindaki mesafe 30 px'i gecmemeli. Onceden
+   yalnizca sure vardi ve her pointerup zamani yaziyordu: tabloyu
+   gezerken dogal olan "surukle-surukle" hareketi cift tik sayilip
+   kullaniciyi sigdirma haline firlatiyordu. */
+let zSonTik = 0, zSonX = 0, zSonY = 0;
 zkat.addEventListener('pointerup', (e) => {
   if (isaretci.size) return;                 /* cok parmak: jest bitiyor */
+  if (sonKaydi) { zSonTik = 0; return; }      /* okur, tuketmez */
   const simdi = e.timeStamp;
-  if (simdi - zSonTik < 340) {
+  const yakin = Math.abs(e.clientX - zSonX) + Math.abs(e.clientY - zSonY) < 30;
+  if (simdi - zSonTik < 340 && yakin) {
     zOlcekle(zOlcek > 1.05 ? 1 : CIFT_KAT, e.clientX, e.clientY, true);
     zSonTik = 0;
-  } else zSonTik = simdi;
+  } else { zSonTik = simdi; zSonX = e.clientX; zSonY = e.clientY; }
 });
 
 /* Klavye: YALNIZ Escape. Ok tuslari ve +/- kisayollari kaldirildi --
@@ -1030,6 +1060,11 @@ $('.sonraki').addEventListener('click', () => git(1));
 addEventListener('keydown', (e) => {
   if (acikIdx < 0) return;
   if (e.key === 'Escape') kapat();
+  /* Zoom katmani acikken oklar SUSMALI. inert yalniz isaretci ve
+     odagi kesiyor, klavye olaylarini kesmiyor: olay #zkapat'tan
+     window'a baloncuklaniyordu ve sag ok alttaki eseri degistirip zoom
+     katmanini zorla kapatiyor, kaydirma kilidini de biraktiriyordu. */
+  if (!zkat.hidden) return;
   if (e.key === 'ArrowLeft') git(-1);
   if (e.key === 'ArrowRight') git(1);
 });

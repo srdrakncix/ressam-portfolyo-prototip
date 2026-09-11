@@ -469,7 +469,12 @@ function kagidiKacir() {
      390 px'te hesap 0.463, 360'ta 0.39 veriyor. 0.36 ikisini de serbest
      birakiyor; 320 px gibi uc dar ekranda yine kelepceliyor ve orada
      kurtulmadan vazgeciliyor -- tasmamak pazarlik disi, kurtulmak degil. */
-  const enAz = A === 0 ? 0.40 : (dar ? 0.36 : 0.72), enCok = 0.94;
+  /* A===0 dali `dar`i SORMUYORDU: hareketsiz telefon tabani 0.40,
+     hareketli telefon tabani 0.36 idi -- tam tersi olmali, cunku donme
+     kapaliyken cos(38) daralma kazanci da yok. Olculdu: hareket
+     azaltmali 390 px'te boya icerige 13.4 px biniyordu. */
+  const enAz = A === 0 ? (dar ? 0.24 : 0.40) : (dar ? 0.36 : 0.72),
+        enCok = 0.94;
   const hedefSol = menuSag + bosluk;
   const sagSinir = window.innerWidth - sagPay;
   const sagYerli = sol + en;              /* dönüşümsüz sağ kenar = menteşe */

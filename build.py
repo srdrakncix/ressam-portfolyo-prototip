@@ -411,7 +411,19 @@ def render(tpl_path, data, standalone):
                 break
         if not varmi:
             sys.exit('HATA: paylasim gorseli kaynakta yok -> %s' % temel)
-        tam = kok_url + '/' + yol
+        # Varlik yolu SITE KOKUNE gore mutlak olmali. Onceden sayfanin
+        # kendi canonical'i kullaniliyordu ve alt dizindeki sayfa
+        # /galeri/assets/... uretip 404 veriyordu (olculdu, canlida).
+        # Site koku ana sablonun canonical'i: derlenirken index.html
+        # oluyor, yani tanimi geregi kok.
+        ana = os.path.join(HERE, 'mekan.html')
+        am = re.search(r'<link rel="canonical" href="([^"]+)"',
+                       io.open(ana, encoding='utf-8').read()) \
+            if os.path.isfile(ana) else None
+        if not am:
+            sys.exit('HATA: mekan.html canonical yok, site koku bulunamadi.')
+        site_kok = am.group(1).rstrip('/')
+        tam = site_kok + '/' + yol
         out = out.replace('__OG_GORSEL__', tam)
         out = out.replace(
             '<meta property="og:image" content="%s">' % tam,
