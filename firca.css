@@ -5,15 +5,19 @@
   --darbe: 9;        /* kabuk.js kac <i> uretecegini buradan okuyor */
   --tasma-oran: 0.2933; /* olculdu: gorunur boya kutunun %29.3'i kadar tasiyor */
 }
-:root { --satir-doygunluk: 0.40; --satir-parlaklik: 0.90; --satir-adim: 0.015; }
+:root { --satir-doygunluk: 0.40; --satir-parlaklik: 0.20; --satir-adim: 0.015; }
 :root {
-  --m-dil: #e2d8d0;
-  --m-dil-aktif: #f8f4ee;
-  --m-grup: #e9e0d8;
-  --m-oniz-alt: #ece6dc;
-  --m-oniz-ust: #e7d8be;
-  --panel-taban: #633e36;
-  --m-kapat-cizgi: #482c29;
+  --m-dil: #605046;
+  --m-dil-aktif: #281f1a;
+  --m-grup: #5c4c42;
+  --m-kapat: #2e241f;
+  --m-oniz-ad: #2c221d;
+  --m-oniz-alt: #443830;
+  --m-oniz-ust: #60441a;
+  --panel-taban: #f5efe3;
+  --m-cikis: #68461e;
+  --m-ozel: #624218;
+  --m-kapat-cizgi: #2e241f;
 }
 /* Yazinin altindaki opak zemin. Butun kutuyu kaplamiyor:
    yalnizca yazi bolgesi, yoksa boyanin nefes delikleri

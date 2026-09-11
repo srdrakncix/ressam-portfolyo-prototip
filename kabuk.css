@@ -299,7 +299,7 @@ html.durdur { scrollbar-gutter: stable; }
 #menu a[aria-current="page"]::before { opacity: .9; }
 #menu a.ozel {
   font-size: clamp(17px, 1rem + .42vw, 22px);
-  color: #f2dea8 !important;
+  color: var(--m-ozel, #624218) !important;
   padding-block: 11px; margin-bottom: 2px;
 }
 #menu a.ozel::after {
@@ -309,12 +309,13 @@ html.durdur { scrollbar-gutter: stable; }
 @media (hover: hover) {
   #menu a.ozel:hover::after { transform: translateX(4px); }
 }
-/* Iki altin ton panele gore acildi. Olculdu: nude panelde #d9b9a0
-   3.67:1, #e8cf9a 4.45:1 veriyordu -- ikisi de WCAG AA'nin altinda.
-   (Eski kirmizi panelde de 4.10 ve ~4.4 idi, yani bu zayiflik yeni
-   degil; kaba bir parlaklik olcutu kullandigim icin gorunmuyordu.)
-   Simdi 4.89:1 ve 5.11:1. Panel aciildiysa vurgu da acilmali. */
-#menu a.cikis { color: #ecd8c4 !important; }
+/* Iki vurgu murekkebi ARTIK firca.py'den geliyor (--m-cikis / --m-ozel).
+   Buraya elle yazilmislardi ve firca.py onlari olcuyordu ama hicbir
+   yere yayinlamiyordu: yani olcum bir rengi olcerken calisan kod
+   baskasini kullaniyordu. Panel kremlenince fark ortaya cikti --
+   olculen koyu toprak gecerken ekranda hala acik altin duruyordu ve
+   krem zeminde okunmuyordu. */
+#menu a.cikis { color: var(--m-cikis, #68461e) !important; }
 #menu .sep { height: 18px; }
 #menu .grouplbl {
   font-size: var(--t-micro); letter-spacing: .14em; text-transform: uppercase;
@@ -350,7 +351,11 @@ html.durdur { scrollbar-gutter: stable; }
   font-size: var(--t-micro); letter-spacing: .16em; text-transform: uppercase;
   color: var(--m-oniz-ust, #e7d8be); margin-bottom: 7px;
 }
-#mon-ad { font-size: clamp(19px, 1.1rem + .5vw, 26px); line-height: 1.2; color: #f2ede2; margin-bottom: 6px; }
+/* Renk ELLE yazilmisti (#f2ede2) ve firca.py'nin murekkep tablosunda
+   yoktu: olcum bu kutuyu varsayilan acik griyle olcuyordu, yani
+   olculen renk ne buradakiydi ne de gercek olan. Artik tek kaynak. */
+#mon-ad { font-size: clamp(19px, 1.1rem + .5vw, 26px); line-height: 1.2;
+          color: var(--m-oniz-ad, #2c221d); margin-bottom: 6px; }
 /* Gorseli olmayan satirlarda (biyografi, basin, iletisim...) sutun bos
    kalmasin: yazi buyuyup alani kendisi tutuyor. */
 #mon.yazi-only #mon-kutu { display: none; }
@@ -458,11 +463,16 @@ html.durdur { scrollbar-gutter: stable; }
   width: 58px; height: 58px; padding: 0;
   display: grid; place-items: center;
   border: 0; border-radius: 50%; cursor: pointer;
-  background: rgba(255,255,255,.96);
-  box-shadow: 0 8px 26px rgba(0,0,0,.45);
+  /* Beyaz disk KALDIRILDI: panel krem olunca krem zemin uzerinde beyaz
+     bir daire gorunmez oluyordu. Cizgiler artik dogrudan boyanin
+     uzerinde ve koyu murekkeple yaziliyor (--m-kapat-cizgi), okunurlugu
+     firca.py'nin kapisi olcuyor. Panelin en boyasiz nesnesi de boylece
+     kalkmis oluyor. */
+  background: transparent;
   transition: transform 320ms var(--ease), background 300ms var(--ease);
 }
-#mkapat:hover { transform: scale(1.05); }
+/* Dokunma hedefi 58x58 kaliyor; imlecte hafif bir sicaklik. */
+#mkapat:hover { transform: scale(1.05); background: rgba(120,96,72,.10); }
 #mkapat i {
   position: absolute; width: 22px; height: 4px; border-radius: 1px;
   /* Üretilen mürekkebi kullanıyor: --m-kapat firca.py'de tanımlıydı ama

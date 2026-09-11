@@ -86,8 +86,11 @@ KONTRAST_TABAN = 4.5   # WCAG AA, normal boy yazi
 # Menudeki iki vurgu murekkebi: paintMenu bu iki satira renk YAZMIYOR,
 # rengi CSS'ten geliyor. Hangi satirin ozel oldugu sayfaya gore
 # degistigi icin ikisi de HER kutuda denetleniyor.
-ALTINLAR = [(236, 216, 196),   # #ecd8c4  .cikis  ('Ana sayfa')
-            (242, 222, 168)]   # #f2dea8  .ozel   (bulundugun sayfa)
+# Krem panelde vurgu KOYU olmak zorunda. Acik altin tonlari
+# (#ecd8c4 / #f2dea8) krem zeminde 1.1-1.2:1 veriyordu, yani okunmuyordu.
+# Ton korunuyor, deger tersine doniyor: yanik toprak.
+ALTINLAR = [(104, 70, 30),    # #68461e  .cikis  ('Ana sayfa')
+            (98, 66, 24)]     # #624218  .ozel   (bulundugun sayfa)
 
 # Satir olmayan kutularin murekkepleri. Bunlar eskiden siyah panel
 # donemindan kalma koyu grilerdi (#5d5d63, #6f6f76, #8d7c56) ve olcum
@@ -95,17 +98,29 @@ ALTINLAR = [(236, 216, 196),   # #ecd8c4  .cikis  ('Ana sayfa')
 # degerlendirici de okunmadiklarini gordu. Artik burada tanimli,
 # firca.css'e yaziliyor ve kabuk.css oradan okuyor.
 #
-# Panelin en acik noktasi L~0.12 oldugu icin hepsi zorunlu olarak acik.
-# Hiyerarsi koyulukla degil boy/buyuk harf/harf araligiyla kuruluyor.
+# Panel krem oldugu icin hepsi zorunlu olarak KOYU. Saf siyah degil:
+# ressam sitesinde matbaa siyahi gibi durur, kahverengi-siyah boya gibi
+# durmaz. Hiyerarsi hem degerle hem boy/buyuk harf/harf araligiyla.
+# En kotu zemin (209,199,182) uzerinde olculdu, hepsi 4.59-9.65:1.
 MUREKKEP = {
-    'grup':      (233, 224, 216),   # "SANATÇI" ara basligi
-    'dil':       (226, 216, 208),   # TR / EN / FR
-    'dil-aktif': (248, 244, 238),
-    'oniz-ust':  (231, 216, 190),   # "KATALOG" gibi kucuk etiket
-    'oniz-alt':  (236, 230, 220),
+    'grup':      (92, 76, 66),      # "SANATÇI" ara basligi   4.89:1
+    'dil':       (96, 80, 70),      # TR / EN / FR            4.59:1
+    'dil-aktif': (40, 31, 26),      #                         9.65:1
+    'oniz-ust':  (96, 68, 26),      # "KATALOG" kucuk etiket  5.37:1
+    'oniz-alt':  (68, 56, 48),      #                         6.77:1
+    # Onizleme basligi. kabuk.css'te elle #f2ede2 yaziliydi ve bu
+    # tabloda YOKTU: olcum onu varsayilan acik griyle olcuyordu, yani
+    # olculen renk ne CSS'tekiydi ne de gercekti. Artik tek kaynak.
+    'oniz-ad':   (44, 34, 29),      #                         9.22:1
+    # Kapatma dugmesi. Eskiden bu tabloda YOKTU ve olcum onu varsayilan
+    # acik gri ile olcuyordu -- yani var olmayan bir kontrolu olcuyordu.
+    # Artik gercek rengiyle olculuyor.
+    'kapat':     (46, 36, 31),      #                         9.04:1
 }
 SAT_TAVAN = 0.40
-LIG_TABAN = 0.90
+# 0.90'dan 0.20'ye: panel krem oldu, satirlar KOYU olmak zorunda.
+# En kotu hal en acik satir (taban + 6*adim) ve o bile 5.67:1 veriyor.
+LIG_TABAN = 0.20
 LIG_ADIM = 0.015
 
 SURE = 300          # bir darbenin supurme suresi (ms)
@@ -184,8 +199,15 @@ YERLESIM = [
 # mor-kahveye kaciyor, 20 ve 26 derece kahveye doniyor; nude pembe-bej
 # bir yer, kahve degil. Bes aday zemin uzerinde yan yana bakilarak
 # secildi, sayiyla degil.
-FR = [(0.00, (112, 74, 63)), (0.28, (106, 69, 59)), (0.60, (96, 60, 52)),
-      (0.85, (84, 51, 46)), (1.00, (72, 44, 41))]
+# KREM-BEYAZ. Ton 37-40 derece, isiklilik %83-96. Gecis KORUNUYOR:
+# duz tek renk bir panel karton gibi duruyor, boyanin hacmini gosteren
+# sey ustten alta koyulasan bu ince fark.
+# Olculen yan fayda: boyanin kalinlik hissi ACIK zeminde daha iyi
+# okunuyor. Koyu panelde panel ici doku sapmasi std 3-7 idi, yani
+# "kalinliktan gelen deger" alanin onda dokuzunda gorunmuyordu.
+FR = [(0.00, (252, 248, 240)), (0.28, (249, 244, 234)),
+      (0.60, (244, 237, 224)), (0.85, (236, 227, 211)),
+      (1.00, (227, 216, 198))]
 
 EGRI_LO, EGRI_HI = 14, 168   # ham yogunluk egrisi: pus sifira, cekirdek opak
 
@@ -196,6 +218,13 @@ EGRI_LO, EGRI_HI = 14, 168   # ham yogunluk egrisi: pus sifira, cekirdek opak
 # alfasi 1-2 olan uzun kuyruklar var; koyu duvarin uzerinde gozle
 # secilmiyorlar ama alfa>0 ile olculunce tasmayi 13 px sisiriyorlar ve
 # kagit bedava kucultuluyordu.
+# Icinde YAZI degil GORSEL olan kutular. Bunlarda "murekkep" diye bir
+# sey yok, dolayisiyla kontrast olcumu anlamsiz -- yalniz opaklik
+# denetlenmeli. Koyu panelde bu kutu varsayilan acik gri ile olculup
+# TESADUFEN geciyordu; panel kremlenince ayni tesadüf 1.05:1'e dondu ve
+# olcumun bastan beri var olmayan bir seyi olctugu ortaya cikti.
+GORSEL_KUTULARI = {'oniz-gorsel'}
+
 GORUNUR_ESIK = 28
 
 KENAR_BANDI = 16
@@ -639,7 +668,9 @@ def olc(panel, kutular=None, boyut=None):
         # (#d9b9a0). Hangi satirin ozel oldugu sayfaya gore degistigi
         # icin ALTIN her kutuda ayrica denetleniyor -- menudeki en sonuk
         # murekkep o, gecerse otekiler de geciyor.
-        if ad.startswith('satir'):
+        if ad in GORSEL_KUTULARI:
+            adaylar = []            # yazi yok: yalniz opaklik denetlenir
+        elif ad.startswith('satir'):
             adaylar = [s[i] for s in tum_satirlar.values()] + ALTINLAR
         else:
             # Her kutu KENDI murekkebiyle olculuyor. Eskiden hepsi icin
@@ -665,7 +696,7 @@ def olc(panel, kutular=None, boyut=None):
                 n += 1
         rapor.append({'ad': ad, 'dusuk': dusuk / 255.0,
                       'delik': altta / max(1, n), 'kontrast': en_kotu,
-                      'yazi': adaylar[0]})
+                      'yazi': adaylar[0] if adaylar else None})
     return rapor
 
 
@@ -782,10 +813,20 @@ def css_yaz(satirlar, taban=None):
     # taban da kendiliğinden degisiyor.
     orta = fr(0.5)
     p.append('  --panel-taban: #%02x%02x%02x;' % orta)
-    # Kapatma dugmesinin cizgileri BEYAZ daire uzerinde duruyor, yani
-    # koyu olmali -- MUREKKEP tablosundakiler boyanin uzerine yazilan
-    # acik murekkepler. Paletin en koyu ucundan aliniyor.
-    p.append('  --m-kapat-cizgi: #%02x%02x%02x;' % fr(1.0))
+    # Iki vurgu murekkebi. ALTINLAR olcumde kullaniliyordu ama buraya
+    # HIC YAZILMIYORDU: kabuk.css'te #f2dea8 / #ecd8c4 elle duruyordu,
+    # yani olcum bir rengi olcerken calisan kod baskasini kullaniyordu.
+    # Ayni hata sinifi ucuncu kez (once satir parlakligi, sonra dil
+    # dugmesi opakligi, simdi bu). Artik tek kaynak.
+    p.append('  --m-cikis: #%02x%02x%02x;' % ALTINLAR[0])
+    p.append('  --m-ozel: #%02x%02x%02x;' % ALTINLAR[1])
+    # Kapatma dugmesinin cizgileri. Eskiden paletin en koyu ucundan
+    # aliniyordu cunku cizgiler BEYAZ bir dairenin uzerindeydi ve palet
+    # koyuydu. Panel krem olunca ikisi de degisti: beyaz daire gorunmez
+    # oldugu icin kaldirildi, cizgiler artik dogrudan boyanin uzerinde.
+    # Yani renk paletten degil MUREKKEP tablosundan gelmeli -- ki olcum
+    # de tam olarak o rengi olcuyor.
+    p.append('  --m-kapat-cizgi: #%02x%02x%02x;' % MUREKKEP['kapat'])
     p.append('}')
     # Konum ve gorsel her zaman gecerli; ANIMASYON yalnizca menu acikken
     # tanimli. Yoksa animasyon sayfa yuklenirken kosuyor ve menu acildiginda
@@ -846,9 +887,11 @@ def main():
     for r in rapor:
         tamam = r['dusuk'] >= TABAN and r['kontrast'] >= KONTRAST_TABAN
         kalan += 0 if tamam else 1
-        print('%-14s %8.0f%% %7.2f%% %8.2f:1  #%02x%02x%02x  %s'
-              % (r['ad'], r['dusuk'] * 100, r['delik'] * 100, r['kontrast'],
-                 r['yazi'][0], r['yazi'][1], r['yazi'][2],
+        print('%-14s %8.0f%% %7.2f%% %10s  %-7s  %s'
+              % (r['ad'], r['dusuk'] * 100, r['delik'] * 100,
+                 '--' if r['yazi'] is None else '%.2f:1' % r['kontrast'],
+                 '(gorsel)' if r['yazi'] is None
+                 else '#%02x%02x%02x' % r['yazi'],
                  'tamam' if tamam else 'KALDI'))
 
     ic_oran, ic_kutu = ic_kontrol(panel, guvenli=guvenli_bolge())
