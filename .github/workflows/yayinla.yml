@@ -52,8 +52,10 @@ jobs:
           python - <<'PY'
           import json, os, sys
 
-          gerekli = ['site/index.html', 'site/mekan.html', 'site/sergi.html',
-                     'site/salon.html',
+          # Yayinlanan sayfa iki tane ve adreslerinde sayfa adi yok:
+          #   /  ve  /galeri/
+          # mekan.html / sergi.html / salon.html artik uretilmiyor.
+          gerekli = ['site/index.html', 'site/galeri/index.html',
                      'site/404.html', 'site/favicon.svg', 'site/robots.txt',
                      'site/sitemap.xml', 'site/assets/duvar/salon.webp',
                      'site/yayin.json',
@@ -76,7 +78,7 @@ jobs:
               sys.exit('GORSELI URETILMEYEN ESER: ' + ', '.join(kayip))
 
           # Sayfalar gercekten eserleri tasiyor mu? Bos bir kabuk yayinlanmasin.
-          govde = open('site/sergi.html', encoding='utf-8').read()
+          govde = open('site/galeri/index.html', encoding='utf-8').read()
           for f in kayitlar[:3]:
               k = json.load(open(os.path.join('icerik/eserler', f), encoding='utf-8'))
               if k['baslik'] not in govde:
@@ -94,8 +96,8 @@ jobs:
           python - <<'PY'
           import re, subprocess, sys, io, os
           hatali = []
-          for yol in ['site/index.html', 'site/mekan.html', 'site/sergi.html',
-                      'site/salon.html', 'site/panel/index.html']:
+          for yol in ['site/index.html', 'site/galeri/index.html',
+                      'site/panel/index.html']:
               kod = io.open(yol, encoding='utf-8').read()
               js = '\n'.join(re.findall(
                   r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', kod, re.S))
