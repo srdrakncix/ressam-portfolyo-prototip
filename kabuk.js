@@ -537,6 +537,24 @@ function kagidiKacir() {
    yetiyor; dokunmatikte pointerdown ile tik arasinda yine bir pay var.
    Tek kaynak korunuyor: liste derlemede varlik dosyalarindan uretiliyor
    (window.FIRCA_LISTE). */
+/* KAYDIRMA KILIDI SAYACLI. Onceden `durdur` sinifi tek boole idi ve
+   uc sahibi vardi (menu, isik kutusu, yakinlastirma): en ustteki katman
+   kapaninca alttaki hala acikken kilidi biraktiriyordu -- uc yoldan
+   tekrar uretildi. Sayac her sahibi kendi adiyla tutuyor. */
+const kilitSahipleri = new Set();
+window.KABUK_KILIT = {
+  al(sahip) {
+    kilitSahipleri.add(sahip);
+    document.documentElement.classList.add('durdur');
+  },
+  birak(sahip) {
+    kilitSahipleri.delete(sahip);
+    if (!kilitSahipleri.size) {
+      document.documentElement.classList.remove('durdur');
+    }
+  },
+};
+
 let fircaYuklendi = false;
 function fircayiYukle() {
   if (fircaYuklendi) return;
@@ -572,7 +590,7 @@ function openMenu() {
      kullanici menuyu kaydirirken kagit altindan kayip gidiyordu.
      Orunru sergi.html'de detay katmani icin zaten vardi, menuye
      uygulanmamisti. */
-  document.documentElement.classList.add('durdur');
+  window.KABUK_KILIT.al('menu');
   document.documentElement.classList.add('menuacik');
   kOniz(null, true);
   if (menuEl.showPopover) menuEl.showPopover();
@@ -601,7 +619,7 @@ function openMenu() {
 
    inert ikisini birden çözüyor: odak dışarı çıkmıyor ve arka içerik
    erişilebilirlik ağacından düşüyor. */
-function arkaPlanDondur(kapat) {
+function arkaPlanDondur(kapat, haric) {
   /* Sabit liste eksik kaliyordu: sergi sayfasindaki #detay (tam ekran
      eser katmani) #shell'in KARDESI ve listede yoktu; o katman acikken
      menu acilirsa odak oradaki yedi dugmeye kaciyordu. Artik govdenin
@@ -613,16 +631,23 @@ function arkaPlanDondur(kapat) {
      pointer-events kapatilabiliyor. */
   const birak = new Set([menuEl, document.getElementById('duyuru'),
                          document.getElementById('menubtn')]);
+  /* Ikinci parametre: o anda ACIK olan baska bir katman. Sergi
+     sayfasinda isik kutusu ve yakinlastirma da bu isi istiyor ve
+     kendilerini inert etmemeleri gerekiyor. */
+  if (haric) birak.add(haric);
   Array.prototype.forEach.call(document.body.children, (el) => {
     if (birak.has(el) || el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return;
     el.toggleAttribute('inert', !!kapat);
   });
 }
+/* Sayfa tarafina aciliyor. KABUK nesnesi SAYFADAN kabuga dogru bilgi
+   tasiyor; ters yon icin ayri bir ad kullaniliyor ki ikisi karismasin. */
+window.KABUK_INERT = arkaPlanDondur;
 
 /* Kapanışta yapılacak toparlama: hangi jestle kapanırsa kapansın (düğme,
    Escape, dışına tıklama) burası çalışıyor. */
 function toparla() {
-  document.documentElement.classList.remove('durdur');
+  window.KABUK_KILIT.birak('menu');
   document.documentElement.classList.remove('menuacik');
   btn.setAttribute('aria-expanded', 'false');
   arkaPlanDondur(false);

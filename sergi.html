@@ -84,10 +84,18 @@
   --kagit:    #faf9f6;   /* sayfa zemini */
   --alan:     #eceae4;   /* eserin durduğu nötr saha */
   --murekkep: #1c211a;
-  --soluk:    rgba(28,33,26,.54);
-  --silik:    rgba(28,33,26,.40);
+  /* Olculdu (gercek hesaplanmis renkler, gercek opak zeminler):
+     --soluk .54 ile 3.63:1, --silik .40 ile ~2.40:1, kunye etiketleri
+     .46 ile 2.88:1 -- alti ayri yerde WCAG AA'nin (4.5:1) altinda.
+     firca.py'nin kapisi yalniz MENU murekkeplerini olcuyor, beyaz
+     kagidin ustundeki hicbir metin kapsaminda degil, o yuzden gozden
+     kacmisti. Yeni degerler AA'yi geciyor. */
+  --soluk:    rgba(28,33,26,.68);
+  --silik:    rgba(28,33,26,.62);
   --cizgi:    rgba(28,33,26,.13);
   --bronz:    #8a6d2e;
+  /* --altin METIN icin kullanilmiyor artik: 10 px seri adinda 3.90:1
+     veriyordu. Odak halkasi olarak kaliyor (grafik esigi 3:1). */
   --altin:    #9a7d3f;
 
   --sans:  "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -387,14 +395,19 @@ a { color: inherit; }
 }
 #kunye .seri {
   font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
-  color: var(--altin); margin-top: 20px;
+  /* --altin 10 px yazida 3.90:1 veriyordu; --bronz 4.87:1. Altin odak
+     halkasi olarak kaliyor (grafik esigi 3:1). */
+  color: var(--bronz); margin-top: 20px;
 }
 #kunye dl {
   margin: 12px 0 0; padding-top: 14px; border-top: 1px solid var(--cizgi);
   display: grid; grid-template-columns: auto 1fr; gap: 7px 16px;
   font-size: 12.5px; line-height: 1.5;
 }
-#kunye dt { color: rgba(28,33,26,.46); letter-spacing: .04em; }
+/* .46 ile 2.88:1 olculdu -- 12.5 px yazi icin WCAG AA esigi 4.5:1.
+   Etiket/deger hiyerarsisi zaten buyuk harf + harf araligi + boy ile
+   kuruluyor, opaklikla kurmaya gerek yok. */
+#kunye dt { color: rgba(28,33,26,.66); letter-spacing: .04em; }
 #kunye dd { margin: 0; color: #23281d; font-variant-numeric: tabular-nums; }
 #kunye .not {
   font-family: var(--serif); font-style: italic; font-size: 15px; line-height: 1.62;
@@ -501,7 +514,11 @@ a { color: inherit; }
 <div id="kivrim" aria-hidden="true"><i></i></div>
 </div>
 
-<div id="detay" aria-hidden="true">
+<!-- role/aria-modal: bu katman tam ekran ve arkasindaki her seyi
+     kapatiyor, yani bir KIP. Onceden yalnizca aria-hidden ile
+     yonetiliyordu; #zoom icin yazilan uclu buraya hic uygulanmamisti.
+     Etiket dilUygula() icinde ceviriden yaziliyor. -->
+<div id="detay" role="dialog" aria-modal="true" aria-hidden="true">
   <!-- tabindex/role: gorsel yakinlastirmayi ACAN denetim. Onceden
        yalnizca tiklanabiliyordu, yani klavyeyle yakinlastirmak MUMKUN
        DEGILDI; ayrica odaklanabilir olmadigi icin katman kapaninca odak
@@ -521,10 +538,13 @@ a { color: inherit; }
 
 <!-- Eserin AYRI tam ekran hali: yakinlastirma ve gezinme burada.
      Kunye ve sayfalayici yok; bu katmanin tek isi esere bakmak. -->
-<div id="zoom" role="dialog" aria-modal="true" aria-label="Eseri yakından"
-     hidden>
+<!-- Etiketler dilUygula() icinde ceviriden yaziliyor. Markup'a gomulu
+     Turkce birakilmisti ve dil degisince guncellenmiyordu: lang="en"
+     iken ekran okuyucu Turkce metni Ingilizce fonetikle okuyor. Bu hata
+     menude bir kez duzeltilmisti, yeni katmanda geri gelmisti. -->
+<div id="zoom" role="dialog" aria-modal="true" hidden>
   <img id="zimg" alt="" draggable="false">
-  <button id="zkapat" type="button" aria-label="Kapat"><i></i><i></i></button>
+  <button id="zkapat" type="button"><i></i><i></i></button>
   <p id="zipucu" aria-hidden="true"></p>
 </div>
 
@@ -756,7 +776,13 @@ function ac(idx) {
 
   if (acikIdx < 0) {                       // ilk açılış: sayfanın yerini sakla
     geriScroll = window.scrollY;
-    document.documentElement.classList.add('durdur');
+    window.KABUK_KILIT.al('detay');
+    /* Arka plan devre disi. Olculdu: isik kutusu acikken disarida 9
+       odaklanabilir oge kaliyordu (hamburger + 8 eser baglantisi) ve
+       #kapat'tan Tab'a basinca odak perdenin arkasina gidiyordu. */
+    if (window.KABUK_INERT) {
+      window.KABUK_INERT(true, detay);
+    }
   }
   zoomKapat();
   detay.classList.add('acik');
@@ -774,6 +800,10 @@ function kapat() {
   const geri = gorunen[acikIdx];
   acikIdx = -1;
   zoomKapat();
+  window.KABUK_KILIT.birak('detay');
+  if (window.KABUK_INERT) {
+    window.KABUK_INERT(false, detay);
+  }
   adresYaz(-1);
   detay.classList.remove('acik');
   detay.setAttribute('aria-hidden', 'true');
@@ -843,8 +873,13 @@ function zKelepce() {
 function zTabanOlc() {
   /* Sigdirma olcusu: object-fit:contain'in yapacagi sey, ama sayiyla --
      kaydirma sinirlarini bilmek icin gorselin GERCEK olcusu gerekiyor. */
-  if (!zimg.naturalWidth || !zimg.naturalHeight) return false;
-  const dw = zimg.naturalWidth, dh = zimg.naturalHeight;
+  /* Olcu, ZATEN YUKLU olan #buyuk'ten de alinabiliyor: ayni gorsel.
+     Yalniz zimg'e guvenilince ilk acilista naturalWidth henuz 0
+     oluyor, olcu load'a kaliyor ve gorsel bir kare boyunca
+     sigdirilmamis (dogal olcusunde) gorunuyordu. */
+  const dw = zimg.naturalWidth || buyuk.naturalWidth;
+  const dh = zimg.naturalHeight || buyuk.naturalHeight;
+  if (!dw || !dh) return false;
   const k = Math.min(window.innerWidth / dw, window.innerHeight / dh);
   tabanW = dw * k; tabanH = dh * k;
   zimg.style.width = tabanW.toFixed(1) + 'px';
@@ -880,9 +915,14 @@ function zoomAc(src, alt) {
   if (zimg.getAttribute('src') !== src) zimg.src = src;
   if (!zTabanOlc()) zimg.addEventListener('load', hazir, { once: true });
   else { zKelepce(); zYaz(false); }
-  /* Arkadaki katman devre disi: zoom katmani kipli ve icinde tek
-     odaklanabilir oge var, yani Tab onun disina cikmamali. */
+  /* Arkadaki katmanin TAMAMI devre disi. Once yalniz kardes #detay
+     inert ediliyordu ve #shell ile #menubtn serbest kaliyordu: olculdu,
+     #zkapat'tan Tab hamburgere ve arkadaki 8 karta gidiyordu. Yani
+     aria-modal="true" ile klavye birbirine ters sey soyluyordu. */
   detay.setAttribute('inert', '');
+  if (window.KABUK_INERT) {
+    window.KABUK_INERT(true, zkat);
+  }
   zkat.hidden = false;
   /* Ipucu CIHAZA gore. Masaustunde "iki parmakla yakinlastirin"
      yaziyordu ve orada parmak diye bir sey yok -- yanlis talimat.
@@ -893,7 +933,7 @@ function zoomAc(src, alt) {
   /* Ipucu bir kez okunup kayboluyor; kalici olsa gorselin onunde
      duruyor. */
   setTimeout(() => zipucu.classList.add('gizle'), 2600);
-  document.documentElement.classList.add('durdur');
+  window.KABUK_KILIT.al('zoom');
   $('#zkapat').focus({ preventScroll: true });
 }
 
@@ -901,7 +941,12 @@ function zoomKapat() {
   if (zkat.hidden) return;
   zkat.hidden = true;
   detay.removeAttribute('inert');
-  document.documentElement.classList.remove('durdur');
+  window.KABUK_KILIT.birak('zoom');
+  if (window.KABUK_INERT) {
+    /* Detay hala acikken arka plan KAPALI kalmali: burada yalniz
+       zoom'un kendi kilidi birakiliyor, detayin kilidi degil. */
+    window.KABUK_INERT(acikIdx >= 0, detay);
+  }
   /* Odak yakinlastirmayi acan denetime doner. zOnceki bos cikarsa
      (programatik acilis) gorselin kendisine -- govdeye dusmesin. */
   const hedef = (zOnceki && zOnceki.focus && zOnceki !== document.body)
@@ -1031,10 +1076,23 @@ zkat.addEventListener('pointerup', (e) => {
    gereksiz karmasiklikti. Escape kaliyor cunku kipli bir katmanin
    klavyeyle tek cikisi o. */
 addEventListener('keydown', (e) => {
-  if (zkat.hidden || e.key !== 'Escape') return;
+  if (zkat.hidden) return;
+  /* Klavye destegi SESSIZ: ipucu metninde gosterilmiyor (musteri
+     "klavye tuslari koyma" dedi) ama katmanin tek varlik sebebi esere
+     yakindan bakmak ve bu yalniz isaretciyle yapilabiliyordu -- klavye
+     kullanicisi icin katman tek dugmesi olan siyah bir ekrandi. */
+  const adim = 90;
+  if (e.key === 'Escape') { zoomKapat(); }
+  else if (e.key === '+' || e.key === '=') zOlcekle(zOlcek * 1.25, undefined, undefined, true);
+  else if (e.key === '-' || e.key === '_') zOlcekle(zOlcek / 1.25, undefined, undefined, true);
+  else if (e.key === '0') zOlcekle(1, undefined, undefined, true);
+  else if (e.key === 'ArrowLeft') { zx += adim; zKelepce(); zYaz(true); }
+  else if (e.key === 'ArrowRight') { zx -= adim; zKelepce(); zYaz(true); }
+  else if (e.key === 'ArrowUp') { zy += adim; zKelepce(); zYaz(true); }
+  else if (e.key === 'ArrowDown') { zy -= adim; zKelepce(); zYaz(true); }
+  else return;
   e.preventDefault();
   e.stopPropagation();
-  zoomKapat();
 }, true);
 
 /* Pencere olcusu degisince sigdirma olcusu de degisiyor. */
@@ -1089,6 +1147,12 @@ function dilUygula() {
   if (d && L().ui && L().ui.meta_desc) d.setAttribute('content', t('meta_desc'));
 
   $('#kapat').textContent = t('gal_close');
+  /* Yakinlastirma katmaninin etiketleri: markup'a gomulu Turkce
+     birakilmisti ve dil degisince guncellenmiyordu. */
+  $('#zoom').setAttribute('aria-label', t('zoom_baslik'));
+  $('#zkapat').setAttribute('aria-label', t('zoom_kapat'));
+  /* Isik kutusu da artik bir kip: etiketi ceviriden. */
+  $('#detay').setAttribute('aria-label', t('gal_works'));
   $('#lede h1').textContent = t('gal_works');
   $('#lede .alt').textContent = t('gal_sub');
   /* "Uzerine gelin: eserin kendisi." notu kaldirildi: izgara artik
