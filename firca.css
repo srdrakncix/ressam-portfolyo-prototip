@@ -3,6 +3,16 @@
    bozulur. Kaynak: firca.py YERLESIM. */
 #boya { --darbe: 7; }   /* kabuk.js kac <i> uretecegini buradan okuyor */
 :root { --satir-doygunluk: 0.40; --satir-parlaklik: 0.90; --satir-adim: 0.015; }
+:root {
+  --m-dil: #e2d8d0;
+  --m-dil-aktif: #f8f4ee;
+  --m-grup: #e9e0d8;
+  --m-kapat: #f0ece6;
+  --m-oniz-alt: #ece6dc;
+  --m-oniz-ust: #e7d8be;
+  --panel-taban: #633e36;
+}
+#boya i { animation-duration: 300ms; animation-timing-function: cubic-bezier(.38,.12,.56,.94); }
 #boya i:nth-child(1) {
   left: -12.67%; top: -5.13%; width: 132.50%; height: 40.02%;
   background-image: url(assets/firca/panel-1.webp);
@@ -17,7 +27,7 @@
 }
 #menu:popover-open #boya i:nth-child(2),
 #menu.open #boya i:nth-child(2) {
-  animation-name: sup-ust; animation-delay: 66ms;
+  animation-name: sup-ust; animation-delay: 44ms;
 }
 #boya i:nth-child(3) {
   left: -3.83%; top: -3.38%; width: 117.33%; height: 73.05%;
@@ -25,7 +35,7 @@
 }
 #menu:popover-open #boya i:nth-child(3),
 #menu.open #boya i:nth-child(3) {
-  animation-name: sup-sag; animation-delay: 132ms;
+  animation-name: sup-sag; animation-delay: 84ms;
 }
 #boya i:nth-child(4) {
   left: -13.50%; top: 27.54%; width: 132.50%; height: 55.66%;
@@ -33,7 +43,7 @@
 }
 #menu:popover-open #boya i:nth-child(4),
 #menu.open #boya i:nth-child(4) {
-  animation-name: sup-sag; animation-delay: 198ms;
+  animation-name: sup-sag; animation-delay: 120ms;
 }
 #boya i:nth-child(5) {
   left: -11.00%; top: 44.11%; width: 140.67%; height: 78.41%;
@@ -41,7 +51,7 @@
 }
 #menu:popover-open #boya i:nth-child(5),
 #menu.open #boya i:nth-child(5) {
-  animation-name: sup-sol; animation-delay: 264ms;
+  animation-name: sup-sol; animation-delay: 152ms;
 }
 #boya i:nth-child(6) {
   left: -12.00%; top: 70.36%; width: 138.17%; height: 24.85%;
@@ -49,7 +59,7 @@
 }
 #menu:popover-open #boya i:nth-child(6),
 #menu.open #boya i:nth-child(6) {
-  animation-name: sup-sag; animation-delay: 330ms;
+  animation-name: sup-sag; animation-delay: 180ms;
 }
 #boya i:nth-child(7) {
   left: 4.17%; top: 30.34%; width: 73.33%; height: 17.39%;
@@ -57,5 +67,5 @@
 }
 #menu:popover-open #boya i:nth-child(7),
 #menu.open #boya i:nth-child(7) {
-  animation-name: sup-sol; animation-delay: 396ms;
+  animation-name: sup-sol; animation-delay: 204ms;
 }

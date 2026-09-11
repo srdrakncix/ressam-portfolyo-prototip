@@ -20,6 +20,11 @@ UI = {
         'nav_gallery': 'Galeri',
         'nav_about_grp': 'Sanatçı',
         'gal_exit': 'Ana sayfa',
+        # Erişilebilir adlar: markup'a gömülüydü ve dil değişince
+        # güncellenmiyordu. Kapatma düğmesinin ise hiç adı yoktu.
+        'menu_open': 'Menü',
+        'menu_label': 'Ana menü',
+        'menu_close': 'Menüyü kapat',
         # katalog sayfasının sabit metinleri
         'gal_close': 'Kapat',
         'gal_all': 'Tümü',
@@ -30,7 +35,7 @@ UI = {
         'gal_works': 'Eserler',
         'gal_label': 'Katalog',
         'gal_title': 'Bütün eserler',
-        'gal_sub': 'Her eser bir sergi duvarında, gerçek ölçüsüyle asılı. '
+        'gal_sub': 'Her eser bir sergi duvarında asılı. '
                     'Bir esere tıklayınca tam ekran açılır.',
         'gal_soon': 'Bu bölüm yapım aşamasında.',
         'nav_recent': 'Son Resimler',
@@ -73,6 +78,8 @@ UI = {
         'nav_gallery': 'Gallery',
         'nav_about_grp': 'The artist',
         'gal_exit': 'Home', 'gal_close': 'Close',
+        'menu_open': 'Menu', 'menu_label': 'Main menu',
+        'menu_close': 'Close menu',
         'gal_all': 'All',
         'gal_room': 'Hover: the work itself.',
         'gal_empty': 'No works in this series yet.',
@@ -81,7 +88,7 @@ UI = {
         'gal_works': 'Works',
         'gal_label': 'Catalogue',
         'gal_title': 'All works',
-        'gal_sub': 'Each work hangs on a gallery wall, at its true size. '
+        'gal_sub': 'Each work hangs on a gallery wall. '
                     'Click a work to open it full screen.',
         'gal_soon': 'This section is under construction.',
         'nav_recent': 'Recent Paintings',
@@ -123,6 +130,8 @@ UI = {
         'nav_gallery': 'Galerie',
         'nav_about_grp': 'L’artiste',
         'gal_exit': 'Accueil', 'gal_close': 'Fermer',
+        'menu_open': 'Menu', 'menu_label': 'Menu principal',
+        'menu_close': 'Fermer le menu',
         'gal_all': 'Tout',
         'gal_room': 'Survolez : l’œuvre seule.',
         'gal_empty': 'Aucune œuvre dans cette série pour l’instant.',
@@ -131,7 +140,7 @@ UI = {
         'gal_works': 'Œuvres',
         'gal_label': 'Catalogue',
         'gal_title': 'Toutes les œuvres',
-        'gal_sub': 'Chaque œuvre est accrochée au mur d’une galerie, à sa taille réelle. '
+        'gal_sub': 'Chaque œuvre est accrochée au mur d’une galerie. '
                     'Cliquez sur une œuvre pour l’ouvrir en plein écran.',
         'gal_soon': 'Cette section est en cours de construction.',
         'nav_recent': 'Peintures récentes',

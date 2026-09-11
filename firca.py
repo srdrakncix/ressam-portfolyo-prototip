@@ -64,6 +64,13 @@ OLCUM = os.path.join(KOK, 'kaynak', 'firca')
 
 # Panelin gercek olcusu -- tarayicidan okundu, goz karari degil.
 EN, BOY = 600, 857
+
+# Darbelerin kutu DISINA tasma payi. Bu olmadan kompozisyon tam kutu
+# boyunda bir tuvalde kuruluyordu ve tasan her sey varligin kendisinde
+# kesiliyordu; panelin dort kenari da cetvel gibi duzdu.
+PAY_SOL, PAY_UST, PAY_SAG, PAY_ALT = 46, 44, 86, 74
+TUVAL_EN = PAY_SOL + EN + PAY_SAG
+TUVAL_BOY = PAY_UST + BOY + PAY_ALT
 TABAN = 0.92        # yazi altinda en dusuk opaklik
 KONTRAST_TABAN = 4.5   # WCAG AA, normal boy yazi
 
@@ -78,24 +85,58 @@ KONTRAST_TABAN = 4.5   # WCAG AA, normal boy yazi
 # degistigi icin ikisi de HER kutuda denetleniyor.
 ALTINLAR = [(236, 216, 196),   # #ecd8c4  .cikis  ('Ana sayfa')
             (242, 222, 168)]   # #f2dea8  .ozel   (bulundugun sayfa)
+
+# Satir olmayan kutularin murekkepleri. Bunlar eskiden siyah panel
+# donemindan kalma koyu grilerdi (#5d5d63, #6f6f76, #8d7c56) ve olcum
+# onlari sabit acik murekkep varsaydigi icin gecmis gorunuyordu; uc
+# degerlendirici de okunmadiklarini gordu. Artik burada tanimli,
+# firca.css'e yaziliyor ve kabuk.css oradan okuyor.
+#
+# Panelin en acik noktasi L~0.12 oldugu icin hepsi zorunlu olarak acik.
+# Hiyerarsi koyulukla degil boy/buyuk harf/harf araligiyla kuruluyor.
+MUREKKEP = {
+    'grup':      (233, 224, 216),   # "SANATÇI" ara basligi
+    'dil':       (226, 216, 208),   # TR / EN / FR
+    'dil-aktif': (248, 244, 238),
+    'oniz-ust':  (231, 216, 190),   # "KATALOG" gibi kucuk etiket
+    'oniz-alt':  (236, 230, 220),
+    'kapat':     (240, 236, 230),
+}
 SAT_TAVAN = 0.40
 LIG_TABAN = 0.90
 LIG_ADIM = 0.015
 
 SURE = 300          # bir darbenin supurme suresi (ms)
-ARALIK = 66         # darbeler arasi gecikme (ms)
+
+# Gecikmeler SABIT DEGIL, yavaslayan. Sabit 66 ms "yedi ayri olay" gibi
+# okunuyordu; hizlanip yavaslayan bir dizi tek bir jest gibi okunuyor.
+GECIKMELER = [0, 44, 84, 120, 152, 180, 204]
+
+# Firca egrisi ARAYUZ egrisi degil. var(--ease) expo-out: 300 ms'lik bir
+# darbe 30 ms'de %49 tamamlaniyor, geri kalan %28'i 245 ms boyunca
+# gorunmez sekilde surukleniyor. Firca neredeyse sabit hizda gider,
+# ucunda hafif yavaslar.
+FIRCA_EGRI = 'cubic-bezier(.38,.12,.56,.94)'
 
 # Menudeki her yazi kutusu (panel yereli). Bunlarin altinda boya opak olmali.
 SATIR_Y = [113, 155, 227, 269, 312, 354, 396, 485, 527, 570, 612, 654, 697, 739]
-YAZI_KUTULARI = (
+# Menu kutusu yerelinde olculdu. 'grup' = "Sanatçı" ara basligi: iki
+# degerlendirici de onun okunmadigini soyledi ve haklilardi -- rengi
+# paletten gelmiyordu ve olcume de hic girmiyordu.
+_KUTULAR = (
     [('satir%02d' % i, 30, y, 195, 41) for i, y in enumerate(SATIR_Y)]
-    + [('dil', 30, 802, 195, 29),
+    + [('grup', 30, 290, 195, 17),
+       ('dil', 30, 802, 195, 29),
        ('kapat', 30, 30, 58, 58),
        ('oniz-gorsel', 293, 226, 270, 152),
        ('oniz-ust', 293, 520, 270, 17),
        ('oniz-ad', 293, 544, 270, 30),
        ('oniz-alt', 293, 579, 270, 44)]
 )
+# Tuval paylı oldugu icin kutular da kayiyor; kaydirmasak opaklik ve
+# kontrast yanlis yerden okunur.
+YAZI_KUTULARI = [(ad, x + PAY_SOL, y + PAY_UST, w, h)
+                 for ad, x, y, w, h in _KUTULAR]
 
 # Ham fotograf -> darbe adi. Govde olanlarin cekirdegi masif, karakter
 # olanlar tirtikli ve dagilan.
@@ -345,12 +386,12 @@ def boya_darbe(ham, siluet, ox, oy):
     im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
     px, hp, sp = im.load(), ham.load(), siluet.load()
     for y in range(h):
-        ty = (oy + y) / float(BOY)
+        ty = (oy + y - PAY_UST) / float(BOY)
         for x in range(w):
             a = sp[x, y]
             if not a:
                 continue
-            r, g, b = fr(0.30 * ((ox + x) / float(EN)) + 0.70 * ty)
+            r, g, b = fr(0.30 * ((ox + x - PAY_SOL) / float(EN)) + 0.70 * ty)
             kal = hp[x, y] / 255.0
             ac = 1.0 + (1.0 - kal) * 0.20
             gri = (r + g + b) / 3.0
@@ -362,13 +403,14 @@ def boya_darbe(ham, siluet, ox, oy):
 
 
 def kur(darbeler):
-    panel = Image.new('RGBA', (EN, BOY), (0, 0, 0, 0))
+    panel = Image.new('RGBA', (TUVAL_EN, TUVAL_BOY), (0, 0, 0, 0))
     parcalar = []
     for ad, xy, yy, wy, donme, ayna in YERLESIM:
         ham, siluet = donustur(darbeler[ad], wy, donme, ayna)
-        ox, oy = int(EN * xy / 100.0), int(BOY * yy / 100.0)
+        ox = int(EN * xy / 100.0) + PAY_SOL
+        oy = int(BOY * yy / 100.0) + PAY_UST
         d = boya_darbe(ham, siluet, ox, oy)
-        gec = Image.new('RGBA', (EN, BOY), (0, 0, 0, 0))
+        gec = Image.new('RGBA', (TUVAL_EN, TUVAL_BOY), (0, 0, 0, 0))
         gec.paste(d, (ox, oy))
         panel = Image.alpha_composite(panel, gec)
         parcalar.append({'gorsel': d, 'ox': ox, 'oy': oy})
@@ -442,11 +484,13 @@ def ic_kontrol(panel, pay=45):
     """
     ap = panel.getchannel('A').load()
     kotu = []
-    for y in range(pay, BOY - pay, 3):
-        for x in range(pay, EN - pay, 3):
+    # Yalnizca MENU KUTUSUNUN icine bakiyoruz; pay bolgesi zaten tasma.
+    for y in range(PAY_UST + pay, PAY_UST + BOY - pay, 3):
+        for x in range(PAY_SOL + pay, PAY_SOL + EN - pay, 3):
             if ap[x, y] < TABAN * 255:
                 kotu.append((x, y))
-    toplam = len(range(pay, BOY - pay, 3)) * len(range(pay, EN - pay, 3))
+    toplam = (len(range(PAY_UST + pay, PAY_UST + BOY - pay, 3))
+              * len(range(PAY_SOL + pay, PAY_SOL + EN - pay, 3)))
     if not kotu:
         return 0.0, None
     xs = [k[0] for k in kotu]
@@ -469,7 +513,9 @@ def olc(panel):
         if ad.startswith('satir'):
             adaylar = [s[i] for s in tum_satirlar.values()] + ALTINLAR
         else:
-            adaylar = [(233, 233, 228)]
+            # Her kutu KENDI murekkebiyle olculuyor. Eskiden hepsi icin
+            # sabit (233,233,228) varsayiliyordu ve olcum yaniltiyordu.
+            adaylar = [MUREKKEP.get(ad, (233, 233, 228))]
         dusuk, altta, n, en_kotu = 255, 0, 0, 99.0
         for yy in range(y + 2, y + h - 2, 2):
             for xx in range(x + 2, x + w - 2, 2):
@@ -523,8 +569,10 @@ def disari(parcalar):
         dikey = kirpik.height > kirpik.width * 1.25
         satirlar.append({
             'dosya': 'assets/firca/' + ad,
-            'sol': round((p['ox'] + kutu[0]) / EN * 100, 2),
-            'ust': round((p['oy'] + kutu[1]) / BOY * 100, 2),
+            # Menu kutusuna gore; pay cikariliyor, bu yuzden negatif
+            # deger normaldir ve darbenin kutu disina tastigini gosterir.
+            'sol': round((p['ox'] + kutu[0] - PAY_SOL) / EN * 100, 2),
+            'ust': round((p['oy'] + kutu[1] - PAY_UST) / BOY * 100, 2),
             'en': round(kirpik.width / EN * 100, 2),
             'boy': round(kirpik.height / BOY * 100, 2),
             'yon': yogun_uc(kirpik, dikey),
@@ -545,11 +593,24 @@ def css_yaz(satirlar):
     # ve olcum artik gercegi olcmez olurdu.
     p.append(':root { --satir-doygunluk: %.2f; --satir-parlaklik: %.2f;'
              ' --satir-adim: %.3f; }' % (SAT_TAVAN, LIG_TABAN, LIG_ADIM))
+    # Murekkepler: kabuk.css bunlari okuyor. Elle yazilsalardi olcum ile
+    # gercek yine ayrisirdi -- bu hataya bir kez dusuldu.
+    p.append(':root {')
+    for ad in sorted(MUREKKEP):
+        p.append('  --m-%s: #%02x%02x%02x;' % ((ad,) + MUREKKEP[ad]))
+    # Panelin TABAN rengi: boya (webp) gelmezse panel bununla okunur
+    # kaliyor. Paletin ortasindan aliniyor, yani panel rengi degisince
+    # taban da kendiliğinden degisiyor.
+    orta = fr(0.5)
+    p.append('  --panel-taban: #%02x%02x%02x;' % orta)
+    p.append('}')
     # Konum ve gorsel her zaman gecerli; ANIMASYON yalnizca menu acikken
     # tanimli. Yoksa animasyon sayfa yuklenirken kosuyor ve menu acildiginda
     # coktan bitmis oluyor -- olculdu: acilistan 80 ms sonra darbe %99
     # tamamlanmisti. Secici acik duruma baglaninca animasyon o anda
     # olusuyor, yani supurme acilisla birlikte basliyor.
+    p.append('#boya i { animation-duration: %dms;'
+             ' animation-timing-function: %s; }' % (SURE, FIRCA_EGRI))
     for i, r in enumerate(satirlar, 1):
         p.append('#boya i:nth-child(%d) {' % i)
         p.append('  left: %.2f%%; top: %.2f%%; width: %.2f%%; height: %.2f%%;'
@@ -559,7 +620,7 @@ def css_yaz(satirlar):
         p.append('#menu:popover-open #boya i:nth-child(%d),' % i)
         p.append('#menu.open #boya i:nth-child(%d) {' % i)
         p.append('  animation-name: sup-%s; animation-delay: %dms;'
-                 % (r['yon'], (i - 1) * ARALIK))
+                 % (r['yon'], GECIKMELER[min(i - 1, len(GECIKMELER) - 1)]))
         p.append('}')
     io.open(CSS_YOL, 'w', encoding='utf-8', newline='\n').write('\n'.join(p) + '\n')
 
@@ -599,7 +660,9 @@ def main():
     else:
         print('ic delik  yok')
 
-    kapla = sum(1 for v in panel.getchannel('A').tobytes() if v > 20) / float(EN * BOY)
+    kutu_alfa = panel.getchannel('A').crop(
+        (PAY_SOL, PAY_UST, PAY_SOL + EN, PAY_UST + BOY))
+    kapla = sum(1 for v in kutu_alfa.tobytes() if v > 20) / float(EN * BOY)
     print('\npanel kaplama %.0f%%   kalan kutu %d/%d' % (kapla * 100, kalan, len(rapor)))
 
     satirlar = disari(parcalar)

@@ -83,6 +83,10 @@
   /* 780 pikselken ekranin yarisini yiyordu; menu acikken sayfadan
      hicbir sey gorunmuyordu. Liste sutunu da daraltildi. */
   width: min(600px, 92vw); max-width: 100%;
+  /* Yükseklik açıkça veriliyor: içerik boyunda kalınca panel ekranın
+     ortasında biten bir dikdörtgen gibi duruyordu (858 px'lik ekranda
+     687 px). Boyanmış bir yüzey ortada bitmez. */
+  height: 100dvh;
   border: 0; overflow: visible;
   /* Zemin yok: panelin kendisi boya. Kutu rengi birakilsaydi darbelerin
      tirtikli kenari o dikdortgenin uzerinde durur, hicbir sey kazanmazdik.
@@ -103,8 +107,17 @@
    (Acik durumda `transition`i kisaltmak denendi ve birakildi: kisayaz
     listeyi komple degistirdigi icin display/overlay'in allow-discrete
     girisleri de dusuyor ve kapanis bozuluyor.) */
-#menu:popover-open { opacity: 1; }
+#menu:popover-open, #menu.open { opacity: 1; }
 @starting-style { #menu:popover-open { opacity: 1; } }
+
+/* POPOVER DESTEKLENMEYEN TARAYICI. İki ayrı kusur vardı:
+   (a) .open için opacity:1 kuralı yoktu; yedek yolda menü görünmezdi ve
+       odak tuzağı görünmeyen bir panelin içine kilitleniyordu.
+   (b) Kapalı durumda gizlenme yoktu: `popover` niteliği tanınmayan
+       tarayıcıda ekranın sol yarısını kaplayan, görünmez, tıklamaları
+       yiyen ve 13 bağlantısı Tab ile gezilebilen bir katman kalıyordu.
+   Aşağıdaki kural ikisini de kapatıyor: açık değilse yok. */
+#menu:not(:popover-open):not(.open) { display: none; }
 
 #menu::backdrop {
   background: rgba(6,7,5,0);
@@ -131,7 +144,19 @@
    karede yeniden duzen kurardi. */
 #boya {
   position: absolute; inset: 0; z-index: 0;
-  overflow: hidden; pointer-events: none;
+  pointer-events: none;
+  /* KIRPMA YOK. Darbeler panel kutusunu taşıp kendi tırtıklı, kuruyan
+     uçlarıyla bitiyor — "fırçayla boyandı" iddiası ancak böyle görünür
+     hâle geliyor. Kutu boyunda kırpınca dört kenar da cetvel gibi
+     çıkıyordu ve iki ayrı değerlendirici bunu birinci kusur saydı.
+     (Kökü CSS'te değildi: firca.py kompozisyonu tam kutu boyunda bir
+     tuvalde kuruyordu, kenar VARLIĞA pişiyordu. Artık tuval paylı.)
+
+     Zemin: boya gelmezse -JS erken hata verse ya da webp'ler 404 olsa-
+     menü yazısı sayfanın beyaz kâğıdı üstünde kalıp tamamen okunmaz
+     oluyordu. Bu taban renk darbelerin ALTINDA kalıyor, tırtıklı kenarı
+     bozmuyor, ama panelin hiçbir zaman zeminsiz kalmamasını sağlıyor. */
+  background: var(--panel-taban, #6b4239);
   filter: drop-shadow(26px 0 34px rgba(0,0,0,.55));
 }
 #boya i {
@@ -222,7 +247,7 @@
 #menu .sep { height: 18px; }
 #menu .grouplbl {
   font-size: var(--t-micro); letter-spacing: .14em; text-transform: uppercase;
-  color: #5d5d63; margin: 22px 0 8px;
+  color: var(--m-grup, #e9e0d8); margin: 22px 0 8px;
 }
 
 /* -- karsilik sutunu ------------------------------------------------------
@@ -249,7 +274,7 @@
 #mon.degisiyor #mon-yazi { opacity: 0; }
 #mon-ust {
   font-size: var(--t-micro); letter-spacing: .16em; text-transform: uppercase;
-  color: #8d7c56; margin-bottom: 7px;
+  color: var(--m-oniz-ust, #e7d8be); margin-bottom: 7px;
 }
 #mon-ad { font-size: clamp(19px, 1.1rem + .5vw, 26px); line-height: 1.2; color: #f2ede2; margin-bottom: 6px; }
 /* Gorseli olmayan satirlarda (biyografi, basin, iletisim...) sutun bos
@@ -258,12 +283,18 @@
 #mon.yazi-only { justify-content: center; }
 #mon.yazi-only #mon-ad { font-size: clamp(22px, 1.2rem + .8vw, 32px); }
 #mon.yazi-only #mon-alt { font-size: 15px; max-width: 34ch; }
-#mon-alt { font-size: 13.5px; line-height: 1.6; color: rgba(242,237,226,.62); max-width: 40ch; }
+#mon-alt { font-size: 13.5px; line-height: 1.6;
+  color: var(--m-oniz-alt, #ece6dc); max-width: 40ch; }
 
-#lang { display: flex; gap: 10px; align-items: baseline; margin-top: 30px; }
+#lang { display: flex; gap: 6px; align-items: baseline; margin-top: 30px; }
 #lang button {
+  /* Dokunma hedefi: yatay dolgu 4 px'ken düğme ~18x24 px oluyordu ve
+     WCAG 2.2 (2.5.8) 24x24 eşiğini genişlikte ihlal ediyordu. Ayrıca bu
+     blok iki kez tanımlıydı, kazanan `padding: 6px 0` idi. Tek blok. */
   font: inherit; font-size: var(--t-micro); letter-spacing: .06em;
-  background: none; border: 0; padding: 8px 4px; cursor: pointer; color: #6f6f76;
+  background: none; border: 0; cursor: pointer;
+  min-width: 34px; min-height: 34px; padding: 8px 7px;
+  color: var(--m-dil, #e2d8d0);
 }
 #lang button[aria-current="true"] { color: #fff; }
 
@@ -334,14 +365,9 @@
   #mkapat { display: none; }
 }
 
-/* dil anahtarı menünün dibinde */
-#lang { display: flex; gap: 10px; align-items: baseline; margin-top: 30px; }
-#lang button {
-  font: inherit; font-size: var(--t-micro); letter-spacing: .06em;
-  background: none; border: 0; padding: 6px 0; cursor: pointer; color: #6f6f76;
-}
-#lang button[aria-current="true"] { color: #fff; }
-#lang .sep2 { color: #35353a; font-size: var(--t-micro); }
+/* dil anahtarı menünün dibinde -- YINELENEN blok kaldirildi, tanim
+   yukarida tek yerde. */
+#lang .sep2 { color: var(--m-dil, #e2d8d0); opacity: .5; font-size: var(--t-micro); }
 
 /* ── içerik paneli ───────────────────────────────────────────────────────── */
 
@@ -356,12 +382,21 @@
      daraltıyor, yani kâğıt menünün altından çıkıyor. Tek hareket iki iş
      yapıyor — von Kaufmann'ın sitesinde de sebep bu. */
   transform-origin: 0 50%;
+  /* scale: 38 derecelik daralma tek basina yetmiyordu -- olculdu, 1440
+     px'lik pencerede kagidin sag kenari 1460'a, golgesi 1550'ye tasiyordu.
+     Kucuk bir olcek ikisini de ekrana sokuyor. */
   transform: perspective(var(--derinlik))
              translateX(var(--kac))
-             rotateY(var(--don));
-  transition: --k 640ms cubic-bezier(.2,.86,.24,1),
-              transform 640ms cubic-bezier(.22,.84,.28,1),
-              filter 640ms cubic-bezier(.22,.84,.28,1);
+             rotateY(var(--don))
+             scale(var(--kucul, 1));
+  /* 90 ms GECİKME: kâğıt boyayla aynı karede başlarsa boyanın cephesi
+     %30'a varmadan çekilip bitmiş oluyor, yani boya kâğıdın bıraktığı
+     boşluğu sonradan yamıyor. Gecikmeyle ilk iki darbe iniyor, kâğıt
+     ONLARIN itmesiyle kalkıyor — nedensellik doğru yöne dönüyor.
+     Eğri de değişti: eski eğri (expo-out) 200 ms'de %81 tamamlıyordu,
+     hareketin kuyruğu görünmez şekilde sürükleniyordu. */
+  transition: transform 560ms cubic-bezier(.4,.05,.3,1) 90ms,
+              filter 560ms linear 90ms;
   /* Sayfa gölgesi panelde box-shadow olarak duramaz: clip-path onu da
      kırpar. drop-shadow kesilmiş silueti takip ediyor. */
   filter: drop-shadow(0 3px 5px rgba(0,0,0,.16))
@@ -434,22 +469,58 @@
    Açı tek sayı: burayı değiştirmek yeter. 45° von Kaufmann'ın değeri ve
    1180 px'lik kâğıdı ~834 px'e daraltıyor, yani ekrana sığıyor. */
 html.menuacik #shell {
-  --k: clamp(96px, 15vw, 210px);
-  --don: 45deg;
-  filter: drop-shadow(0 8px 12px rgba(0,0,0,.22))
-          drop-shadow(0 40px 60px rgba(0,0,0,.34));
+  /* Köşe katı BİLEREK yok. Aynı anda iki kâğıt fiziği çalışıyordu: köşe
+     soyulması ve kanattan çevrilme. CSS'in kendi yorumu (aşağıda, #panel)
+     "kapı gibi menteşeden dönme" denemesinin çöpe atıldığını yazarken
+     #shell tam olarak onu yapıyor, üstüne bir de köşe katı biniyordu.
+     Biri seçildi: çevirme. Bu ayrıca hareket-azaltmada ve telefonda
+     sebebi görünmeyen bir "kesik köşe" bırakma hatasını da kapatıyor —
+     clip-path sağ üst köşeden 96-210 px'lik bir üçgeni gerçekten kesip
+     atıyordu. */
+  --don: 38deg;
+  --kucul: .94;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,.22))
+          drop-shadow(0 26px 40px rgba(0,0,0,.32));
+}
+
+/* Kapanış açılışla aynı ailede olmalı. Önceden panel 140 ms'de sönüp
+   kâğıt 640 ms boyunca boş sahnede geri geliyordu: 1'e 4.6 oran ve
+   500 ms'lik sahipsiz bir kuyruk. Artık kapanış açılışın ~üçte ikisi. */
+html:not(.menuacik) #shell {
+  transition: transform 380ms cubic-bezier(.3,0,.25,1),
+              filter 380ms linear;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Dönme bir gösteri, işlev değil: menü yine açılıyor, kâğıt yerinde. */
+  /* Hareketi kapatmak İŞLEVİ bozmamalı. Eskiden kâğıt yerinde kalıyordu
+     ve 600 px'lik panel içeriğin üstüne biniyordu — dönmenin var olma
+     sebebi tam olarak buydu. Artık kâğıt yine kenara çekiliyor, sadece
+     geçişsiz ve dönmeden: yer değiştirme işlev, dönme gösteri. */
   #shell { transition: none; }
-  html.menuacik #shell { --kac: 0px; --don: 0deg; }
+  html.menuacik #shell { --don: 0deg; --kucul: 1; }
+  html:not(.menuacik) #shell { transition: none; }
+  /* Satırların 22 ms/satır kademeli girişi de kapanıyor. */
+  #menu li, #menu .grouplbl, #lang {
+    transition: none; opacity: 1; translate: none; filter: none;
+  }
+}
+
+/* ORTA BOY EKRAN (761-1100 px). 600 px'lik iki sütunlu menü burada
+   ekranın yarısını yiyor ve kâğıt da o yüzden altından çıkamıyor
+   (ölçüldü: 1024 px'te 241 px binişme kalıyordu, 1256'da 95 px).
+   Önizleme sütunu kalkıyor, menü daralıyor: hem menünün oranı
+   düzeliyor hem kâğıt kurtuluyor. */
+@media (max-width: 1380px) and (min-width: 761px) {
+  #menu { width: min(330px, 92vw); grid-template-columns: 1fr; }
+  #mon { display: none; }
 }
 
 /* Telefonda menü küçük bir kart; kâğıdın üstüne binmiyor, döndürmek
-   gereksiz ve dar ekranda okunurluğu bozuyor. */
+   gereksiz ve dar ekranda okunurluğu bozuyor. Köşe katı da artık hiç
+   yok, o yüzden sebebi görünmeyen "kesik köşe" sorunu da kalmadı. */
 @media (max-width: 760px) {
-  html.menuacik #shell { --don: 0deg; --kac: 0px; }
+  html.menuacik #shell { --don: 0deg; --kac: 0px; --kucul: 1; }
+  #menu { height: auto; }
 }
 
 /* Buradaki ikinci satir blogu kaldirildi. .open yolu icin yazilmisti ama

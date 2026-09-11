@@ -235,6 +235,14 @@ function menuModel() {
   return items;
 }
 
+/* Bulunduğumuz rota. Galeri ayrı bir sayfa olduğu için oradaki karşılığı
+   sayfanın kendisi söylüyor (KABUK.sayfa), ötekilerde adres çıpası. */
+function suAnkiRota() {
+  if (KABUK.sayfa === 'sergi') return '/galeri';
+  const h = location.hash.replace(/^#/, '');
+  return h || '/';
+}
+
 function buildMenu() {
   const kutu = document.getElementById('msol');
   kutu.innerHTML = '';
@@ -247,6 +255,10 @@ function buildMenu() {
                    it.label);
     a.href = '#' + it.href;
     a.dataset.route = it.href;
+    /* CSS'te #menu a[aria-current="page"]::before kuralı vardı ama bunu
+       kimse yazmıyordu: işaret hiç görünmüyor, ekran okuyucu da 13 satır
+       içinde hangisinin açık olduğunu söyleyemiyordu. */
+    if (it.href === suAnkiRota()) a.setAttribute('aria-current', 'page');
     if (it.indent) a.style.paddingLeft = '34px';   // seri satirlari bir kademe icerde
     li.appendChild(a);
     ul.appendChild(li);
@@ -270,9 +282,9 @@ function buildMenu() {
   let n = 0;
   kutu.querySelectorAll('li, .grouplbl').forEach((el) => {
     if (el.classList.contains('sep')) return;
-    el.style.setProperty('--d', (150 + (n++) * 22) + 'ms');
+    el.style.setProperty('--d', (190 + (n++) * 14) + 'ms');
   });
-  lang.style.setProperty('--d', (150 + n * 22) + 'ms');
+  lang.style.setProperty('--d', (190 + n * 14) + 'ms');
 
   /* satir uzerine gelince karsilik sutunu degissin */
   kutu.querySelectorAll('a[data-route]').forEach((a) => {
@@ -350,15 +362,35 @@ function kagidiKacir() {
   const acik = menuEl && menuEl.matches('.open, :popover-open');
   if (kapali || !acik) {
     shell.style.removeProperty('--kac');
+    shell.style.removeProperty('--kucul');
     return;
   }
 
   const bosluk = 26;
   const menuSag = menuEl.getBoundingClientRect().right;
   const sol = shell.offsetLeft;
-  if (!shell.offsetWidth) return;
-  shell.style.setProperty('--kac',
-    Math.max(0, menuSag + bosluk - sol).toFixed(1) + 'px');
+  const en = shell.offsetWidth;
+  if (!en) return;
+
+  /* Çevrilince kâğıdın izdüşümü daralıyor: yaklaşık en × cos(açı).
+     Açı CSS'ten okunuyor, burada ikinci kez yazılmıyor. */
+  const aci = parseFloat(getComputedStyle(shell).getPropertyValue('--don')) || 0;
+  const daralma = Math.cos(aci * Math.PI / 180) || 1;
+
+  /* Sert kural: kâğıt EKRANDAN TAŞMAYACAK. Tercih menünün altından tam
+     çıkmak, ama 600 px'lik menü ile tam genişlikte kâğıt dar ekranda
+     yan yana sığmıyor (ölçüldü: 1024 px'te 82 px taşıyordu). O zaman
+     kurtulmadan vazgeçiliyor, taşmadan asla. */
+  const enAz = 0.78, enCok = 0.94;
+  let hedefSol = menuSag + bosluk;
+  let kucul = Math.min(enCok, Math.max(enAz,
+    (window.innerWidth - bosluk - hedefSol) / (en * daralma)));
+  const genislik = en * daralma * kucul;
+  if (hedefSol + genislik > window.innerWidth - bosluk) {
+    hedefSol = Math.max(bosluk, window.innerWidth - bosluk - genislik);
+  }
+  shell.style.setProperty('--kac', Math.max(0, hedefSol - sol).toFixed(1) + 'px');
+  shell.style.setProperty('--kucul', kucul.toFixed(4));
 }
 
 addEventListener('resize', kagidiKacir, { passive: true });
@@ -373,21 +405,44 @@ function openMenu() {
   /* Menü görünür OLDUKTAN sonra ölçülüyor: kapalı popover'ın sağ
      kenarı 0 gelir ve kâğıt hiç kaçmaz. */
   kagidiKacir();
+  arkaPlanDondur(true);
   const first = menuEl.querySelector('a');
   if (first) first.focus({ preventScroll: true });
 }
+/* Menü GÖRSEL OLARAK kipli: perde sahneyi karartıyor ve üst katman
+   arkadaki tıklamaları yiyor. Ama popover=auto KİPLİ DEĞİL — odağı
+   tutmaz ve arka içeriği ekran okuyucudan gizlemez. Sonuç eşitsizlik:
+   fare kullanıcısı için sayfa kilitli, klavye ve ekran okuyucu kullanıcısı
+   için tamamen gezilebilir; son menü satırından Tab'a basınca odak
+   çevrilmiş kâğıdın içindeki bağlantılara kaçıyordu.
+
+   inert ikisini birden çözüyor: odak dışarı çıkmıyor ve arka içerik
+   erişilebilirlik ağacından düşüyor. */
+function arkaPlanDondur(kapat) {
+  const hedefler = [document.getElementById('shell'),
+                    document.getElementById('bgA'),
+                    document.getElementById('bgB')];
+  hedefler.forEach((el) => { if (el) el.inert = !!kapat; });
+}
+
+/* Kapanışta yapılacak toparlama: hangi jestle kapanırsa kapansın (düğme,
+   Escape, dışına tıklama) burası çalışıyor. */
+function toparla() {
+  document.documentElement.classList.remove('menuacik');
+  btn.setAttribute('aria-expanded', 'false');
+  arkaPlanDondur(false);
+  kagidiKacir();
+  if (trapRelease) { trapRelease(); trapRelease = null; }
+}
+
 function closeMenu() {
   document.documentElement.classList.remove('menuacik');
   if (menuEl.hidePopover && menuEl.matches(':popover-open')) menuEl.hidePopover();
   menuEl.classList.remove('open');
-  /* --kac satır içi yazılıyor; sınıfı kaldırmak onu temizlemez ve kâğıt
-     kaymış hâlde takılı kalırdı. Temizlik menü GERÇEKTEN kapandıktan
-     sonra: daha önce çağrılıyordu ve ölçüm menüyü hâlâ açık görüp değeri
-     yeniden yazıyordu (ölçüldü: kapandıktan sonra --kac 508 px kalıyordu,
-     --don 0 olduğu için kâğıt dönmeden 508 px sağda duruyordu). */
-  kagidiKacir();
-  btn.setAttribute('aria-expanded', 'false');
-  if (trapRelease) { trapRelease(); trapRelease = null; }
+  /* Toparlama menü GERÇEKTEN kapandıktan sonra: daha önce önce
+     çağrılıyordu ve ölçüm menüyü hâlâ açık görüp --kac'ı yeniden
+     yazıyordu (ölçüldü: kapandıktan sonra 508 px kalıyordu). */
+  toparla();
 }
 /* Düğme GERÇEK açık durumuna bakıyor. Eskiden yalnızca .open sınıfına
    bakıyordu; o sınıf ise popover DESTEKLENMEYEN yolda ekleniyor. Yani
@@ -405,11 +460,29 @@ if (kapatBtn) kapatBtn.addEventListener('click', closeMenu);
 if (!menuEl.showPopover) {
   addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
 }
+/* Menü Escape ya da dışına tıklamayla da kapanıyor (popover'ın hafif
+   kapanması) ve o yol closeMenu'dan GEÇMİYORDU: geriye --kac satır içi
+   kalıyor, kâğıt kalıcı olarak sağa kaymış duruyordu. Temizlik yalnızca
+   düğmeye basılınca çalışıyordu.
+
+   Artık tek kapanış yolu var: hangi jestle kapanırsa kapansın toparlama
+   aynı yerden geçiyor. */
 menuEl.addEventListener('toggle', (e) => {
   const acik = e.newState === 'open';
   btn.setAttribute('aria-expanded', acik ? 'true' : 'false');
-  if (!acik) document.documentElement.classList.remove('menuacik');
+  if (!acik) toparla();
 });
+
+/* Statik Türkçe aria-label'lar markup'a gömülüydü ve dil değişince
+   güncellenmiyordu: lang="en" iken ekran okuyucu Türkçe metni İngilizce
+   fonetikle okuyordu. Kapatma düğmesinin ise hiç adı yoktu — içi iki boş
+   <i>, ekran okuyucu sadece "düğme" diyordu. */
+function etiketleriYaz() {
+  btn.setAttribute('aria-label', t('menu_open'));
+  menuEl.setAttribute('aria-label', t('menu_label'));
+  const kapatBtn = document.getElementById('mkapat');
+  if (kapatBtn) kapatBtn.setAttribute('aria-label', t('menu_close'));
+}
 
 function setLang(next) {
   if (!LANGS.includes(next) || next === LANG) return;
@@ -419,5 +492,11 @@ function setLang(next) {
   const d = document.querySelector('meta[name="description"]');
   if (d) d.setAttribute('content', t('meta_desc'));
   buildMenu();
+  etiketleriYaz();
   KABUK.yenile();
 }
+
+/* Erişilebilir adlar sayfa açılışında da yazılıyor: menü ilk kez
+   açılana kadar buildMenu çalışmıyor, o yüzden hamburger adsız
+   kalıyordu. */
+etiketleriYaz();
