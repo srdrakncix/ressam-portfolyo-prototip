@@ -107,6 +107,12 @@ a:hover { color: var(--link); }
 
 /* ── eser bloğu ──────────────────────────────────────────────────────────── */
 
+/* Hero: salonun genel gorunusu. Genislik/yukseklik nitelikleri
+   yaziliyor ki gorsel inmeden once yeri ayrilsin -- yoksa sayfa
+   yuklenirken altindaki her sey ziplar. */
+.hero { margin: 0 0 clamp(48px, 7vw, 88px); }
+.hero img { display: block; width: 100%; height: auto; }
+
 .work { margin-bottom: clamp(56px, 8vw, 104px); }
 .work:last-child { margin-bottom: 0; }
 .k-fig {
@@ -364,16 +370,37 @@ const venueOf = (s) => s.split(' · ').slice(1).join(' · ') || s;
 
 function viewHome() {
   setBackdrop('acilis'); shell(null);
-  /* Ana sayfanin hero'su artik eserin sergi duvarindaki hali. Odasi
-     olmayan bir eser one cikarilirsa duz reproduksiyona dusuyor. */
-  const w = SITE.works.find(x => x.slug === 'dag-sirti' && x.ortam) ||
-            SITE.works.find(x => x.ortam) || SITE.works[0];
-  panel.appendChild(workBlock(w, { eager: true, src: w.ortam,
-                                   ratio: w.ortamRatio }));
+
+  /* Hero: salonun genel gorunusu -- sekiz eserin tamami tek mekanda.
+     Onceden tek eserin oda kurgusuydu ve AYNI gorsel sayfada uc kez
+     cikiyordu: hero, giris kartinin arka plani, menu onizlemesi.
+     (Eski kodda `slug === 'dag-sirti'` aramasi da olu koddu -- o eser
+     silineli yok, arama hep bos donup yedege dusuyordu.) */
+  const w = SITE.works.find(x => x.ortam) || SITE.works[0];
+  if (SITE.hero) {
+    const f = K.el('figure', 'hero');
+    const hi = new Image();
+    hi.src = SITE.hero.src;
+    if (SITE.hero.srcset) { hi.srcset = SITE.hero.srcset; hi.sizes = '100vw'; }
+    if (SITE.hero.en) { hi.width = SITE.hero.en; hi.height = SITE.hero.boy; }
+    hi.alt = t('hero_alt');
+    hi.decoding = 'async';
+    hi.loading = 'eager';
+    hi.fetchPriority = 'high';
+    f.appendChild(hi);
+    panel.appendChild(f);
+  } else {
+    panel.appendChild(workBlock(w, { eager: true, src: w.ortam,
+                                     ratio: w.ortamRatio }));
+  }
 
   const a = K.el('a', 'enter');
   a.href = '#/galeri';
-  const img = new Image(); img.src = w.ortam || w.src; img.alt = '';
+  /* Giris kartinin zemini hero'dan FARKLI olmali: ikisi ayni gorselken
+     sayfa kendini tekrar ediyordu. */
+  const a2 = SITE.works.find(x => x.ortam && x.ortam !== (SITE.hero || {}).src)
+             || w;
+  const img = new Image(); img.src = a2.ortam || a2.src; img.alt = '';
   const txt = K.el('div', 'txt');
   txt.innerHTML = '<div class="lbl">' + t('gal_label') + '</div>' +
                   '<div class="big">' + t('gal_title') + '</div>' +

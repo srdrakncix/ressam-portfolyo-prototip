@@ -33,6 +33,7 @@ UI = {
         'gal_exit_k': 'Ana sayfa',   # dar ekran kısaltmaları
         'gal_prev': 'Önceki eser', 'gal_next': 'Sonraki eser',
         'gal_works': 'Eserler',
+        'hero_alt': 'Sekiz eser bir sergi salonunda, duvarlara asili.',
         'gal_label': 'Katalog',
         'gal_title': 'Bütün eserler',
         'gal_sub': 'Her eser bir sergi duvarında asılı. '
@@ -86,6 +87,7 @@ UI = {
         'gal_exit_k': 'Home', 
         'gal_prev': 'Previous work', 'gal_next': 'Next work',
         'gal_works': 'Works',
+        'hero_alt': 'Eight paintings hung together in a gallery room.',
         'gal_label': 'Catalogue',
         'gal_title': 'All works',
         'gal_sub': 'Each work hangs on a gallery wall. '
@@ -138,6 +140,8 @@ UI = {
         'gal_exit_k': 'Accueil', 
         'gal_prev': 'Œuvre précédente', 'gal_next': 'Œuvre suivante',
         'gal_works': 'Œuvres',
+        'hero_alt': "Huit tableaux accrochés ensemble dans une"
+                    " salle d'exposition.",
         'gal_label': 'Catalogue',
         'gal_title': 'Toutes les œuvres',
         'gal_sub': 'Chaque œuvre est accrochée au mur d’une galerie. '

@@ -31,7 +31,9 @@ sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 BURA = os.path.dirname(os.path.abspath(__file__))
 KAYNAK = os.path.join(BURA, 'kaynak', 'hero', 'salon-genel.png')
-CIKTI = os.path.join(BURA, 'kaynak', 'hero')
+# Cikti varlik/ altina: kaynak/ .gitignore'da ve yayina kopyalanmiyor.
+# varlik/* dogrudan site/assets/* oluyor.
+CIKTI = os.path.join(BURA, 'varlik', 'hero')
 
 # Yazinin kutusu, olculdu (bkz. modul aciklamasi). Pay birakiliyor:
 # harflerin kenar yumusamasi kutunun 2-3 px disina tasiyor.
@@ -123,7 +125,8 @@ def main():
     print('kaynak      %s  %dx%d' % (os.path.basename(KAYNAK), *im.size))
 
     im = yaziyi_kaldir(im)
-    temiz = os.path.join(CIKTI, 'salon-temiz.png')
+    # Ara urun kaynak klasorunde kalir; yayina yalniz webp'ler gider.
+    temiz = os.path.join(os.path.dirname(KAYNAK), 'salon-temiz.png')
     im.save(temiz)
     print('yazi kaldirildi -> %s' % os.path.basename(temiz))
 
@@ -133,7 +136,8 @@ def main():
     # Iki olcu: genis ekran ve telefon. Hero tam genislik oldugu icin
     # buyuk olcu 2400 px; telefonda dikey kadraj daha iyi durur ama o
     # ayri bir karar, simdilik ayni kadrajin kucugu.
-    for ad, en in (('hero-2400', 2400), ('hero-1200', 1200)):
+    os.makedirs(CIKTI, exist_ok=True)
+    for ad, en in (('salon-2400', 2400), ('salon-1200', 1200)):
         boy = int(round(en * k.size[1] / float(k.size[0])))
         r = k.resize((en, boy), Image.LANCZOS)
         yol = os.path.join(CIKTI, ad + '.webp')

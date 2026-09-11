@@ -331,6 +331,23 @@ def render(tpl_path, data, standalone):
         veri = w.pop('ortamSrc', None)
         if veri and not w.get('ortam'):
             w['ortam'] = veri
+    # Hero: salonun genel gorunusu, sekiz eser tek mekanda (hero.py
+    # uretiyor, varlik/hero altina yaziyor). Yoksa alan hic konmuyor ve
+    # ana sayfa eski davranisina doner -- eksik varlik sayfayi bozmasin.
+    hdizin = os.path.join(HERE, 'varlik', 'hero')
+    buyuk = os.path.join(hdizin, 'salon-2400.webp')
+    kucuk = os.path.join(hdizin, 'salon-1200.webp')
+    if os.path.isfile(buyuk):
+        with Image.open(buyuk) as _i:
+            _en, _boy = _i.size
+        ikili = os.path.isfile(kucuk)
+        data['hero'] = {
+            'src': 'assets/hero/salon-%s.webp' % ('1200' if ikili else '2400'),
+            'srcset': ('assets/hero/salon-1200.webp 1200w,'
+                       ' assets/hero/salon-2400.webp 2400w') if ikili else '',
+            'en': _en, 'boy': _boy,
+        }
+
     tpl = io.open(tpl_path, encoding='utf-8').read()
     for token in ('/*__SITE_DATA__*/', '/*__KIT__*/'):
         if token not in tpl:
