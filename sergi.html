@@ -306,7 +306,56 @@ a { color: inherit; }
 #sahne { display: grid; place-items: center; min-width: 0; overflow: hidden;
          padding: clamp(22px, 3.4vw, 60px); }
 #buyuk { cursor: zoom-in; }
-#sahne.yakin #buyuk { cursor: zoom-out; }
+
+/* ── eserin ayri tam ekran hali ──────────────────────────────────────
+   Kendi katmani: detay 30, menu 45, bu 60. Eser burada kunyenin yaninda
+   bir kutuya sigmak zorunda degil, ekranin tamamini kullaniyor. */
+#zoom {
+  position: fixed; inset: 0; z-index: 60;
+  background: #17130f;
+  overflow: hidden; touch-action: none;
+  cursor: grab;
+}
+#zoom[hidden] { display: none; }
+#zoom.tutuluyor { cursor: grabbing; }
+#zimg {
+  position: absolute; left: 50%; top: 50%;
+  transform-origin: 50% 50%;
+  will-change: transform;
+  -webkit-user-select: none; user-select: none;
+  /* Olcekleri JS yaziyor; gecis yalniz cift-tik/kapat gibi ANI
+     degisimlerde, surukleme sirasinda DEGIL -- yoksa parmak takip
+     etmiyor gibi duruyor. */
+  transition: none;
+}
+#zimg.yumusak { transition: transform 260ms cubic-bezier(.2,.7,.3,1); }
+#zkapat {
+  position: absolute; z-index: 2;
+  top: clamp(14px, 2.2vw, 26px); right: clamp(14px, 2.2vw, 26px);
+  width: 48px; height: 48px; padding: 0; border: 0; cursor: pointer;
+  background: rgba(250,249,246,.14); border-radius: 50%;
+  display: grid; place-items: center;
+  transition: background 220ms var(--ease);
+}
+#zkapat:hover { background: rgba(250,249,246,.26); }
+#zkapat:focus-visible { outline: 2px solid #faf9f6; outline-offset: 3px; }
+#zkapat i {
+  position: absolute; width: 19px; height: 2px; background: #faf9f6;
+}
+#zkapat i:nth-child(1) { transform: rotate(45deg); }
+#zkapat i:nth-child(2) { transform: rotate(-45deg); }
+#zipucu {
+  position: absolute; z-index: 2; left: 50%; transform: translateX(-50%);
+  bottom: clamp(14px, 2.4vw, 28px); margin: 0;
+  /* Kendi zemini var: ipucu ACIK bir eserin uzerine dusebiliyor ve
+     saydam beyaz yazi orada okunmuyordu. */
+  padding: 7px 14px; border-radius: 100px;
+  background: rgba(23,19,15,.72);
+  text-align: center; color: rgba(250,249,246,.92);
+  font-size: 12.5px; letter-spacing: .05em;
+  transition: opacity 400ms var(--ease);
+}
+#zipucu.gizle { opacity: 0; }
 #buyuk {
   display: block; max-width: 100%;
   max-height: calc(100vh - 2 * clamp(22px, 3.4vw, 60px));
@@ -315,7 +364,8 @@ a { color: inherit; }
   transition: opacity 340ms var(--ease), transform 520ms var(--ease);
 }
 #detay.acik #buyuk { opacity: 1; transform: none; }
-#sahne.yakin #buyuk { transition: transform 90ms linear, opacity 340ms var(--ease); }
+/* `.yakin` kurallari KALDIRILDI: yakinlastirma artik ayri katmanda
+   (#zoom), sahnede olcek uygulanmiyor. */
 
 #bilgi {
   background: #fff; border-left: 1px solid var(--cizgi);
@@ -447,7 +497,11 @@ a { color: inherit; }
 </div>
 
 <div id="detay" aria-hidden="true">
-  <div id="sahne"><img id="buyuk" alt=""></div>
+  <!-- tabindex/role: gorsel yakinlastirmayi ACAN denetim. Onceden
+       yalnizca tiklanabiliyordu, yani klavyeyle yakinlastirmak MUMKUN
+       DEGILDI; ayrica odaklanabilir olmadigi icin katman kapaninca odak
+       govdeye dusuyordu (olculdu). -->
+  <div id="sahne"><img id="buyuk" alt="" tabindex="0" role="button"></div>
   <aside id="bilgi">
     <div id="kunye"></div>
     <div id="kareler"></div>
@@ -458,6 +512,15 @@ a { color: inherit; }
     </div>
   </aside>
   <button id="kapat" type="button"></button>
+</div>
+
+<!-- Eserin AYRI tam ekran hali: yakinlastirma ve gezinme burada.
+     Kunye ve sayfalayici yok; bu katmanin tek isi esere bakmak. -->
+<div id="zoom" role="dialog" aria-modal="true" aria-label="Eseri yakından"
+     hidden>
+  <img id="zimg" alt="" draggable="false">
+  <button id="zkapat" type="button" aria-label="Kapat"><i></i><i></i></button>
+  <p id="zipucu" aria-hidden="true"></p>
 </div>
 
 <p id="duyuru" class="gizli" aria-live="polite" aria-atomic="true"></p>
@@ -723,49 +786,199 @@ karelerEl.addEventListener('click', (e) => {
     x.setAttribute('aria-current', String(x === b)));
 });
 
-/* ── yakınlaştırma ────────────────────────────────────────────────────
-   Tıkla büyüsün, fare gezindikçe kadraj takip etsin; dokunmatikte çift
-   dokunuş. KAT 2,2 ile sınırlı: kaynak dosya 1686 px. */
+/* ── eserin ayri tam ekran hali: yakinlastir ve gezdir ────────────────
+   Eski hali eserin KENDI kutusunda scale() uyguluyordu ve #sahne'nin
+   overflow:hidden'i tasani kesiyordu; gezinme yoktu, kadraj fare
+   imlecine bagliydi ve imlec sahneden cikinca zoom kapaniyordu.
+   Artik ayri bir katman: eser ekranin tamamini kullaniyor, olcek ve
+   kaydirma bagimsiz. */
 const sahne = $('#sahne');
-const KAT = 2.2;
-let yakin = false;
+const zkat = $('#zoom'), zimg = $('#zimg'), zipucu = $('#zipucu');
+const EN_AZ = 1, EN_COK = 6, CIFT_KAT = 2.6;
 
-function odak(x, y) {
-  const r = buyuk.getBoundingClientRect();
-  if (!r.width || !r.height) return;
-  const px = Math.min(100, Math.max(0, ((x - r.left) / r.width) * 100));
-  const py = Math.min(100, Math.max(0, ((y - r.top) / r.height) * 100));
-  buyuk.style.transformOrigin = px.toFixed(1) + '% ' + py.toFixed(1) + '%';
+let zOlcek = 1, zx = 0, zy = 0;      /* olcek ve kaydirma (px) */
+let tabanW = 0, tabanH = 0;          /* ekrana SIGDIRILMIS olcu */
+let zOnceki = null;                  /* katman kapaninca odak buraya doner */
+
+function zYaz(yumusak) {
+  zimg.classList.toggle('yumusak', !!yumusak);
+  /* left/top %50 ve origin merkez oldugu icin -50% kendi olcusunun
+     yarisi kadar geri cekiyor; boylece kaydirma hesabi merkeze gore. */
+  zimg.style.transform =
+    'translate(-50%, -50%) translate(' + zx.toFixed(1) + 'px,'
+    + zy.toFixed(1) + 'px) scale(' + zOlcek.toFixed(4) + ')';
 }
 
-function yakinlastir(acik, x, y) {
-  yakin = acik;
-  sahne.classList.toggle('yakin', yakin);
-  if (yakin) { odak(x, y); buyuk.style.transform = 'scale(' + KAT + ')'; }
-  else { buyuk.style.transform = ''; buyuk.style.transformOrigin = ''; }
+function zKelepce() {
+  /* Gorsel ekrandan TAMAMEN cikamaz. Olcekli gorsel ekrandan buyukse
+     kaydirma kenarla sinirli; kucukse ortalanir. */
+  const w = tabanW * zOlcek, h = tabanH * zOlcek;
+  const sx = Math.max(0, (w - window.innerWidth) / 2);
+  const sy = Math.max(0, (h - window.innerHeight) / 2);
+  zx = Math.min(sx, Math.max(-sx, zx));
+  zy = Math.min(sy, Math.max(-sy, zy));
 }
 
-buyuk.addEventListener('click', (e) => yakinlastir(!yakin, e.clientX, e.clientY));
-sahne.addEventListener('pointermove', (e) => {
-  if (yakin && e.pointerType !== 'touch') odak(e.clientX, e.clientY);
-});
-sahne.addEventListener('pointerleave', () => { if (yakin) yakinlastir(false); });
+function zTabanOlc() {
+  /* Sigdirma olcusu: object-fit:contain'in yapacagi sey, ama sayiyla --
+     kaydirma sinirlarini bilmek icin gorselin GERCEK olcusu gerekiyor. */
+  const dw = zimg.naturalWidth || 1, dh = zimg.naturalHeight || 1;
+  const k = Math.min(window.innerWidth / dw, window.innerHeight / dh);
+  tabanW = dw * k; tabanH = dh * k;
+  zimg.style.width = tabanW.toFixed(1) + 'px';
+  zimg.style.height = tabanH.toFixed(1) + 'px';
+}
 
-let sonDokunus = 0;
-buyuk.addEventListener('touchend', (e) => {
-  const z = e.timeStamp;
-  if (z - sonDokunus < 320) {
-    e.preventDefault();
-    const d = e.changedTouches[0];
-    yakinlastir(!yakin, d.clientX, d.clientY);
-  }
-  sonDokunus = z;
+function zOlcekle(yeni, mx, my, yumusak) {
+  yeni = Math.min(EN_COK, Math.max(EN_AZ, yeni));
+  /* Imlecin altindaki nokta ayni yerde kalsin:
+       k' = (p - merkez) - (p - merkez - k) * (yeni / eski)   */
+  const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+  const ox = (mx === undefined ? cx : mx) - cx;
+  const oy = (my === undefined ? cy : my) - cy;
+  const oran = yeni / zOlcek;
+  zx = ox - (ox - zx) * oran;
+  zy = oy - (oy - zy) * oran;
+  zOlcek = yeni;
+  zKelepce();
+  zYaz(yumusak);
+}
+
+function zoomAc(src, alt) {
+  zOnceki = document.activeElement;
+  zimg.alt = alt || '';
+  zOlcek = 1; zx = 0; zy = 0;
+  const hazir = () => { zTabanOlc(); zKelepce(); zYaz(false); };
+  if (zimg.getAttribute('src') === src && zimg.complete) hazir();
+  else { zimg.addEventListener('load', hazir, { once: true });
+         zimg.src = src; }
+  /* Arkadaki katman devre disi: zoom katmani kipli ve icinde tek
+     odaklanabilir oge var, yani Tab onun disina cikmamali. */
+  detay.setAttribute('inert', '');
+  zkat.hidden = false;
+  zipucu.textContent = t('zoom_ipucu');
+  zipucu.classList.remove('gizle');
+  /* Ipucu bir kez okunup kayboluyor; kalici olsa gorselin onunde
+     duruyor. */
+  setTimeout(() => zipucu.classList.add('gizle'), 2600);
+  document.documentElement.classList.add('durdur');
+  $('#zkapat').focus({ preventScroll: true });
+}
+
+function zoomKapat() {
+  if (zkat.hidden) return;
+  zkat.hidden = true;
+  detay.removeAttribute('inert');
+  document.documentElement.classList.remove('durdur');
+  /* Odak yakinlastirmayi acan denetime doner. zOnceki bos cikarsa
+     (programatik acilis) gorselin kendisine -- govdeye dusmesin. */
+  const hedef = (zOnceki && zOnceki.focus && zOnceki !== document.body)
+    ? zOnceki : buyuk;
+  hedef.focus({ preventScroll: true });
+}
+
+/* Eserin buyuk hali tiklaninca AYRI katman aciliyor. */
+buyuk.style.cursor = 'zoom-in';
+function zoomuAc() {
+  const w = gorunen[acikIdx];
+  zoomAc(buyuk.getAttribute('src'), w ? w.title : '');
+}
+buyuk.addEventListener('click', zoomuAc);
+/* Klavye: gorsel artik role="button", yani Enter ve Space acmali. */
+buyuk.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); zoomuAc(); }
 });
-buyuk.addEventListener('touchmove', (e) => {
-  if (!yakin || e.touches.length !== 1) return;
+
+$('#zkapat').addEventListener('click', zoomKapat);
+/* Arka plana tiklamak kapatir; gorselin kendisi kapatmaz (surukleme
+   bittiginde de click atesleniyor, yoksa her gezinme kapatirdi). */
+zkat.addEventListener('click', (e) => { if (e.target === zkat) zoomKapat(); });
+
+/* tekerlek: imlece gore olcek */
+zkat.addEventListener('wheel', (e) => {
   e.preventDefault();
-  odak(e.touches[0].clientX, e.touches[0].clientY);
+  zOlcekle(zOlcek * (e.deltaY < 0 ? 1.14 : 1 / 1.14), e.clientX, e.clientY);
 }, { passive: false });
+
+/* surukleme: fare ve tek parmak */
+let tut = null;
+zkat.addEventListener('pointerdown', (e) => {
+  if (e.button !== undefined && e.button !== 0) return;
+  tut = { x: e.clientX, y: e.clientY, zx: zx, zy: zy, id: e.pointerId,
+          kaydi: false };
+  zkat.classList.add('tutuluyor');
+  zkat.setPointerCapture(e.pointerId);
+});
+zkat.addEventListener('pointermove', (e) => {
+  if (!tut || e.pointerId !== tut.id) return;
+  const dx = e.clientX - tut.x, dy = e.clientY - tut.y;
+  if (Math.abs(dx) + Math.abs(dy) > 3) tut.kaydi = true;
+  zx = tut.zx + dx; zy = tut.zy + dy;
+  zKelepce(); zYaz(false);
+});
+function tutBirak(e) {
+  if (!tut || (e && e.pointerId !== tut.id)) return;
+  tut = null; zkat.classList.remove('tutuluyor');
+}
+zkat.addEventListener('pointerup', tutBirak);
+zkat.addEventListener('pointercancel', tutBirak);
+
+/* cift tik / cift dokunma: 1x <-> 2.6x */
+let zSonTik = 0;
+zkat.addEventListener('pointerup', (e) => {
+  if (e.pointerType === 'mouse') return;       /* fare icin dblclick var */
+  const simdi = e.timeStamp;
+  if (simdi - zSonTik < 320) {
+    zOlcekle(zOlcek > 1.05 ? 1 : CIFT_KAT, e.clientX, e.clientY, true);
+    zSonTik = 0;
+  } else zSonTik = simdi;
+});
+zkat.addEventListener('dblclick', (e) => {
+  e.preventDefault();
+  zOlcekle(zOlcek > 1.05 ? 1 : CIFT_KAT, e.clientX, e.clientY, true);
+});
+
+/* pinch: iki parmak arasi mesafe */
+let pinc = null;
+zkat.addEventListener('touchstart', (e) => {
+  if (e.touches.length !== 2) return;
+  const [a, b] = e.touches;
+  pinc = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
+           o: zOlcek };
+  tutBirak();
+}, { passive: false });
+zkat.addEventListener('touchmove', (e) => {
+  if (!pinc || e.touches.length !== 2) return;
+  e.preventDefault();
+  const [a, b] = e.touches;
+  const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  zOlcekle(pinc.o * (d / pinc.d),
+           (a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2);
+}, { passive: false });
+zkat.addEventListener('touchend', (e) => {
+  if (pinc && e.touches.length < 2) pinc = null;
+});
+
+/* klavye: Escape kapatir, oklar gezdirir, +/- olcek */
+addEventListener('keydown', (e) => {
+  if (zkat.hidden) return;
+  const adim = 80;
+  if (e.key === 'Escape') { e.preventDefault(); zoomKapat(); }
+  else if (e.key === '+' || e.key === '=') zOlcekle(zOlcek * 1.2, undefined, undefined, true);
+  else if (e.key === '-') zOlcekle(zOlcek / 1.2, undefined, undefined, true);
+  else if (e.key === 'ArrowLeft') { zx += adim; zKelepce(); zYaz(true); }
+  else if (e.key === 'ArrowRight') { zx -= adim; zKelepce(); zYaz(true); }
+  else if (e.key === 'ArrowUp') { zy += adim; zKelepce(); zYaz(true); }
+  else if (e.key === 'ArrowDown') { zy -= adim; zKelepce(); zYaz(true); }
+  else return;
+  e.stopPropagation();
+}, true);
+
+/* Pencere olcusu degisince sigdirma olcusu de degisiyor. */
+addEventListener('resize', () => {
+  if (zkat.hidden) return;
+  zTabanOlc(); zKelepce(); zYaz(false);
+}, { passive: true });
 
 /* ── tek esere kalıcı bağlantı ────────────────────────────────────────
    replaceState: her ok basışı geçmişe girmesin. Adresle gelen bir eser
