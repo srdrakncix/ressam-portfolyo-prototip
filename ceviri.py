@@ -54,6 +54,7 @@ UI = {
         'exh_solo': 'Kişisel Sergiler',
         'exh_group': 'Karma Sergiler',
         'coll_record': 'Kayıt',
+        'coll_soon': 'Koleksiyon kayıtları hazırlanıyor.',
         'coll_sentence': '{n} eserin {h} tanesi koleksiyonlarda. Kalanlar atölyeden temin edilebilir.',
         'bio_born': '{y}’de {p}’de doğdu.',
         'bio_lives': '{c}’da yaşıyor ve çalışıyor.',
@@ -108,6 +109,7 @@ UI = {
         'exh_solo': 'Solo Exhibitions',
         'exh_group': 'Group Exhibitions',
         'coll_record': 'Record',
+        'coll_soon': 'Collection records are being prepared.',
         'coll_sentence': '{h} of {n} works are held in collections. '
                          'The remainder are available from the studio.',
         'bio_born': 'Born in {p} in {y}.',
@@ -162,6 +164,7 @@ UI = {
         'exh_solo': 'Expositions personnelles',
         'exh_group': 'Expositions collectives',
         'coll_record': 'Registre',
+        'coll_soon': 'Les registres de collection sont en préparation.',
         'coll_sentence': '{h} des {n} œuvres se trouvent en collection. '
                          'Les autres sont disponibles à l’atelier.',
         'bio_born': 'Né à {p} en {y}.',

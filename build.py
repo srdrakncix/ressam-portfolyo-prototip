@@ -370,19 +370,45 @@ def render(tpl_path, data, standalone):
         if not m:
             sys.exit('HATA: canonical yok, paylasim gorseli uretilemedi.')
         kok_url = m.group(1).rstrip('/')
-        isler = data.get('works') or []
-        if not isler:
-            sys.exit('HATA: eser yok, paylasim gorseli uretilemedi.')
-        yol = isler[0].get('ortam') or isler[0].get('src')
+        # PAYLASIM GORSELI HERO. Once ilk eserin oda kurgusuydu; tek
+        # eser sitenin tamamini temsil etmiyor. Hero sekiz eseri ayni
+        # mekanda gosteriyor, yani paylasilan link sanatcinin isini
+        # topluca gosteriyor. Hero yoksa yine ilk esere dusuyor.
+        hero = (data.get('hero') or {})
+        # Buyuk surum: og:image'in onerilen alt siniri 1200x630 ve
+        # hero'nun kucuk surumu 1200x568 ile yuksekligi gecmiyor.
+        yol = (hero.get('srcset') or '').split()[0] if hero.get('srcset') else None
+        if hero.get('srcset'):
+            parcalar = [p.strip().split() for p in hero['srcset'].split(',')]
+            en_buyuk = max(parcalar, key=lambda p: int(p[1].rstrip('w')))
+            yol = en_buyuk[0]
         if not yol:
-            sys.exit('HATA: ilk eserde gorsel yok, og:image uretilemedi.')
+            yol = hero.get('src')
+        isler = data.get('works') or []
+        if not yol:
+            if not isler:
+                sys.exit('HATA: eser yok, paylasim gorseli uretilemedi.')
+            yol = isler[0].get('ortam') or isler[0].get('src')
+        if not yol:
+            sys.exit('HATA: paylasim gorseli uretilemedi.')
         # Denetim: gorselin KAYNAGI gercekten var mi. Kusurun sebebi
         # tam olarak bu denetimin olmamasiydi -- silinmis bir esere
         # bakan sabit bir yol kimseyi uyarmadan yayina gidiyordu.
+        # Kaynak IKI yerde olabilir: eser gorselleri icerik/gorseller'de,
+        # hero gibi uretilmis varliklar varlik/ altinda. Once yalniz
+        # ilkine bakiliyordu ve hero'ya geciste derleme patlardi.
         temel = os.path.splitext(os.path.basename(yol))[0]
-        gdizin = os.path.join(HERE, 'icerik', 'gorseller')
-        varmi = any(os.path.splitext(f)[0] == temel
-                    for f in os.listdir(gdizin)) if os.path.isdir(gdizin) else False
+        varmi = False
+        for kok in (os.path.join(HERE, 'icerik', 'gorseller'),
+                    os.path.join(HERE, 'varlik')):
+            if not os.path.isdir(kok):
+                continue
+            for dizin, _, dosyalar in os.walk(kok):
+                if any(os.path.splitext(f)[0] == temel for f in dosyalar):
+                    varmi = True
+                    break
+            if varmi:
+                break
         if not varmi:
             sys.exit('HATA: paylasim gorseli kaynakta yok -> %s' % temel)
         tam = kok_url + '/' + yol

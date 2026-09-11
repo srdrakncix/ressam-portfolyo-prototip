@@ -514,19 +514,39 @@ const viewKoleksiyon = () => textPage('koleksiyon', t('nav_coll'), (p) => {
      "satılık olmayan" hepsi sayılıyordu ve "ayrıldı" durumundaki eser de
      koleksiyondaymış gibi görünüyordu. Kayıt listesi ikisini de gösterir,
      ama her satır kendi durumunu söyler. */
-  const held = SITE.works.filter(w => w.status !== 'satilik');
+  /* Kayit satiri yalnizca GERCEK bilgi varsa uretiliyor. Eskiden
+     `status !== 'satilik'` suzgeci kullaniliyordu ve butun eserlerin
+     durumu bos oldugu icin HEPSI kayit sayiliyordu: sayfa "8 eserin 0
+     tanesi koleksiyonlarda" deyip altina 8 satir doküyordu, her biri
+     yil yerine "0" ve olcu yerine "|  ·" artigi. Eksik kunye kasitli
+     degil BOZUK gorunuyordu. */
+  const kayitli = SITE.works.filter(w => w.collection || w.status);
   const inColl = SITE.works.filter(w => w.status === 'koleksiyonda');
+
+  if (!kayitli.length) {
+    /* Hic kayit yoksa baslik ve cumle de basilmiyor: "0 tanesi
+       koleksiyonlarda" cumlesi bilgi vermiyor, eksigi hata gibi
+       gosteriyor. */
+    p.appendChild(K.el('p', null,
+      '<span style="font-size:var(--t-cap);color:var(--muted)">'
+      + t('coll_soon') + '</span>'));
+    return;
+  }
+
   p.appendChild(K.el('h2', null, t('coll_record')));
   p.appendChild(K.el('p', null, '<span style="font-size:var(--t-cap);color:var(--muted)">' +
     fill(t('coll_sentence'), { n: SITE.works.length, h: inColl.length }) + '</span>'));
-  /* Provenans: hangi eser hangi koleksiyonda. Üstteki altı kurum adı
-     hiçbir esere bağlı değildi. */
-  p.appendChild(rowList(held.map(w => [
-    String(w.year),
-    w.title,
-    w.size + '  |  ' + w.sizeIn + ' · ' +
-      (w.collection ? w.collection + (w.collYear ? ', ' + w.collYear : '') : availLine(w.status)),
-  ])));
+  /* Provenans: hangi eser hangi koleksiyonda. Bos alanlar BASILMIYOR --
+     yil 0 ve olcu bos oldugunda "0" ile "|  ·" ekrana cikiyordu. */
+  p.appendChild(rowList(kayitli.map(w => {
+    const olcu = [w.size, w.sizeIn].filter(Boolean).join('  |  ');
+    const yer = w.collection
+      ? w.collection + (w.collYear ? ', ' + w.collYear : '')
+      : availLine(w.status);
+    return [w.year ? String(w.year) : '',
+            w.title,
+            [olcu, yer].filter(Boolean).join(' · ')];
+  })));
 });
 
 const viewYayinlar = () => textPage('yayinlar', t('nav_pub'), (p) => p.appendChild(rowList(L().publications)));
