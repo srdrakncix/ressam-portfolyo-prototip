@@ -117,6 +117,13 @@ MUREKKEP = {
     # Artik gercek rengiyle olculuyor.
     'kapat':     (46, 36, 31),      #                         9.04:1
 }
+# Satir tonu icin SICAK PENCERE. Olculdu: tonlar 29-94 derece arasinda
+# geziniyordu (aralik 65, std 23) ve uc satir zeytin yesiline kaciyordu --
+# krem zeminde niyetli bir renk karari gibi degil render hatasi gibi
+# okunuyor. Ton yine sayfanin paletinden geliyor, ama bu pencereye
+# kelepceleniyor. Merkez 33 derece: olculen tonlarin cogunlugu orada.
+TON_MERKEZ, TON_PAY = 33.0, 11.0
+
 SAT_TAVAN = 0.40
 # 0.90'dan 0.20'ye: panel krem oldu, satirlar KOYU olmak zorunda.
 # En kotu hal en acik satir (taban + 6*adim) ve o bile 5.67:1 veriyor.
@@ -205,11 +212,27 @@ YERLESIM = [
 # Olculen yan fayda: boyanin kalinlik hissi ACIK zeminde daha iyi
 # okunuyor. Koyu panelde panel ici doku sapmasi std 3-7 idi, yani
 # "kalinliktan gelen deger" alanin onda dokuzunda gorunmuyordu.
+# Tavan 252'den 244'e indi, rampa genisledi (244 -> 214). Sebep
+# olculdu: panel ortalama parlakligi 240/255 ile tavana yapisikti ve
+# dokunun yukari dogru kipirdayacagi yer yoktu -- panel ici yama std'si
+# 1.35, yani hammaddenin (2.75-6.24) yarisindan azi. Panel hala krem.
+# Tavan GERI ACILDI. 244'e indirmek dokuya yer aciyordu ama paneli
+# koyultup kapiyi kirdi: 14 kutu kaldi, kontrastlar 2.66-3.79 (esik
+# 4.5). Dokuyu getiren sey FR degil yogunluk egrisi (EGRI_HI) ve iki
+# yonlu deger modulasyonu -- olculdu, ikisi std medyani 1.29'dan
+# 3.96'ya cikardi. FR eski haliyle kaliyor.
 FR = [(0.00, (252, 248, 240)), (0.28, (249, 244, 234)),
       (0.60, (244, 237, 224)), (0.85, (236, 227, 211)),
       (1.00, (227, 216, 198))]
 
-EGRI_LO, EGRI_HI = 14, 168   # ham yogunluk egrisi: pus sifira, cekirdek opak
+# Ham yogunluk egrisi. HI 168 iken darbe piksellerinin %63-90'i 255'e
+# KIRPILIYORDU: `kal` degeri plato yapiyor, deger modulasyonu (ac)
+# sifirlaniyor ve panel ici dokusu olulyordu (std medyan 1.35, oysa
+# hammaddenin kendi std'si 2.75-6.24). HI 220 platoyu daraltiyor.
+# Siluet ayri esikle (doldur, esik=76) kuruluyor, o yuzden HI'yi
+# yukseltmek silueti dogrudan kucultmuyor -- ama olcum kapisi kaplamayi
+# ve opakligi yine denetliyor.
+EGRI_LO, EGRI_HI = 14, 220
 
 # Kenar bandinin genisligi. Bu bantta dolgu YOK, gercek boyanin alfasi
 # var. Genisledikce kenar daha boya gibi, ama yazi kutulari ic bolgenin
@@ -507,6 +530,16 @@ def boya_darbe(ham, siluet, ox, oy, guvenli=None, nefes=None,
     px, hp, sp = im.load(), ham.load(), siluet.load()
     gp = guvenli.load() if guvenli is not None else None
     np_ = nefes.load() if nefes is not None else None
+    # Darbenin ORTALAMA kalinligi: deger modulasyonu buna gore iki yone
+    # gidiyor, yoksa her sey tek yonde aciliyor.
+    _sp = siluet.load()
+    _t, _n = 0, 0
+    for _y in range(0, h, 3):
+        for _x in range(0, w, 3):
+            if _sp[_x, _y]:
+                _t += hp[_x, _y]
+                _n += 1
+    kal_ort = (_t / float(_n) / 255.0) if _n else 0.6
     for y in range(h):
         ty = (oy + y - PAY_UST) / float(BOY)
         for x in range(w):
@@ -534,7 +567,17 @@ def boya_darbe(ham, siluet, ox, oy, guvenli=None, nefes=None,
                                 continue
             r, g, b = fr(0.30 * ((ox + x - PAY_SOL) / float(EN)) + 0.70 * ty)
             kal = hp[x, y] / 255.0
-            ac = 1.0 + (1.0 - kal) * 0.20
+            # IKI YONLU modulasyon. Onceden `1.0 + (1 - kal) * 0.20`
+            # yalnizca ACIYORDU ve tavani %20 idi: gercek yagliboyada
+            # kil sirti isigi yakalar (acik), iki sira arasindaki oluk
+            # golgede kalir (koyu). Tek yonlu modulasyon boyayi
+            # utulenmis gosteriyordu. Ortalama kalinlik darbe basina
+            # hesaplaniyor, sapma iki yone de gidiyor.
+            # ISARET: ince boya ACILIR (kagit/duvar aciga cikar),
+            # kalin boya kendi degerinde kalir. Ters yazildi ve
+            # paneli koyultup kapiyi kirdi: 14 kutu, kontrast
+            # 2.91-4.20 (esik 4.5).
+            ac = 1.0 + (kal_ort - kal) * 0.40
             gri = (r + g + b) / 3.0
             kar = (1.0 - kal) * 0.14
             px[x, y] = (min(255, int((r * (1 - kar) + gri * kar) * ac)),
@@ -609,6 +652,10 @@ def satir_renkleri(palet):
         n = int(hx[1:], 16)
         r, g, b = (n >> 16) & 255, (n >> 8) & 255, n & 255
         h, l, sat = colorsys.rgb_to_hls(r / 255.0, g / 255.0, b / 255.0)
+        # Ton sicak pencereye kelepceleniyor (bkz. TON_MERKEZ).
+        hd = h * 360.0
+        hd = max(TON_MERKEZ - TON_PAY, min(TON_MERKEZ + TON_PAY, hd))
+        h = hd / 360.0
         sat = min(sat, SAT_TAVAN)
         lig = LIG_TABAN + ((i * 3) % 7) * LIG_ADIM
         rr, gg, bb = colorsys.hls_to_rgb(h, lig, sat)
@@ -789,6 +836,9 @@ def disari(parcalar):
     return satirlar
 
 
+_taban_doku = None       # main() dolduruyor: darbenin kendi yogunlugu
+
+
 def taban_uret():
     """Yazinin altindaki opak zemin. Boya gelmezse okunurluk buna kaliyor.
 
@@ -802,9 +852,33 @@ def taban_uret():
     if not kutu:
         return None
     koru = koru.crop(kutu)
-    renk = fr(0.5)
-    im = Image.new('RGBA', koru.size, renk + (0,))
-    im.putalpha(koru)
+    # RENK DUZ DEGIL. Onceden fr(0.5) ile tek renkti (olculdu: opak
+    # parlaklik min=max=240, std 0.03) ve yazinin altinda duz bir levha
+    # duruyordu -- darbelerin dokusu ne yaparsa yapsin alttaki kat
+    # duzdu. Artik hem FR gradyani hem boyanin kendi yogunlugu var.
+    en, boy = koru.size
+    im = Image.new('RGBA', (en, boy))
+    ip = im.load()
+    dp = _taban_doku.resize((en, boy), Image.LANCZOS).load() \
+        if _taban_doku is not None else None
+    kp = koru.load()
+    for y in range(boy):
+        ty = (kutu[1] + y - PAY_UST) / float(BOY)
+        for x in range(en):
+            a = kp[x, y]
+            if not a:
+                continue
+            r, g2, b = fr(0.30 * ((kutu[0] + x - PAY_SOL) / float(EN))
+                          + 0.70 * ty)
+            if dp is not None:
+                # Doku DEGERI moduluyor, alfayi degil: okunurluk
+                # garantisi alfaya bagli ve o dokunulmadan kaliyor.
+                k = dp[x, y] / 255.0
+                ac = 0.94 + k * 0.10
+                r = min(255, int(r * ac))
+                g2 = min(255, int(g2 * ac))
+                b = min(255, int(b * ac))
+            ip[x, y] = (r, g2, b, a)
     ad = 'taban.webp'
     im.save(os.path.join(VARLIK, ad), 'WEBP', quality=86, method=6, exact=True)
     return {'dosya': 'assets/firca/' + ad,
@@ -840,7 +914,9 @@ def css_yaz(satirlar, taban=None):
     # olmak zorunda. Iki yerde elle tutulsaydi ilk degisiklikte ayrisir
     # ve olcum artik gercegi olcmez olurdu.
     p.append(':root { --satir-doygunluk: %.2f; --satir-parlaklik: %.2f;'
-             ' --satir-adim: %.3f; }' % (SAT_TAVAN, LIG_TABAN, LIG_ADIM))
+             ' --satir-adim: %.3f;'
+             ' --satir-ton-merkez: %.1f; --satir-ton-pay: %.1f; }'
+             % (SAT_TAVAN, LIG_TABAN, LIG_ADIM, TON_MERKEZ, TON_PAY))
     # Murekkepler: kabuk.css bunlari okuyor. Elle yazilsalardi olcum ile
     # gercek yine ayrisirdi -- bu hataya bir kez dusuldu.
     p.append(':root {')
@@ -902,6 +978,36 @@ def css_yaz(satirlar, taban=None):
     io.open(CSS_YOL, 'w', encoding='utf-8', newline='\n').write('\n'.join(p) + '\n')
 
 
+def _doku_raporu(panel):
+    """Panel ici yerel doku sapmasi. Tek sayiya indirilemez: panelin
+    bir yerinde gradyan, baska yerinde kil izi var. 24x24 yamalarin
+    std'lerinin MEDYANI, gradyandan az etkilendigi icin kil izini
+    gosteriyor."""
+    import statistics
+    rgb = panel.convert('RGB')
+    alfa = panel.getchannel('A')
+    stdler = []
+    duz = 0
+    for y in range(PAY_UST + 60, PAY_UST + BOY - 60, 24):
+        for x in range(PAY_SOL + 20, PAY_SOL + EN - 20, 24):
+            yama = rgb.crop((x, y, x + 24, y + 24)).convert('L')
+            al = alfa.crop((x, y, x + 24, y + 24))
+            if min(al.getdata()) < 230:      # kenar/delik yamasi degil
+                continue
+            v = list(yama.getdata())
+            m = sum(v) / len(v)
+            sd = (sum((t - m) ** 2 for t in v) / len(v)) ** 0.5
+            stdler.append(sd)
+            if sd < 0.3:
+                duz += 1
+    if not stdler:
+        print('panel ici doku  olculemedi')
+        return
+    print('panel ici doku  std medyan %.2f  ortalama %.2f  duz yama %%%.1f'
+          % (statistics.median(stdler), sum(stdler) / len(stdler),
+             100.0 * duz / len(stdler)))
+
+
 def main():
     if not os.path.isdir(HAM):
         raise SystemExit('ham fotograf klasoru yok: ' + HAM)
@@ -939,6 +1045,11 @@ def main():
     else:
         print('ic delik  yok')
 
+    # PANEL ICI DOKU. Ressamin olcumu: 24x24 yama std medyani 1.35 ve
+    # panelin %18.4'u matematiksel olarak duz. Artik her derlemede
+    # raporlaniyor ki gozle degil sayiyla konusulsun.
+    _doku_raporu(panel)
+
     kutu_alfa = panel.getchannel('A').crop(
         (PAY_SOL, PAY_UST, PAY_SOL + EN, PAY_UST + BOY))
     kapla = sum(1 for v in kutu_alfa.tobytes() if v > 20) / float(EN * BOY)
@@ -964,6 +1075,11 @@ def main():
         raise SystemExit('HATA: %d kutu (857px), %d kutu (%dpx), ic delik %%%.2f'
                          ' -- VARLIKLAR YAZILMADI'
                          % (kalan, kalan2, ikinci, ic_oran * 100))
+
+    # Taban dokusu: nefes dokusuyla ayni kaynak, ama ayri egri. Ikisi de
+    # gercek bir kuru firca fotografindan geliyor.
+    global _taban_doku
+    _taban_doku = darbeler['karakter-1']
 
     satirlar = disari(parcalar)
     print('sag tasma        %%%5.1f  (gorunur alfa >= %d)'

@@ -94,7 +94,9 @@ function satirAyari() {
     const v = parseFloat(cs.getPropertyValue(ad));
     return isNaN(v) ? yedek : v;
   };
-  return { sat: say('--satir-doygunluk', 0.40),
+  return { tonMerkez: say('--satir-ton-merkez', 33),
+           tonPay: say('--satir-ton-pay', 11),
+           sat: say('--satir-doygunluk', 0.40),
            lig: say('--satir-parlaklik', 0.90),
            adim: say('--satir-adim', 0.015) };
 }
@@ -104,7 +106,13 @@ function paintMenu(pal) {
   document.querySelectorAll('#menu .nav-item').forEach((el, i) => {
     if (el.classList.contains('ozel') || el.classList.contains('cikis')) return;
     if (!pal.length) { el.style.color = '#e9e9e4'; return; }
-    const [h, sRaw] = hsl(pal[i % pal.length]);
+    const [hRaw, sRaw] = hsl(pal[i % pal.length]);
+    /* Ton SICAK PENCEREYE kelepceleniyor. Olculdu: tonlar 29-94 derece
+       arasinda geziniyordu ve uc satir zeytin yesiline kaciyordu.
+       Degerler firca.css'ten -- olcum ile calisan kod ayni sayiyi
+       kullanmak zorunda, bu hata uc kez tekrarlandi. */
+    const h = Math.max(a.tonMerkez - a.tonPay,
+                       Math.min(a.tonMerkez + a.tonPay, hRaw));
     const sat = Math.min(sRaw, a.sat);
     const lig = a.lig + ((i * 3) % 7) * a.adim;        /* satır satır ayrışsın */
     el.style.color = 'hsl(' + h.toFixed(0) + ',' + (sat * 100).toFixed(0) + '%,' +

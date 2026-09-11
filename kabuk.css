@@ -219,7 +219,17 @@
 }
 #boya i {
   position: absolute; display: block;
-  background-repeat: no-repeat; background-size: 100% 100%;
+  /* cover, 100% 100% DEGIL. Kutular yuzdeyle tanimli: genislik panelin
+     genisliginin, yukseklik panelin yuksekliginin yuzdesi. Panelin
+     en/boy orani ekrana gore degistigi icin (1440'ta 600x900 = 0.67,
+     390'da 150x580 = 0.26) `100% 100%` darbeyi ANIZOTROPIK geriyordu.
+     Olculdu: 1440'ta anizotropi 0.95, 820'de 0.44, 390'da 0.40 -- yatay
+     kil izleri 2.5 kat sikisip dikey ignelere donuyordu. Yani boya
+     yalniz genis ekranda boyaydi.
+     cover orani koruyor; bedeli kutunun disina tasan kismin gorunmemesi,
+     ama darbeler zaten ust uste biniyor ve kaplama olcumle denetleniyor. */
+  background-repeat: no-repeat; background-size: cover;
+  background-position: center;
   animation-duration: 300ms;
   animation-timing-function: var(--ease);
   animation-fill-mode: both;

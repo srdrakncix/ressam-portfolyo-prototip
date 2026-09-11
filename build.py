@@ -86,6 +86,14 @@ def yorumsuz(metin, dil):
     blokta = False
     for satir in metin.split('\n'):
         kirp = satir.strip()
+        # DERLEME BELIRTECLERI yorum bicimindedir
+        # (/*__FIRCA_CSS__*/) ve bu siyirici onlari YEDI:
+        # firca.css hic gomulmedi, --darbe kayboldu, kabuk.js tek
+        # <i> uretmedi, yani menude hic boya kalmadi. Yayina da
+        # gitti. Belirtec = icinde __ olan yorum; aynen korunuyor.
+        if '__' in kirp and kirp.startswith('/*'):
+            cikti.append(satir.rstrip())
+            continue
         if blokta:
             if '*/' in kirp:
                 blokta = False
