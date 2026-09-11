@@ -1,0 +1,25 @@
+{
+  "slug": "eser-7",
+  "sira": 7,
+  "baslik": "Eser 7",
+  "gloss": {
+    "en": "Work 7",
+    "fr": "Œuvre 7"
+  },
+  "seri": "eserler",
+  "yil": null,
+  "durum": "",
+  "olcu": null,
+  "koleksiyon": {
+    "ad": "",
+    "yil": null
+  },
+  "gorsel": "eser-7.jpg",
+  "ortam_gorseli": "ortam-eser-7.webp",
+  "not": {
+    "tr": "",
+    "en": "",
+    "fr": ""
+  },
+  "taslak": true
+}

@@ -278,6 +278,9 @@ window.KABUK = {
 /* ── ortak parçalar ──────────────────────────────────────────────────────── */
 
 function availLine(s) {
+  /* Bos durum bir durum DEGIL. Eskiden son dala dusup "Ayrildi" yaziyordu;
+     kunyesi henuz girilmemis esere satilmis damgasi vurmak yanlis. */
+  if (!s) return '';
   return s === 'satilik' ? t('avail_studio') : s === 'koleksiyonda' ? t('avail_private') : t('avail_gone');
 }
 
@@ -288,11 +291,13 @@ function workBlock(w, opts = {}) {
   d.appendChild(fig);
   const gloss = (L().works[w.id] || {}).gloss || '';
   const cap = K.el('figcaption', 'cap');
+  /* Eksik alanlar basilmiyor: yil 0, olcu bos. */
   cap.innerHTML =
     '<div class="t"><a href="#/eser/' + w.slug + '">' + w.title + '</a></div>' +
     (gloss ? '<div class="gloss">' + gloss + '</div>' : '') +
-    '<div>' + w.year + '</div><div>' + t('medium') + '</div>' +
-    '<div>' + w.size + ' | ' + w.sizeIn + '</div>';
+    (w.year ? '<div>' + w.year + '</div>' : '') +
+    '<div>' + t('medium') + '</div>' +
+    (w.size ? '<div>' + w.size + ' | ' + w.sizeIn + '</div>' : '');
   const av = K.el('div', 'avail'); av.textContent = availLine(w.status);
   cap.appendChild(av); d.appendChild(cap);
   return d;
@@ -388,15 +393,16 @@ function viewEser(slug) {
   const not = (L().works[w.id] || {}).note || w.note;
   const satir = [];
   if (seri) satir.push([t('lbl_series'), seri]);
-  satir.push([t('lbl_year'), String(w.year)]);
+  if (w.year) satir.push([t('lbl_year'), String(w.year)]);
   satir.push([t('lbl_medium'), t('medium')]);
-  satir.push([t('lbl_size'), w.size + '  |  ' + w.sizeIn]);
+  if (w.size) satir.push([t('lbl_size'), w.size + '  |  ' + w.sizeIn]);
   if (w.collection) satir.push([t('nav_coll'), w.collection + (w.collYear ? ', ' + w.collYear : '')]);
   kunye.appendChild(rowList(satir.map(([a, b]) => ['', a, b])));
   kunye.appendChild(K.el('p', null, '<span style="color:var(--muted)">“' + not + '”</span>'));
   kunye.appendChild(K.el('p', null,
     '<a class="mail" href="mailto:' + SITE.artist.email +
-    '?subject=' + encodeURIComponent(SITE.artist.name + ' — ' + w.title + ', ' + w.year) +
+    '?subject=' + encodeURIComponent(SITE.artist.name + ' — ' + w.title +
+                                    (w.year ? ', ' + w.year : '')) +
     '">' + availLine(w.status) + ' · ' + SITE.artist.email + '</a>'));
   panel.appendChild(kunye);
 
@@ -475,7 +481,9 @@ const viewIletisim = () => textPage('iletisim', t('nav_contact'), (p) => {
     '">' + SITE.artist.email + '</a>'));
   p.appendChild(K.el('p', null, '<span style="color:var(--muted)">' + SITE.artist.studio + '</span>'));
   p.appendChild(K.el('p', null, t('contact_body')));
-  p.appendChild(K.el('div', 'note', L().notice + ' ' + SITE.works[0].credit));
+  /* Kredi artik bos: gorseller ressamin KENDI eserleri, kamu mali degil. */
+  p.appendChild(K.el('div', 'note',
+    [L().notice, SITE.works[0].credit].filter(Boolean).join(' ')));
 });
 
 /* Galeri ayrı bir sayfa: WebGL yalnızca oraya girenlere yükleniyor. */

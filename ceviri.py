@@ -174,35 +174,10 @@ UI = {
 # ── seriler ───────────────────────────────────────────────────────────────
 
 SERIES = {
-    'alacakaranlik': {
-        'en': ('Twilight',
-               'Paintings of the short interval when the day has ended and night has not begun. '
-               'Colour here does not describe something; it holds something disappearing.'),
-        'fr': ('Crépuscule',
-               'Peintures de ce bref intervalle où le jour s’achève et où la nuit n’a pas '
-               'commencé. La couleur n’y décrit rien ; elle retient ce qui disparaît.'),
-    },
-    'hava': {
-        'en': ('Weather',
-               'Storm, rain, pressure. The atmosphere itself rather than the landscape. '
-               'I put the air on the canvas first, the ground after.'),
-        'fr': ('Temps',
-               'Orage, pluie, pression. L’atmosphère elle-même plutôt que le paysage. '
-               'Je pose l’air sur la toile d’abord, le sol ensuite.'),
-    },
-    'topografya': {
-        'en': ('Quiet Topography',
-               'Land without people. Places where no one is present but someone clearly passed.'),
-        'fr': ('Topographie silencieuse',
-               'Des terres sans personne. Des lieux où nul n’est présent mais où quelqu’un '
-               'est manifestement passé.'),
-    },
-    'sabah': {
-        'en': ('Morning',
-               'The silver light series. The first half hour of morning, before colour settles.'),
-        'fr': ('Matin',
-               'La série de la lumière d’argent. La première demi-heure du matin, '
-               'avant que la couleur ne se fixe.'),
+    # Tek gecici grup. Seri adlari ressamdan gelecek.
+    'eserler': {
+        'en': ('Works', ''),
+        'fr': ('Œuvres', ''),
     },
 }
 
@@ -345,12 +320,10 @@ PRESS_BYLINE = {
 }
 
 NOTICE = {
-    'en': 'This is a design prototype. The artist identity and all texts are fictional; the '
-          'images are public-domain paintings by George Inness from the Art Institute of '
-          'Chicago open-access archive. All will be replaced with the artist’s own work '
-          'before launch.',
-    'fr': 'Ceci est un prototype de conception. L’identité de l’artiste et les textes sont '
-          'fictifs ; les images sont des tableaux de George Inness du domaine public, issus '
-          'des archives en libre accès de l’Art Institute of Chicago. Tout sera remplacé par '
-          'les œuvres de l’artiste avant la mise en ligne.',
+    'en': 'This is a design prototype. The images are the painter’s own works; the artist '
+          'name and all texts are fictional. Titles, years and dimensions have not been '
+          'entered yet.',
+    'fr': 'Ceci est un prototype de conception. Les images sont les œuvres réelles du '
+          'peintre ; le nom de l’artiste et les textes sont fictifs. Les titres, années et '
+          'dimensions ne sont pas encore renseignés.',
 }

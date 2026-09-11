@@ -1,0 +1,25 @@
+{
+  "slug": "eser-2",
+  "sira": 2,
+  "baslik": "Eser 2",
+  "gloss": {
+    "en": "Work 2",
+    "fr": "Œuvre 2"
+  },
+  "seri": "eserler",
+  "yil": null,
+  "durum": "",
+  "olcu": null,
+  "koleksiyon": {
+    "ad": "",
+    "yil": null
+  },
+  "gorsel": "eser-2.jpg",
+  "ortam_gorseli": "ortam-eser-2.webp",
+  "not": {
+    "tr": "",
+    "en": "",
+    "fr": ""
+  },
+  "taslak": true
+}

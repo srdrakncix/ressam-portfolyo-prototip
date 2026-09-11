@@ -1,0 +1,25 @@
+{
+  "slug": "eser-8",
+  "sira": 8,
+  "baslik": "Eser 8",
+  "gloss": {
+    "en": "Work 8",
+    "fr": "Œuvre 8"
+  },
+  "seri": "eserler",
+  "yil": null,
+  "durum": "",
+  "olcu": null,
+  "koleksiyon": {
+    "ad": "",
+    "yil": null
+  },
+  "gorsel": "eser-8.jpg",
+  "ortam_gorseli": "ortam-eser-8.webp",
+  "not": {
+    "tr": "",
+    "en": "",
+    "fr": ""
+  },
+  "taslak": true
+}

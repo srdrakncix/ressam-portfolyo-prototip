@@ -1,0 +1,25 @@
+{
+  "slug": "eser-6",
+  "sira": 6,
+  "baslik": "Eser 6",
+  "gloss": {
+    "en": "Work 6",
+    "fr": "Œuvre 6"
+  },
+  "seri": "eserler",
+  "yil": null,
+  "durum": "",
+  "olcu": null,
+  "koleksiyon": {
+    "ad": "",
+    "yil": null
+  },
+  "gorsel": "eser-6.jpg",
+  "ortam_gorseli": "ortam-eser-6.webp",
+  "not": {
+    "tr": "",
+    "en": "",
+    "fr": ""
+  },
+  "taslak": true
+}

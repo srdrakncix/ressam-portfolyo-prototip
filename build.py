@@ -96,12 +96,16 @@ def eserleri_oku():
             k = json.load(io.open(yol, encoding='utf-8'))
         except Exception as e:
             sys.exit(f'BOZUK KAYIT {ad}: {e}')
-        for alan in ('slug', 'baslik', 'seri', 'yil', 'durum', 'olcu', 'gorsel'):
+        # olcu ve yil ZORUNLU DEGIL. Musterinin gercek eserleri geldi ama
+        # kunye bilgileri (ad, yil, olcu) henuz gelmedi. Bunlari uydurmak
+        # prototipi gorene gercek olcu gibi gorunur; o yuzden bos kalabilir
+        # ve arayuz eksik alani hic basmaz.
+        for alan in ('slug', 'baslik', 'seri', 'gorsel'):
             if not k.get(alan):
                 sys.exit(f'{ad}: zorunlu alan eksik -> {alan}')
-        o = k['olcu']
-        if not o.get('yukseklik_cm') or not o.get('genislik_cm'):
-            sys.exit(f'{ad}: olcu eksik (yukseklik_cm / genislik_cm)')
+        o = k.get('olcu') or {}
+        if o and (not o.get('yukseklik_cm') or not o.get('genislik_cm')):
+            sys.exit(f'{ad}: olcu yarim (yukseklik_cm / genislik_cm)')
         if not os.path.exists(os.path.join(GORSEL_DIZIN, k['gorsel'])):
             sys.exit(f'{ad}: gorsel bulunamadi -> icerik/gorseller/{k["gorsel"]}')
         kayitlar.append(k)
@@ -113,8 +117,20 @@ def build_data():
     works = []
     for idx, k in enumerate(eserleri_oku()):
         im = Image.open(os.path.join(GORSEL_DIZIN, k['gorsel'])).convert('RGB')
-        ch = int(k['olcu']['yukseklik_cm'])
-        cw = int(k['olcu']['genislik_cm'])
+        o0 = k.get('olcu') or {}
+        olcu_var = bool(o0.get('yukseklik_cm') and o0.get('genislik_cm'))
+        if olcu_var:
+            ch = int(o0['yukseklik_cm'])
+            cw = int(o0['genislik_cm'])
+        else:
+            # Olcu bilinmiyor. Duzen gene bir sayi istiyor (tuval gercek
+            # cm'den ciziliyor); fotografin kendi oranindan nominal bir
+            # kutu turetiliyor. Bu sayi HICBIR YERDE BASILMIYOR -- yalnizca
+            # yerlesim icin. Uzun kenar 120 kabul ediliyor.
+            if im.width >= im.height:
+                cw, ch = 120, max(1, round(120 * im.height / im.width))
+            else:
+                ch, cw = 120, max(1, round(120 * im.width / im.height))
         # Bolunmez bosluk: mobilde olcu "83 × 132 / CM | 32⅝ × 52 in" diye
         # ortadan kopuyordu. Bir olcu ifadesi hicbir zaman ikiye ayrilmamali.
         NB = '\u00a0'
@@ -125,7 +141,7 @@ def build_data():
         # (.eser img object-fit: cover). Sessiz kalmasin: panel de uyariyor
         # ama biri JSON'u elle duzenlerse tek uyari burasi olur.
         bek, ger = cw / ch, im.width / im.height
-        if abs(ger - bek) / bek > 0.03:
+        if olcu_var and abs(ger - bek) / bek > 0.03:
             print(f'UYARI  {k["slug"]}: gorsel orani {ger:.2f}, kunye {cw}x{ch} cm '
                   f'({bek:.2f}). Duvarda kirpilacak.')
 
@@ -139,10 +155,12 @@ def build_data():
             'status': k['durum'],
             'collection': kol.get('ad') or '',
             'collYear':   kol.get('yil') or 0,
-            'year':   int(k['yil']),
+            'year':   int(k['yil']) if k.get('yil') else 0,
             'medium': C.MEDIUM_TR,
-            'size':   f'{ch}{NB}×{NB}{cw}{NB}cm',
-            'sizeIn': f'{inches(ch)}{NB}×{NB}{inches(cw)}{NB}in',
+            # Olcu yoksa BOS. Arayuz bos olcuyu hic basmiyor.
+            'size':   f'{ch}{NB}×{NB}{cw}{NB}cm' if olcu_var else '',
+            'sizeIn': f'{inches(ch)}{NB}×{NB}{inches(cw)}{NB}in' if olcu_var else '',
+            'taslak': bool(k.get('taslak')),
             'cw':     cw,
             'ch':     ch,
             'area':   cw * ch,

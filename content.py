@@ -92,17 +92,16 @@ STATEMENT = [
 
 # Seriler: gerçek bir ressam portfolyosu eserleri seriler halinde düzenler,
 # tek düz bir "galeri" olarak değil. Sitenin omurgası bu.
+# Eski dört seri manzara temalıydı (Alacakaranlık, Hava, Sessiz Topografya,
+# Sabah) ve yer tutucu George Inness manzaralarına göre yazılmıştı. Gelen
+# gerçek eserler figüratif: iç mekânlar, kalabalıklar, portreler. O seri
+# adları artık hiçbir şeyi tarif etmiyor.
+#
+# Serileri ben ADLANDIRMIYORUM — hangi resmin hangi seriye girdiğini ve o
+# serinin ne olduğunu ressam bilir. Şimdilik tek geçici grup var; müşteri
+# seri isimlerini verince buraya yazılacak.
 SERIES = [
-    {'key': 'alacakaranlik', 'title': 'Alacakaranlık', 'years': '2021 — 2024',
-     'blurb': 'Günün bittiği, gecenin başlamadığı o kısa aralığın resimleri. '
-              'Renk burada bir şeyi tarif etmiyor; bir şeyin kayboluşunu tutuyor.'},
-    {'key': 'hava', 'title': 'Hava', 'years': '2019 — 2023',
-     'blurb': 'Fırtına, yağmur, basınç. Manzaradan çok atmosferin kendisi. '
-              'Tuvale önce havayı koyuyorum, yeri sonra.'},
-    {'key': 'topografya', 'title': 'Sessiz Topografya', 'years': '2018 — 2024',
-     'blurb': 'İnsansız araziler. İçinde kimsenin olmadığı ama birinin geçtiği belli olan yerler.'},
-    {'key': 'sabah', 'title': 'Sabah', 'years': '2020 — 2024',
-     'blurb': 'Gümüş ışık serisi. Sabahın ilk yarım saati, henüz renk yerine oturmadan.'},
+    {'key': 'eserler', 'title': 'Eserler', 'years': '', 'blurb': ''},
 ]
 
 # id -> (başlık, seri, sanatçı notu, durum)
@@ -155,9 +154,13 @@ STATUS_TR = {
     'ayrildi':      'Ayrıldı',
 }
 
-# Prototiplerde görünecek yer tutucu uyarısı — müşteri sunumunda karışıklık olmasın.
+# Prototiplerde görünecek uyarı — müşteri sunumunda karışıklık olmasın.
+# GÖRSELLER ARTIK GERÇEK: ressamın kendi eserleri. Yer tutucu George Inness
+# cümlesi kaldırıldı, yoksa gerçek eserler kamu malı sanılır. Kurgu olan
+# şeyler hâlâ kurgu: sanatçı adı, metinler, ve eser künyeleri (ad/yıl/ölçü
+# müşteriden gelmedi).
 PLACEHOLDER_NOTICE = (
-    'Bu bir tasarım prototipidir. Sanatçı kimliği ve metinler kurgudur; '
-    'görseller Art Institute of Chicago açık erişim arşivinden alınmış kamu malı '
-    'George Inness tablolarıdır. Yayına geçmeden önce tümü gerçek eserlerle değiştirilecektir.'
+    'Bu bir tasarım prototipidir. Görseller ressamın gerçek eserleridir; '
+    'sanatçı adı ve metinler kurgudur. Eser adları, yılları ve ölçüleri '
+    'henüz girilmemiştir.'
 )

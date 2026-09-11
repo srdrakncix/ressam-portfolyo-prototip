@@ -99,7 +99,10 @@ const K = (() => {
     fig.style.setProperty('--ratio', opt.ratio || w.ratio);
     fig.style.setProperty('--tone', w.tone);
     fig.dataset.src = opt.src || w.src;
-    fig.dataset.alt = `${w.title}, ${w.year} — ${w.medium}, ${w.size}`;
+    /* Eksik alanlar alt metinden de dusuyor: "Eser 1, 0 — Tuval uzerine
+       yagli boya, " diye bir alt metin ekran okuyucuya sacma geliyor. */
+    fig.dataset.alt = [w.title, w.year || null].filter(Boolean).join(', ') +
+                      ' — ' + [w.medium, w.size || null].filter(Boolean).join(', ');
 
     const lq = document.createElement('img');
     lq.className = 'k-lqip';

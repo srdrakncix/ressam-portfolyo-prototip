@@ -459,6 +459,7 @@ let geriScroll = 0;
 /* Türkçe büyük harf: toUpperCase() "i" harfini "I" yapıyor. */
 
 function durumMetni(s) {
+  if (!s) return '';          /* bos durum bir durum degil */
   return s === 'satilik' ? t('avail_studio')
        : s === 'koleksiyonda' ? t('avail_private') : t('avail_gone');
 }
@@ -520,20 +521,32 @@ function kunyeleriYaz() {
     const w = WORKS.find((x) => x.slug === a.dataset.slug);
     if (!w) return;
     const gloss = (L().works[w.id] || {}).gloss || '';
+    /* Eksik alan HIC BASILMIYOR. Gercek eserler geldi ama künye bilgileri
+       (yıl, ölçü) henüz gelmedi; boş bir ölçü satırı ya da "Eser 1, 0"
+       yazmak uydurma veriden beter durur. */
     a.querySelector('.kunye').innerHTML =
-      '<div class="ad"><i>' + w.title + '</i>, ' + w.year + '</div>' +
+      '<div class="ad"><i>' + w.title + '</i>' + (w.year ? ', ' + w.year : '') + '</div>' +
       (gloss ? '<div class="cev">' + gloss + '</div>' : '') +
       '<div class="satir">' + t('medium') + '</div>' +
-      '<div class="satir olcu">' + w.size +
-        ' <span class="ayrac">|</span> ' + w.sizeIn + '</div>' +
-      '<div class="durum">' + durumMetni(w.status) + '</div>';
-    a.setAttribute('aria-label', w.title + ', ' + w.year + '. ' + w.size + '.');
+      (w.size ? '<div class="satir olcu">' + w.size +
+        ' <span class="ayrac">|</span> ' + w.sizeIn + '</div>' : '') +
+      (w.status ? '<div class="durum">' + durumMetni(w.status) + '</div>' : '');
+    a.setAttribute('aria-label',
+      [w.title, w.year || null, w.size || null].filter(Boolean).join(', ') + '.');
   });
 }
 
 /* ── seri süzgeci ───────────────────────────────────────────────────────── */
 function suzgeciKur() {
   suzgec.innerHTML = '';
+  /* Tek seri varken suzgec bir sey suzmuyor: TUMU ile o serinin
+     satiri ayni listeyi veriyor. Musterinin gercek eserleri geldi ama
+     seri adlari henuz yok; hepsi tek gecici grupta. Suzgec o durumda
+     gizleniyor, seri adlari gelince kendiliginden geri geliyor. */
+  const seriSayisi = (SITE.series || [])
+    .filter((s) => WORKS.some((w) => w.series === s.key)).length;
+  suzgec.hidden = seriSayisi < 2;
+  if (suzgec.hidden) return;
   const ekle = (anahtar, ad) => {
     const b = document.createElement('button');
     b.type = 'button';
@@ -593,12 +606,13 @@ function ac(idx) {
     (gloss ? '<div class="cev">' + gloss + '</div>' : '') +
     (seriAd ? '<div class="seri">' + seriAd + '</div>' : '') +
     '<dl>' +
-      '<dt>' + t('lbl_year') + '</dt><dd>' + w.year + '</dd>' +
+      (w.year ? '<dt>' + t('lbl_year') + '</dt><dd>' + w.year + '</dd>' : '') +
       '<dt>' + t('lbl_medium') + '</dt><dd>' + t('medium') + '</dd>' +
-      '<dt>' + t('lbl_size') + '</dt><dd>' + w.size + '<br>' + w.sizeIn + '</dd>' +
+      (w.size ? '<dt>' + t('lbl_size') + '</dt><dd>' + w.size +
+                '<br>' + w.sizeIn + '</dd>' : '') +
     '</dl>' +
     (not ? '<div class="not">“' + not + '”</div>' : '') +
-    '<div class="durum">' + durumMetni(w.status) + '</div>';
+    (w.status ? '<div class="durum">' + durumMetni(w.status) + '</div>' : '');
 
   /* Once sergi karesi: sitenin ana gorseli o. Eserin duz reproduksiyonu
      hemen yaninda, tek tikla. */
@@ -621,7 +635,8 @@ function ac(idx) {
   acikIdx = idx;
   adresYaz(idx);
   duyuru.textContent = (idx + 1) + ' / ' + gorunen.length + '. ' +
-                       w.title + '. ' + w.year + '. ' + w.size + '.';
+                       [w.title, w.year || null, w.size || null]
+                         .filter(Boolean).join('. ') + '.';
   $('#kapat').focus({ preventScroll: true });
 }
 

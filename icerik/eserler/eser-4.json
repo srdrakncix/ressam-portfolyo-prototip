@@ -1,0 +1,25 @@
+{
+  "slug": "eser-4",
+  "sira": 4,
+  "baslik": "Eser 4",
+  "gloss": {
+    "en": "Work 4",
+    "fr": "Œuvre 4"
+  },
+  "seri": "eserler",
+  "yil": null,
+  "durum": "",
+  "olcu": null,
+  "koleksiyon": {
+    "ad": "",
+    "yil": null
+  },
+  "gorsel": "eser-4.jpg",
+  "ortam_gorseli": "ortam-eser-4.webp",
+  "not": {
+    "tr": "",
+    "en": "",
+    "fr": ""
+  },
+  "taslak": true
+}

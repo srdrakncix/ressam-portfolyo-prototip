@@ -1,0 +1,25 @@
+{
+  "slug": "eser-3",
+  "sira": 3,
+  "baslik": "Eser 3",
+  "gloss": {
+    "en": "Work 3",
+    "fr": "Œuvre 3"
+  },
+  "seri": "eserler",
+  "yil": null,
+  "durum": "",
+  "olcu": null,
+  "koleksiyon": {
+    "ad": "",
+    "yil": null
+  },
+  "gorsel": "eser-3.jpg",
+  "ortam_gorseli": "ortam-eser-3.webp",
+  "not": {
+    "tr": "",
+    "en": "",
+    "fr": ""
+  },
+  "taslak": true
+}
