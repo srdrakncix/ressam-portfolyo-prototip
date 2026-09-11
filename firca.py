@@ -434,7 +434,7 @@ def fr(t):
     return FR[-1][1]
 
 
-def nefes_dokusu(darbeler):
+def nefes_dokusu(darbeler, en=None, boy=None):
     """Butun darbelerin PAYLASTIGI delik dokusu.
 
     Her darbeye ayri delik acmak ise yaramiyor: delikler hizalanmadigi
@@ -446,8 +446,13 @@ def nefes_dokusu(darbeler):
     Doku kuru firca fotografinin kendi yogunlugundan: deliklerin
     dagilimi da gercek bir darbeden geliyor.
     """
+    en = TUVAL_EN if en is None else en
+    boy = TUVAL_BOY if boy is None else boy
     ham = darbeler['karakter-1']
-    d = ham.resize((TUVAL_EN, TUVAL_BOY), Image.LANCZOS)
+    # Olculer disaridan geliyor: doku darbelerin TAMAMINI kapsamali,
+    # yoksa tuval sinirinda delikler aniden kesiliyor ve cetvel gibi
+    # bir kenar olusuyor (olculdu: x=639'da 90 basamak).
+    d = ham.resize((en, boy), Image.LANCZOS)
     # Cogu yer acik (delik yok), az yer koyu (delik). Egri bunu kuruyor:
     # 190 ustu tam opak, 120 altı tam delik.
     # Egri DARALTILDI: ilk denemede panel yuzey olmaktan cikip lekeye
@@ -458,17 +463,23 @@ def nefes_dokusu(darbeler):
                    (96 if v <= 84 else int(96 + (v - 84) * 159.0 / 66)))
 
 
-def guvenli_bolge():
+def guvenli_bolge(en=None, boy=None, kay_x=0, kay_y=0):
     """Yazinin UZAGINDAKI bolge. Burada boya nefes alabilir.
 
     Yazi kutulari olculmus koordinatlar oldugu icin bu maske tahmin
     degil: kutular GUVENLI_PAY kadar buyutulup cikariliyor.
     """
-    m = Image.new('L', (TUVAL_EN, TUVAL_BOY), 255)
+    # Kanvas darbelerin tamamini kapsayacak kadar buyuk olabilir; yazi
+    # kutulari o zaman kaydirilarak ciziliyor. Kutularin DISINDA kalan
+    # genis alan 255, yani "guvenli" -- dogru, cunku orada yazi yok.
+    en = TUVAL_EN if en is None else en
+    boy = TUVAL_BOY if boy is None else boy
+    m = Image.new('L', (en, boy), 255)
     d = ImageDraw.Draw(m)
     for ad, x, y, w, h in YAZI_KUTULARI:
-        d.rectangle([x - GUVENLI_PAY, y - GUVENLI_PAY,
-                     x + w + GUVENLI_PAY, y + h + GUVENLI_PAY], fill=0)
+        d.rectangle([x + kay_x - GUVENLI_PAY, y + kay_y - GUVENLI_PAY,
+                     x + kay_x + w + GUVENLI_PAY,
+                     y + kay_y + h + GUVENLI_PAY], fill=0)
     # Kenarlari yumusat: sert bir sinir "buraya kadar delik, buradan sonra
     # yok" diye okunur ve yine cetvel etkisi yapar.
     return m.filter(ImageFilter.GaussianBlur(9))
@@ -487,7 +498,8 @@ def donustur(ham, wy, donme, ayna):
     return ham, siluet
 
 
-def boya_darbe(ham, siluet, ox, oy, guvenli=None, nefes=None):
+def boya_darbe(ham, siluet, ox, oy, guvenli=None, nefes=None,
+               kay_x=0, kay_y=0):
     """Doku RENKTE, alfa siluet. Ince boya acilir ama solmaz -- doygunlugu
     korumazsak panel plastik ortu gibi duruyor (denendi)."""
     w, h = siluet.size
@@ -502,8 +514,14 @@ def boya_darbe(ham, siluet, ox, oy, guvenli=None, nefes=None):
             if not a:
                 continue
             if gp is not None:
-                gx, gy = ox + x, oy + y
-                if 0 <= gx < TUVAL_EN and 0 <= gy < TUVAL_BOY:
+                # Maske koordinati: maskeler darbelerin tamamini kapsayan
+                # GENISLETILMIS kanvasta, o yuzden ofset ekleniyor.
+                # Sinir denetimi duruyor ama artik hicbir darbe disarida
+                # kalmiyor -- eskiden kalanlar maskesiz, yani tam opak ve
+                # dokusuz cikiyordu ve tam tuval sinirinda (x=640) cetvel
+                # gibi bir kenar birakiyordu.
+                gx, gy = ox + x + kay_x, oy + y + kay_y
+                if 0 <= gx < guvenli.size[0] and 0 <= gy < guvenli.size[1]:
                     g = gp[gx, gy]
                     if g and np_ is not None:
                         # Yazidan uzakta ORTAK dokunun deligi aciliyor.
@@ -526,15 +544,32 @@ def boya_darbe(ham, siluet, ox, oy, guvenli=None, nefes=None):
 
 
 def kur(darbeler):
-    panel = Image.new('RGBA', (TUVAL_EN, TUVAL_BOY), (0, 0, 0, 0))
-    guvenli = guvenli_bolge()
-    nefes = nefes_dokusu(darbeler)
-    parcalar = []
+    # Once butun darbeler uretiliyor ve GERCEK sinirlari olculuyor.
+    # Maskeler sonra, o sinirlari kapsayacak sekilde kuruluyor: eskiden
+    # maskeler tuval boyutundaydi ve tuvalin disina tasan her piksel
+    # maskesiz kaliyordu (bkz. boya_darbe).
+    hazir = []
     for ad, xy, yy, wy, donme, ayna in YERLESIM:
         ham, siluet = donustur(darbeler[ad], wy, donme, ayna)
         ox = int(EN * xy / 100.0) + PAY_SOL
         oy = int(BOY * yy / 100.0) + PAY_UST
-        d = boya_darbe(ham, siluet, ox, oy, guvenli, nefes)
+        hazir.append((ham, siluet, ox, oy))
+
+    kay_x = max(0, -min(o for _, _, o, _ in hazir))
+    kay_y = max(0, -min(o for _, _, _, o in hazir))
+    tasan_sag = max(0, max(o + sl.size[0] for _, sl, o, _ in hazir) - TUVAL_EN)
+    tasan_alt = max(0, max(o + sl.size[1] for _, sl, _, o in hazir) - TUVAL_BOY)
+    m_en = TUVAL_EN + kay_x + tasan_sag
+    m_boy = TUVAL_BOY + kay_y + tasan_alt
+    print('maske kanvasi %dx%d  (tuval %dx%d, tasma sol %d sag %d ust %d alt %d)'
+          % (m_en, m_boy, TUVAL_EN, TUVAL_BOY, kay_x, tasan_sag, kay_y, tasan_alt))
+
+    panel = Image.new('RGBA', (TUVAL_EN, TUVAL_BOY), (0, 0, 0, 0))
+    guvenli = guvenli_bolge(m_en, m_boy, kay_x, kay_y)
+    nefes = nefes_dokusu(darbeler, m_en, m_boy)
+    parcalar = []
+    for ham, siluet, ox, oy in hazir:
+        d = boya_darbe(ham, siluet, ox, oy, guvenli, nefes, kay_x, kay_y)
         gec = Image.new('RGBA', (TUVAL_EN, TUVAL_BOY), (0, 0, 0, 0))
         gec.paste(d, (ox, oy))
         panel = Image.alpha_composite(panel, gec)
@@ -791,7 +826,10 @@ def css_yaz(satirlar, taban=None):
     # tasma kutu eninin ~%30'u, yani kirpma boyayi duz bir dikey cizgi
     # halinde kesiyordu.
     tasma = max(0.0, max(r['sag_gor'] for r in satirlar) - 100.0) / 100.0
-    p.append('#boya {')
+    # :root'a yaziliyor, #boya'ya degil: telefonda #menu'nun GENISLIGI de
+    # bu orana bagli (kart + tasma ekrana sigmali) ve #menu, #boya'nin
+    # atasi oldugu icin oradan miras alamazdi.
+    p.append(':root {')
     p.append('  --darbe: %d;        /* kabuk.js kac <i> uretecegini buradan okuyor */'
              % len(satirlar))
     p.append('  --tasma-oran: %.4f; /* olculdu: gorunur boya kutunun %%%.1f\'i kadar tasiyor */'

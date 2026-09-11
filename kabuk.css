@@ -432,7 +432,15 @@ html.durdur { scrollbar-gutter: stable; }
     inset: auto;
     top: var(--ust);
     left: clamp(14px, 4vw, 22px);
-    width: min(306px, calc(100vw - 2 * clamp(14px, 4vw, 22px)));
+    /* Genislik OLCULEN tasmaya bagli. Telefonda kagit hic cekilmiyor,
+       yani boyanin tasmasi dogrudan ekrana gidiyor; kart + tasma
+       ekrana sigmali ki tirtikli kenar KESILMESIN:
+           kart * (1 + tasma) <= ekran - iki yan pay
+       306 px'te tasma 396'ya gidiyordu (ekran 390) ve kenar bicakla
+       kesiliyordu. Formul 390'da 262, 320'de 226 veriyor -- her iki
+       ekranda da tirtikli kenar iceride bitiyor. */
+    width: min(262px, calc((100vw - 2 * clamp(14px, 4vw, 22px))
+                           / (1 + var(--tasma-oran, .3))));
     height: auto;
     max-height: calc(100dvh - var(--ust) - 20px);
     grid-template-columns: 1fr; grid-template-rows: 1fr;
@@ -684,13 +692,19 @@ html:not(.menuacik) #shell {
 @media (max-width: 760px) {
   html.menuacik #shell { --don: 0deg; --kac: 0px; --kucul: 1; }
   #menu { height: auto; }
-  /* Kirpma telefonda DAR kalir. Masaustunde gevsetildi cunku olculen
-     tasma %29 ve kagit o kadar kenara cekiliyor; telefonda kagit hic
-     cekilmiyor (yukaridaki --kac: 0), yani tasan boyanin altinda duvar
-     degil dogrudan icerik var. Olculdu: gevsek kirpmayla kart 390 px'te
-     x=420'ye kadar tasiyor ve icerigi cirkin sekilde kapatiyordu.
-     Burada boya kartin kendisi olarak kaliyor. */
-  #boya { clip-path: inset(-30px -22px -34px -20px); }
+  /* Kirpma KALKTI. Once dar tutulmustu (tasan boyanin altinda duvar
+     degil dogrudan icerik var diye) ama bedeli agirdi: gercek cihazda
+     kartin sag ve alt kenari cetvel gibi duz cikiyordu ve o duz kenar
+     cerceve gibi okunuyordu -- yani "darbeler panelin kendisi, tirtikli
+     kenar kalici" kararinin tam tersi. Olculdu: sagda x=362'de 111
+     basamaklik dikey kesik, altta y=750'de 50 basamaklik yatay kesik.
+     Cozum kirpmak degil, tasmaya YER ACMAK: kart 306'dan 262 px'e
+     indi, tasma artik ekranin icinde bitiyor. Perde de koyulasti ki
+     tasan boyanin altindaki icerik kirli durmasin. */
+  #boya { clip-path: none; }
+  #menu:popover-open::backdrop, #menu.open ~ #perde {
+    background: rgba(22,18,13,.52);
+  }
 }
 
 /* Buradaki ikinci satir blogu kaldirildi. .open yolu icin yazilmisti ama
