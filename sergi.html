@@ -175,7 +175,10 @@ a { color: inherit; }
 /* Nötr saha: her eserde AYNI. Ölçüyü okuyabilmenin tek yolu ortak bir zemin. */
 .alan {
   position: relative; aspect-ratio: 4 / 3;
-  background: var(--alan);
+  /* Zemin YOK. Gri saha + eserin golgesi birlikte cerceve etkisi
+     yaratiyordu: eser kagidin uzerinde kendi kutusunun icinde duruyor
+     gibi gorunuyordu. Eser dogrudan kagidin uzerinde dursun. */
+  background: transparent;
   display: grid; place-items: center;
   overflow: hidden;
 }
@@ -190,9 +193,8 @@ a { color: inherit; }
      beterdir. cover kırpar, asla bozmaz; panel zaten uyuşmazlığı yüklerken
      uyarıyor. */
   object-fit: cover;
-  box-shadow: 0 1px 2px rgba(30,26,18,.16), 0 16px 30px -14px rgba(30,26,18,.34);
-  transition: transform 620ms var(--ease), box-shadow 620ms var(--ease),
-              opacity 620ms var(--ease);
+  /* Golge kaldirildi: gri sahayla birlikte cerceve gibi okunuyordu. */
+  transition: transform 620ms var(--ease), opacity 620ms var(--ease);
 }
 
 /* OLCU YOKKEN gercek-olcu sistemi devre disi: eser kareyi doldurur.
@@ -218,8 +220,8 @@ a { color: inherit; }
    Imlec artik yalnizca kagittan kaldiriyor -- her eserde ayni. */
 @media (hover: hover) {
   .kart:hover .tuval {
+    /* Yalniz hafif bir kalkma; golge yok (cerceve etkisi yapiyordu). */
     transform: translateY(-3px);
-    box-shadow: 0 2px 4px rgba(30,26,18,.18), 0 26px 44px -16px rgba(30,26,18,.40);
   }
 }
 
@@ -281,7 +283,7 @@ a { color: inherit; }
 #buyuk {
   display: block; max-width: 100%;
   max-height: calc(100vh - 2 * clamp(22px, 3.4vw, 60px));
-  box-shadow: 0 1px 3px rgba(24,20,14,.16), 0 30px 64px -22px rgba(24,20,14,.36);
+  /* Golge yok: izgarada oldugu gibi burada da cerceve gibi duruyordu. */
   opacity: 0; transform: scale(.968);
   transition: opacity 340ms var(--ease), transform 520ms var(--ease);
 }
