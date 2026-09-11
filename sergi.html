@@ -743,7 +743,7 @@ function ac(idx) {
     geriScroll = window.scrollY;
     document.documentElement.classList.add('durdur');
   }
-  yakinlastir(false);
+  zoomKapat();
   detay.classList.add('acik');
   detay.setAttribute('aria-hidden', 'false');
   acikIdx = idx;
@@ -758,7 +758,7 @@ function kapat() {
   if (acikIdx < 0) return;
   const geri = gorunen[acikIdx];
   acikIdx = -1;
-  yakinlastir(false);
+  zoomKapat();
   adresYaz(-1);
   detay.classList.remove('acik');
   detay.setAttribute('aria-hidden', 'true');
@@ -778,7 +778,7 @@ function git(yon) {
 karelerEl.addEventListener('click', (e) => {
   const b = e.target.closest('button');
   if (!b) return;
-  yakinlastir(false);
+  zoomKapat();
   buyuk.style.opacity = '0';
   buyuk.src = b.dataset.src;
   requestAnimationFrame(() => { buyuk.style.opacity = ''; });
@@ -811,7 +811,13 @@ function zYaz(yumusak) {
 
 function zKelepce() {
   /* Gorsel ekrandan TAMAMEN cikamaz. Olcekli gorsel ekrandan buyukse
-     kaydirma kenarla sinirli; kucukse ortalanir. */
+     kaydirma kenarla sinirli; kucukse ortalanir.
+     Olcu HENUZ YOKSA kelepce uygulanmiyor. Eskiden uygulaniyordu ve
+     tabanW=0 ile sinir 0 cikiyordu, yani gezinme tamamen oluyordu --
+     "bir kere yakinlastirdi sonra olmadi" sikayetinin sebebi buydu:
+     olcu gorselin load olayinda hesaplaniyor, o gelmeden surukleyince
+     kaydirma sifira cakiliyordu. */
+  if (!tabanW || !tabanH) return;
   const w = tabanW * zOlcek, h = tabanH * zOlcek;
   const sx = Math.max(0, (w - window.innerWidth) / 2);
   const sy = Math.max(0, (h - window.innerHeight) / 2);
@@ -822,11 +828,13 @@ function zKelepce() {
 function zTabanOlc() {
   /* Sigdirma olcusu: object-fit:contain'in yapacagi sey, ama sayiyla --
      kaydirma sinirlarini bilmek icin gorselin GERCEK olcusu gerekiyor. */
-  const dw = zimg.naturalWidth || 1, dh = zimg.naturalHeight || 1;
+  if (!zimg.naturalWidth || !zimg.naturalHeight) return false;
+  const dw = zimg.naturalWidth, dh = zimg.naturalHeight;
   const k = Math.min(window.innerWidth / dw, window.innerHeight / dh);
   tabanW = dw * k; tabanH = dh * k;
   zimg.style.width = tabanW.toFixed(1) + 'px';
   zimg.style.height = tabanH.toFixed(1) + 'px';
+  return true;
 }
 
 function zOlcekle(yeni, mx, my, yumusak) {
@@ -849,9 +857,14 @@ function zoomAc(src, alt) {
   zimg.alt = alt || '';
   zOlcek = 1; zx = 0; zy = 0;
   const hazir = () => { zTabanOlc(); zKelepce(); zYaz(false); };
-  if (zimg.getAttribute('src') === src && zimg.complete) hazir();
-  else { zimg.addEventListener('load', hazir, { once: true });
-         zimg.src = src; }
+  /* Src ONCE atanıyor, sonra HEMEN deneniyor: gorsel zaten #buyuk'te
+     yuklu oldugu icin cogu zaman aninda hazir oluyor. Hazir degilse
+     load bekliyor. Eskiden `getAttribute('src') === src` sarti da
+     araniyordu ve ilk acilista asla tutmuyordu, yani olcu her zaman
+     load'a kaliyordu. */
+  if (zimg.getAttribute('src') !== src) zimg.src = src;
+  if (!zTabanOlc()) zimg.addEventListener('load', hazir, { once: true });
+  else { zKelepce(); zYaz(false); }
   /* Arkadaki katman devre disi: zoom katmani kipli ve icinde tek
      odaklanabilir oge var, yani Tab onun disina cikmamali. */
   detay.setAttribute('inert', '');
@@ -900,78 +913,82 @@ zkat.addEventListener('wheel', (e) => {
   zOlcekle(zOlcek * (e.deltaY < 0 ? 1.14 : 1 / 1.14), e.clientX, e.clientY);
 }, { passive: false });
 
-/* surukleme: fare ve tek parmak */
-let tut = null;
+/* Gezinme ve olcek TEK mekanizmadan: Pointer Events.
+   Onceki hal pointer ve touch olaylarini ayni anda dinliyordu ve iki
+   parmak dokununca surukleme ikinci parmaga gecip pinch ile
+   carpisiyordu -- "bir kere yapti sonra olmadi" sikayetinin sebebi bu.
+   Simdi tek isaretci haritasi:
+     1 isaretci -> gezinme
+     2 isaretci -> mesafeye gore SUREKLI olcek, orta noktaya sabit
+   Fare de dokunmatik de ayni koddan geciyor. */
+const isaretci = new Map();      /* pointerId -> {x, y} */
+let jest = null;                 /* o anki gezinme/olcek baslangici */
+
+function jestKur() {
+  const p = [...isaretci.values()];
+  if (p.length === 1) {
+    jest = { tip: 'gez', x: p[0].x, y: p[0].y, zx: zx, zy: zy };
+  } else if (p.length >= 2) {
+    const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+    jest = { tip: 'olcek', d: d || 1, o: zOlcek,
+             mx: (p[0].x + p[1].x) / 2, my: (p[0].y + p[1].y) / 2,
+             zx: zx, zy: zy };
+  } else jest = null;
+  zkat.classList.toggle('tutuluyor', !!jest);
+}
+
 zkat.addEventListener('pointerdown', (e) => {
-  if (e.button !== undefined && e.button !== 0) return;
-  tut = { x: e.clientX, y: e.clientY, zx: zx, zy: zy, id: e.pointerId,
-          kaydi: false };
-  zkat.classList.add('tutuluyor');
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  isaretci.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  jestKur();
   zkat.setPointerCapture(e.pointerId);
 });
-zkat.addEventListener('pointermove', (e) => {
-  if (!tut || e.pointerId !== tut.id) return;
-  const dx = e.clientX - tut.x, dy = e.clientY - tut.y;
-  if (Math.abs(dx) + Math.abs(dy) > 3) tut.kaydi = true;
-  zx = tut.zx + dx; zy = tut.zy + dy;
-  zKelepce(); zYaz(false);
-});
-function tutBirak(e) {
-  if (!tut || (e && e.pointerId !== tut.id)) return;
-  tut = null; zkat.classList.remove('tutuluyor');
-}
-zkat.addEventListener('pointerup', tutBirak);
-zkat.addEventListener('pointercancel', tutBirak);
 
-/* cift tik / cift dokunma: 1x <-> 2.6x */
+zkat.addEventListener('pointermove', (e) => {
+  if (!isaretci.has(e.pointerId) || !jest) return;
+  isaretci.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const p = [...isaretci.values()];
+
+  if (jest.tip === 'gez' && p.length === 1) {
+    zx = jest.zx + (p[0].x - jest.x);
+    zy = jest.zy + (p[0].y - jest.y);
+    zKelepce(); zYaz(false);
+  } else if (jest.tip === 'olcek' && p.length >= 2) {
+    const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+    /* Olcek jestin BASLANGICINA gore: parmaklar aciliP kapandikca
+       oran surekli izliyor, adim adim degil. */
+    zOlcek = jest.o;
+    zx = jest.zx; zy = jest.zy;
+    zOlcekle(jest.o * (d / jest.d), jest.mx, jest.my);
+  }
+});
+
+function isaretciBirak(e) {
+  if (!isaretci.delete(e.pointerId)) return;
+  jestKur();                      /* 2 -> 1 dusunce gezinme devralir */
+}
+zkat.addEventListener('pointerup', isaretciBirak);
+zkat.addEventListener('pointercancel', isaretciBirak);
+
+/* Cift dokunma / cift tik: 1x <-> 2.6x. Tek islev, iki girdi tipi. */
 let zSonTik = 0;
 zkat.addEventListener('pointerup', (e) => {
-  if (e.pointerType === 'mouse') return;       /* fare icin dblclick var */
+  if (isaretci.size) return;                 /* cok parmak: jest bitiyor */
   const simdi = e.timeStamp;
-  if (simdi - zSonTik < 320) {
+  if (simdi - zSonTik < 340) {
     zOlcekle(zOlcek > 1.05 ? 1 : CIFT_KAT, e.clientX, e.clientY, true);
     zSonTik = 0;
   } else zSonTik = simdi;
 });
-zkat.addEventListener('dblclick', (e) => {
-  e.preventDefault();
-  zOlcekle(zOlcek > 1.05 ? 1 : CIFT_KAT, e.clientX, e.clientY, true);
-});
 
-/* pinch: iki parmak arasi mesafe */
-let pinc = null;
-zkat.addEventListener('touchstart', (e) => {
-  if (e.touches.length !== 2) return;
-  const [a, b] = e.touches;
-  pinc = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY),
-           o: zOlcek };
-  tutBirak();
-}, { passive: false });
-zkat.addEventListener('touchmove', (e) => {
-  if (!pinc || e.touches.length !== 2) return;
-  e.preventDefault();
-  const [a, b] = e.touches;
-  const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-  zOlcekle(pinc.o * (d / pinc.d),
-           (a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2);
-}, { passive: false });
-zkat.addEventListener('touchend', (e) => {
-  if (pinc && e.touches.length < 2) pinc = null;
-});
-
-/* klavye: Escape kapatir, oklar gezdirir, +/- olcek */
+/* Klavye: YALNIZ Escape. Ok tuslari ve +/- kisayollari kaldirildi --
+   gereksiz karmasiklikti. Escape kaliyor cunku kipli bir katmanin
+   klavyeyle tek cikisi o. */
 addEventListener('keydown', (e) => {
-  if (zkat.hidden) return;
-  const adim = 80;
-  if (e.key === 'Escape') { e.preventDefault(); zoomKapat(); }
-  else if (e.key === '+' || e.key === '=') zOlcekle(zOlcek * 1.2, undefined, undefined, true);
-  else if (e.key === '-') zOlcekle(zOlcek / 1.2, undefined, undefined, true);
-  else if (e.key === 'ArrowLeft') { zx += adim; zKelepce(); zYaz(true); }
-  else if (e.key === 'ArrowRight') { zx -= adim; zKelepce(); zYaz(true); }
-  else if (e.key === 'ArrowUp') { zy += adim; zKelepce(); zYaz(true); }
-  else if (e.key === 'ArrowDown') { zy -= adim; zKelepce(); zYaz(true); }
-  else return;
+  if (zkat.hidden || e.key !== 'Escape') return;
+  e.preventDefault();
   e.stopPropagation();
+  zoomKapat();
 }, true);
 
 /* Pencere olcusu degisince sigdirma olcusu de degisiyor. */
