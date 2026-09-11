@@ -439,7 +439,13 @@ html.durdur { scrollbar-gutter: stable; }
        306 px'te tasma 396'ya gidiyordu (ekran 390) ve kenar bicakla
        kesiliyordu. Formul 390'da 262, 320'de 226 veriyor -- her iki
        ekranda da tirtikli kenar iceride bitiyor. */
-    width: min(262px, calc((100vw - 2 * clamp(14px, 4vw, 22px))
+    /* 262'den 150'ye. Olculdu: en uzun satir ("Son Resimler") 92.5 px,
+       yani kartin yarisi bostu. 92.5 metin + 16 msol dolgusu + 18
+       baglanti dolgusu = 126.5; 150 ustune nefes birakiyor.
+       Boyanin ucu 373'ten 194'e iniyor -- ekranin %96'sindan %50'sine.
+       Formul yine tasmaya bagli: dar ekranda kart + tasma sigmali,
+       yoksa tirtikli kenar ekran kenarinda kesilir. */
+    width: min(150px, calc((100vw - 2 * clamp(14px, 4vw, 22px))
                            / (1 + var(--tasma-oran, .3))));
     height: auto;
     max-height: calc(100dvh - var(--ust) - 20px);
@@ -686,11 +692,14 @@ html:not(.menuacik) #shell {
   #menu { width: min(280px, 92vw); }
 }
 
-/* Telefonda menü küçük bir kart; kâğıdın üstüne binmiyor, döndürmek
-   gereksiz ve dar ekranda okunurluğu bozuyor. Köşe katı da artık hiç
-   yok, o yüzden sebebi görünmeyen "kesik köşe" sorunu da kalmadı. */
+/* Telefonda dönme ESKIDEN KAPALIYDI ve gerekçesi şuydu: "menü küçük
+   bir kart, kâğıdın üstüne binmiyor, döndürmek gereksiz". Gerekçe
+   ölçümle çürüdü -- boya ekranın %96'sını kaplıyordu, yani kâğıdın
+   üstüne fazlasıyla biniyordu. Kart 150 px'e indikten sonra dönme hem
+   mümkün hem anlamlı: masaüstündeki jestin aynısı, ve kâğıt gerçekten
+   menünün altından çıkıyor (ölçek tabanı kabuk.js'te telefona göre
+   ayrı: 390 px'te 0.536 gerekiyor, masaüstündeki 0.72 yetmiyordu). */
 @media (max-width: 760px) {
-  html.menuacik #shell { --don: 0deg; --kac: 0px; --kucul: 1; }
   #menu { height: auto; }
   /* Kirpma KALKTI. Once dar tutulmustu (tasan boyanin altinda duvar
      degil dogrudan icerik var diye) ama bedeli agirdi: gercek cihazda

@@ -406,9 +406,11 @@ function kagidiKacir() {
      sifirlaniyor, gecis de kapali; yani kagit zipliyor ama yerini
      birakiyor. Onceden burada erken cikilıyordu ve panel iceriğin
      ustunde kaliyordu -- CSS yorumu bunun tersini soyluyordu. */
-  const kapali = matchMedia('(max-width: 760px)').matches;
+  /* Telefonda ERKEN CIKIS KALKTI. Once "kart kucuk, kagidin ustune
+     binmiyor" diye burada donuluyordu; olcum bunu curuttu (boya ekranin
+     %96'sini kapliyordu). Artik telefonda da ayni hesap kosuyor. */
   const acik = menuAcikMi();
-  if (kapali || !acik) {
+  if (!acik) {
     shell.style.removeProperty('--kac');
     shell.style.removeProperty('--kucul');
     return;
@@ -453,7 +455,20 @@ function kagidiKacir() {
      Not: kabuk.css'teki `--kucul: 1` bildirimi OLU koddu, cunku burada
      satir ici yaziliyor ve satir ici her medya kuralini yener. Orada
      silindi, karar tek yerde: burada. */
-  const enAz = A === 0 ? 0.40 : 0.72, enCok = 0.94;
+  /* Taban uc kipe ayriliyor. Donme varken cos(38) daralmasi izdusumu
+     kendisi daraltiyor; hareket azaltmada o kazanc yok; telefonda ise
+     ekran o kadar dar ki kagidin menunun altindan cikmasi icin daha da
+     kuculmesi gerekiyor -- 390 px'te hesap 0.536 veriyor, masaustunun
+     0.72 tabani orada kagidi menunun altinda birakirdi. */
+  const dar = window.innerWidth <= 760;
+  /* Telefon tabani 0.52 denendi ve YANLISTI: hesabin USTUNDE kaldigi
+     icin kelepceliyor, yani kagit gerekenden buyuk kaliyor ve menunun
+     altindan cikamiyordu (olculdu: 360 px'te 12.5, 320 px'te 37 px
+     binisme). Taban hesabin ALTINDA olmali ki gercek geometri kullanilsin:
+     390 px'te hesap 0.463, 360'ta 0.39 veriyor. 0.36 ikisini de serbest
+     birakiyor; 320 px gibi uc dar ekranda yine kelepceliyor ve orada
+     kurtulmadan vazgeciliyor -- tasmamak pazarlik disi, kurtulmak degil. */
+  const enAz = A === 0 ? 0.40 : (dar ? 0.36 : 0.72), enCok = 0.94;
   const hedefSol = menuSag + bosluk;
   const sagSinir = window.innerWidth - sagPay;
   const sagYerli = sol + en;              /* dönüşümsüz sağ kenar = menteşe */
