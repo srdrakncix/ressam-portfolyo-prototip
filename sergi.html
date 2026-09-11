@@ -781,7 +781,7 @@ function ac(idx) {
        odaklanabilir oge kaliyordu (hamburger + 8 eser baglantisi) ve
        #kapat'tan Tab'a basinca odak perdenin arkasina gidiyordu. */
     if (window.KABUK_INERT) {
-      window.KABUK_INERT(true, detay);
+      window.KABUK_INERT(true, detay, 'detay');
     }
   }
   zoomKapat();
@@ -802,12 +802,13 @@ function kapat() {
   zoomKapat();
   window.KABUK_KILIT.birak('detay');
   if (window.KABUK_INERT) {
-    window.KABUK_INERT(false, detay);
+    window.KABUK_INERT(false, detay, 'detay');
   }
   adresYaz(-1);
   detay.classList.remove('acik');
   detay.setAttribute('aria-hidden', 'true');
-  document.documentElement.classList.remove('durdur');
+  /* Sayac uzerinden: kosulsuz kaldirma sayaci atliyordu. */
+  window.KABUK_KILIT.birak('detay');
   window.scrollTo(0, geriScroll);
   const el = geri && izgara.querySelector('.kart[data-slug="' + geri.slug + '"]');
   if (el) el.focus({ preventScroll: true });
@@ -921,7 +922,7 @@ function zoomAc(src, alt) {
      aria-modal="true" ile klavye birbirine ters sey soyluyordu. */
   detay.setAttribute('inert', '');
   if (window.KABUK_INERT) {
-    window.KABUK_INERT(true, zkat);
+    window.KABUK_INERT(true, zkat, 'zoom');
   }
   zkat.hidden = false;
   /* Ipucu CIHAZA gore. Masaustunde "iki parmakla yakinlastirin"
@@ -943,9 +944,9 @@ function zoomKapat() {
   detay.removeAttribute('inert');
   window.KABUK_KILIT.birak('zoom');
   if (window.KABUK_INERT) {
-    /* Detay hala acikken arka plan KAPALI kalmali: burada yalniz
-       zoom'un kendi kilidi birakiliyor, detayin kilidi degil. */
-    window.KABUK_INERT(acikIdx >= 0, detay);
+    /* Yalniz ZOOM'un sahipligi birakiliyor. Detay hala acikken onun
+       sahipligi sayacta duruyor, yani arka plan kapali kaliyor. */
+    window.KABUK_INERT(false, zkat, 'zoom');
   }
   /* Odak yakinlastirmayi acan denetime doner. zOnceki bos cikarsa
      (programatik acilis) gorselin kendisine -- govdeye dusmesin. */
@@ -1129,7 +1130,14 @@ $('.onceki').addEventListener('click', () => git(-1));
 $('.sonraki').addEventListener('click', () => git(1));
 addEventListener('keydown', (e) => {
   if (acikIdx < 0) return;
-  if (e.key === 'Escape') kapat();
+  /* Escape EN USTTEKI katmani kapatir. Menu acikken isik kutusunun
+     Escape'i susuyor: olculdu, detay + menu acikken tek Escape ikisini
+     birden kapatiyordu (popover kendi hafif-kapanmasini yapiyor,
+     ustune bu dinleyici de kapat() cagiriyordu). */
+  if (e.key === 'Escape') {
+    if (document.documentElement.classList.contains('menuacik')) return;
+    kapat();
+  }
   /* Zoom katmani acikken oklar SUSMALI. inert yalniz isaretci ve
      odagi kesiyor, klavye olaylarini kesmiyor: olay #zkapat'tan
      window'a baloncuklaniyordu ve sag ok alttaki eseri degistirip zoom

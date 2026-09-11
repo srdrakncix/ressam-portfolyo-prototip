@@ -627,7 +627,22 @@ function openMenu() {
 
    inert ikisini birden çözüyor: odak dışarı çıkmıyor ve arka içerik
    erişilebilirlik ağacından düşüyor. */
-function arkaPlanDondur(kapat, haric) {
+/* INERT SAYACLI. Onceden her cagri butun durumu tek basina
+   belirliyordu: menuyu acip kapatmak, isik kutusu hala acikken
+   `arkaPlanDondur(false)` cagirip butun inert'i siliyordu (olculdu:
+   kacis hedefi 1 -> 9). Uc katman ayni kaynagi paylasiyor, o yuzden
+   sahip listesi tutuluyor: en az bir sahip varken inert aktif ve
+   BUTUN sahiplerin katmani muaf. */
+const inertSahipleri = new Map();       /* ad -> muaf oge (ya da null) */
+
+function arkaPlanDondur(kapat, haric, ad) {
+  const anahtar = ad || (haric && haric.id) || 'menu';
+  if (kapat) inertSahipleri.set(anahtar, haric || null);
+  else inertSahipleri.delete(anahtar);
+  _inertUygula();
+}
+
+function _inertUygula() {
   /* Sabit liste eksik kaliyordu: sergi sayfasindaki #detay (tam ekran
      eser katmani) #shell'in KARDESI ve listede yoktu; o katman acikken
      menu acilirsa odak oradaki yedi dugmeye kaciyordu. Artik govdenin
@@ -637,12 +652,14 @@ function arkaPlanDondur(kapat, haric) {
      Ozellik degil NITELIK yaziliyor: [inert] bir CSS kancasi olarak da
      kullanilabiliyor ve destegi olmayan tarayicida en azindan
      pointer-events kapatilabiliyor. */
+  const kapat = inertSahipleri.size > 0;
   const birak = new Set([menuEl, document.getElementById('duyuru'),
                          document.getElementById('menubtn')]);
-  /* Ikinci parametre: o anda ACIK olan baska bir katman. Sergi
-     sayfasinda isik kutusu ve yakinlastirma da bu isi istiyor ve
-     kendilerini inert etmemeleri gerekiyor. */
-  if (haric) birak.add(haric);
+  /* BUTUN sahiplerin katmani muaf: menu acikken isik kutusu acilirsa
+     ikisi de acik kalmali, biri otekini oldurmemeli. */
+  for (const oge of inertSahipleri.values()) {
+    if (oge) birak.add(oge);
+  }
   Array.prototype.forEach.call(document.body.children, (el) => {
     if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return;
     /* Muaf oge ATLANMIYOR, inert'i DUSURULUYOR. Onceki hali `return`
