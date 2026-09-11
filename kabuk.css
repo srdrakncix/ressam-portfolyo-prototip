@@ -198,8 +198,11 @@
      kendisi, tırtıklı kenar kalıcı" kararının tam tersi. Yedek değer
      taşmayı kesmesin diye bol: varlık gelmezse kırpma devre dışı gibi
      davranıyor. */
-  clip-path: inset(-60px calc(var(--tasma-oran, .34) * -100%)
-                   -80px -60px);
+  /* Kirpma yine ACIK ama artik olculen tasmaya bagli degil: kabuk.js
+     darbelerin gercek kutularini okuyup boslugu ona gore veriyor, bu
+     kural yalnizca boyanin kagida binmesini engelliyor. Deger bol
+     tutuluyor ki kenar kesilmesin. */
+  clip-path: inset(-60px -34% -80px -60px);
   /* KIRPMA YOK. Darbeler panel kutusunu taşıp kendi tırtıklı, kuruyan
      uçlarıyla bitiyor — "fırçayla boyandı" iddiası ancak böyle görünür
      hâle geliyor. Kutu boyunda kırpınca dört kenar da cetvel gibi
@@ -217,6 +220,13 @@
      yazının olduğu bölgede (#boya::before, firca.css'ten). */
   filter: drop-shadow(26px 0 34px rgba(0,0,0,.55));
 }
+/* TASAN darbeler dokunusu GECIRIYOR. #boya kutusu (panel alani) yutmaya
+   devam ediyor -- boyaya dokununca menunun kapanmasi eski bir hataydi ve
+   geri gelmesin. Ama <i> kutulari panelin ~50 px disina uzaniyor ve
+   orada dokunusu yutunca "bos yere bas, kapanir" calismiyordu: olculdu,
+   390 px'te ekran genisliginin %13'u olu seritti. */
+#boya i { pointer-events: none; }
+
 #boya i {
   position: absolute; display: block;
   /* cover, 100% 100% DEGIL. Kutular yuzdeyle tanimli: genislik panelin
@@ -228,8 +238,11 @@
      yalniz genis ekranda boyaydi.
      cover orani koruyor; bedeli kutunun disina tasan kismin gorunmemesi,
      ama darbeler zaten ust uste biniyor ve kaplama olcumle denetleniyor. */
-  background-repeat: no-repeat; background-size: cover;
-  background-position: center;
+  /* `100% 100%` yeniden GUVENLI: kutu artik kaynagin kendi oraninda
+     (firca.css aspect-ratio yaziyor), yani germe yok. cover denendi ve
+     kirpma yaptigi icin kutu sinirinda cetvel gibi duz kenar
+     birakiyordu -- gerilmis darbeden kotuydu. */
+  background-repeat: no-repeat; background-size: 100% 100%;
   animation-duration: 300ms;
   animation-timing-function: var(--ease);
   animation-fill-mode: both;
@@ -481,6 +494,13 @@ html.durdur { scrollbar-gutter: stable; }
 /* Menu ust katmanda oldugu icin disaridaki hamburger dugmesi tiklanamaz
    hale geliyor. Sevilen "eser -> X" jesti kaybolmasin diye ayni yerde,
    menunun kendi icinde bir kapatma dugmesi duruyor. */
+/* ✕ DUGMESI KALDIRILDI (musteri karari: "bos yere basinca kendi
+   kapaniyo"). Kurallar asagida duruyor ama dugme artik basilmiyor;
+   silmek yerine birakildi ki geri istenirse tek satirla donsun.
+   Klavye cikisi kayboluyor mu: hayir -- Escape popover hafif-kapanmasi
+   ile calisiyor ve hamburger acikken ✕'e donusup odaklanabilir kaliyor.
+   Telefonda da artik panel disina dokunmak her yerde calisiyor
+   (yukaridaki #boya i duzeltmesi). */
 #mkapat {
   position: absolute; z-index: 2;
   top: clamp(16px, 2.4vw, 30px); left: clamp(16px, 2.4vw, 30px);

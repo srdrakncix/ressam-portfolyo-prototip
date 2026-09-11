@@ -829,6 +829,7 @@ def disari(parcalar):
             'ust': round((p['oy'] + kutu[1] - PAY_UST) / BOY * 100, 2),
             'en': round(kirpik.width / EN * 100, 2),
             'boy': round(kirpik.height / BOY * 100, 2),
+            'oran': round(kirpik.width / float(kirpik.height), 4),
             'sag_gor': round((p['ox'] + gsag - PAY_SOL) / EN * 100, 2),
             'yon': yogun_uc(kirpik, dikey),
             'bayt': os.path.getsize(os.path.join(VARLIK, ad)),
@@ -962,6 +963,23 @@ def css_yaz(satirlar, taban=None):
              ' animation-timing-function: %s; }' % (SURE, FIRCA_EGRI))
     for i, r in enumerate(satirlar, 1):
         p.append('#boya i:nth-child(%d) {' % i)
+        # KUTU KAYNAGIN ORANINDA. Once en/boy ikisi de yuzdeydi (biri
+        # panel genisliginin, oteki yuksekliginin) ve panelin en/boy
+        # orani ekranla degistigi icin kutu orani kaynaktan sapiyordu:
+        # `100% 100%` anizotropik geriyordu, `cover` ise %55-60'ini
+        # KIRPIP kutu sinirinda cetvel gibi duz bir kenar birakiyordu
+        # (olculdu: 820 px'te 239 px kesintisiz).
+        # Simdi yukseklik yuzdeyle (panel dikeyde dolsun), genislik
+        # aspect-ratio ile kaynagin kendi oranindan. Kutu = kaynak orani
+        # oldugu icin ne germe ne kirpma var.
+        # Kutu yine YUZDE. aspect-ratio ile kaynagin oranina baglamak
+        # denendi ve dar ekranda cokuyor: kutu genisligi panel
+        # YUKSEKLIGINE bagli hale geliyor, 820 px'te darbe panelin 2.8
+        # kati oluyor ve kagida 450 px biniyor (olculdu). Anizotropi
+        # kaliyor ama ressamin yargisi net: gerilmis darbe hala boya
+        # okunuyor, cetvelle kesilmis kenar makine okunuyor.
+        # Dogru cozum dar panel icin AYRI darbe seti uretmek; o ayri bir
+        # is olarak duruyor.
         p.append('  left: %.2f%%; top: %.2f%%; width: %.2f%%; height: %.2f%%;'
                  % (r['sol'], r['ust'], r['en'], r['boy']))
         p.append('  background-image: url(%s);' % r['dosya'])

@@ -434,11 +434,21 @@ function kagidiKacir() {
      taşmayı engelliyor. */
   const TEMIZ = 16;
   const boyaEl = document.getElementById('boya');
-  const oran = boyaEl
-    ? parseFloat(getComputedStyle(boyaEl).getPropertyValue('--tasma-oran')) : 0;
   const menuSag = menuEl.getBoundingClientRect().right;
-  const panelEn = boyaEl ? boyaEl.offsetWidth : menuEl.offsetWidth;
-  const bosluk = (oran > 0 ? oran * panelEn : 40) + TEMIZ;
+  /* Tasma GERCEK OLCUMLE. Once firca.py'nin yayinladigi sabit bir oran
+     kullaniliyordu; kutular kaynagin oranina baglandiktan sonra tasma
+     panel YUKSEKLIGINE bagli hale geldi ve tek oranla ifade
+     edilemiyor. Olculdu: sabit oranla bosluk yetmiyordu ve boya kagida
+     28.6 px biniyordu. Darbelerin kendi kutulari okunuyor, yani hangi
+     geometri olursa olsun dogru. */
+  let darbeSag = menuSag;
+  if (boyaEl) {
+    for (const d of boyaEl.children) {
+      const r = d.getBoundingClientRect();
+      if (r.right > darbeSag) darbeSag = r.right;
+    }
+  }
+  const bosluk = (darbeSag - menuSag) + TEMIZ;
   const sagPay = 26;
   const sol = shell.offsetLeft;
   const en = shell.offsetWidth;
@@ -481,7 +491,10 @@ function kagidiKacir() {
      hareketli telefon tabani 0.36 idi -- tam tersi olmali, cunku donme
      kapaliyken cos(38) daralma kazanci da yok. Olculdu: hareket
      azaltmali 390 px'te boya icerige 13.4 px biniyordu. */
-  const enAz = A === 0 ? (dar ? 0.24 : 0.40) : (dar ? 0.36 : 0.72),
+  /* Dar taban 0.36'dan 0.26'ya: 320 px'te bosluk yetmiyordu ve boya
+     kagida 15.8 px biniyordu (olculdu). 390 ve uzeri etkilenmiyor,
+     orada hesap tabanin ustunde kaliyor. */
+  const enAz = A === 0 ? (dar ? 0.20 : 0.40) : (dar ? 0.26 : 0.72),
         enCok = 0.94;
   const hedefSol = menuSag + bosluk;
   const sagSinir = window.innerWidth - sagPay;
