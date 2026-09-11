@@ -128,6 +128,31 @@
    katman yoksa panel #shell'in (z-index:10) altinda kaliyordu. */
 #menu:not(.open):not(:is(:popover-open)) { display: none; }
 #menu { z-index: 45; }
+/* Panel bir denetim degil, kap: odak halkasi istemiyor. Odak ona
+   veriliyor (ilk satira degil) ve tarayici varsayilan halkasini
+   cizip panelin sag kenarinda dikey bir cizgi birakiyordu. */
+#menu:focus, #menu:focus-visible { outline: none; }
+
+/* inert'i desteklemeyen tarayıcı için kanca. JS niteliği yazıyor ama
+   yalnız niteliğin kendisi bir şey yapmıyorsa arka sayfa tıklanabilir
+   kalıyordu — özellikle yedek yolda, orada ::backdrop de yok. */
+[inert] { pointer-events: none; user-select: none; }
+
+/* Hamburgerin odak halkasi #menu'nun DISINDA kaldigi icin oradaki acik
+   halka kurali ona uygulanmiyordu; sayfanin genel kurali geciyor ve
+   halka `outline-offset: 3px` ile beyaz diskin DISINA, dogrudan
+   fotografin ustune dusuyordu. Olculdu: ana sayfada 1.50:1, galeride
+   2.70:1 -- WCAG 2.4.11 esigi 3:1. Zemin her sayfada baska bir tablo
+   oldugu icin sabit renkli bir dis halka garanti veremez.
+   Cozum iki tonlu ve ICE alinmis: koyu halka garantili beyaz diske
+   karsi olculuyor (6.6:1), disindaki acik kontur da fotografa karsi
+   bagimsiz bir sinir veriyor. Cubuklar temiz (7.3:1 ve 9.5:1),
+   onlara dokunulmuyor. */
+#menubtn:focus-visible {
+  outline: 2px solid #241f14;
+  outline-offset: -4px;
+  box-shadow: 0 0 0 2px #f8f4ee;
+}
 
 #menu::backdrop {
   background: rgba(6,7,5,0);
@@ -154,7 +179,27 @@
    karede yeniden duzen kurardi. */
 #boya {
   position: absolute; inset: 0; z-index: 0;
-  pointer-events: none;
+  /* pointer-events KAPALI DEGIL. Kırpma kalktığından beri boya panelin
+     kutusunu taşıyor (sağda ~140 px, telefonda altta ~95 px). O taşan
+     alan `pointer-events: none` olduğu sürece dokunuşu perdeye
+     gönderiyordu ve perde de popover'ın hafif-kapanmasını tetikliyordu:
+     yani KULLANICI BOYAYA DOKUNUNCA MENÜ KAPANIYORDU. Telefonda görünen
+     kartın üçte biri bu bölgeydi. Sütunlar z-index:1 ile üstte olduğu
+     için bağlantılar etkilenmiyor. */
+  pointer-events: auto;
+  /* Tasma her yone serbest, SAGA degil. Kagidin sol kenari menuden
+     26 px sonra basliyor (kagidiKacir o boslugu birakiyor); boya
+     ondan fazla tasarsa eserin sayfasinin uzerine leke gibi biniyor.
+     18 px tirtikli kenari gostermeye yetiyor, kagida degmiyor. */
+  /* Sağdaki kırpma ÖLÇÜLEN taşmadan geliyor (firca.css'teki
+     --tasma-oran). Elle -40 px yazılıydı ve boyayı bıçakla kesiyordu:
+     görünür boya kutunun %29'u kadar taşıyor, yani 1440 px'te x=640'ta
+     cetvel gibi düz bir dikey kenar oluşuyordu — "darbeler panelin
+     kendisi, tırtıklı kenar kalıcı" kararının tam tersi. Yedek değer
+     taşmayı kesmesin diye bol: varlık gelmezse kırpma devre dışı gibi
+     davranıyor. */
+  clip-path: inset(-60px calc(var(--tasma-oran, .34) * -100%)
+                   -80px -60px);
   /* KIRPMA YOK. Darbeler panel kutusunu taşıp kendi tırtıklı, kuruyan
      uçlarıyla bitiyor — "fırçayla boyandı" iddiası ancak böyle görünür
      hâle geliyor. Kutu boyunda kırpınca dört kenar da cetvel gibi
@@ -166,7 +211,10 @@
      menü yazısı sayfanın beyaz kâğıdı üstünde kalıp tamamen okunmaz
      oluyordu. Bu taban renk darbelerin ALTINDA kalıyor, tırtıklı kenarı
      bozmuyor, ama panelin hiçbir zaman zeminsiz kalmamasını sağlıyor. */
-  background: var(--panel-taban, #6b4239);
+  /* Kutuyu kaplayan taban rengi KALDIRILDI: nefes deliklerinin altında
+     duruyordu, yani delikler duvarı değil onu gösteriyordu ve panelin içi
+     iki ayrı sayfada birebir aynı renkte çıkıyordu. Zemin artık yalnızca
+     yazının olduğu bölgede (#boya::before, firca.css'ten). */
   filter: drop-shadow(26px 0 34px rgba(0,0,0,.55));
 }
 #boya i {
@@ -186,7 +234,16 @@
 /* Sutunlar boyanin ustunde kalsin. */
 #msol, #mon { position: relative; z-index: 1; }
 
-#msol { padding: 104px clamp(18px, 2.2vw, 30px) 26px; overflow-y: auto; }
+/* overscroll-behavior: liste sonuna gelince kayma arka sayfaya
+   ZINCIRLENMESIN. Kisa ekranda #msol gercekten kaydiriyor (olculdu:
+   h=600'de scrollHeight 692) ve zincirleme kagidi altindan kacirmisti. */
+#msol { padding: 104px clamp(18px, 2.2vw, 30px) 26px; overflow-y: auto;
+        overscroll-behavior: contain; }
+
+/* Kipli katman acikken arka sayfa kaymaz. scrollbar-gutter cubugun
+   kaybolmasiyla olusan duzen sicramasini kapatiyor. */
+html.durdur, html.durdur body { overflow: hidden; }
+html.durdur { scrollbar-gutter: stable; }
 #menu ul { list-style: none; margin: 0; padding: 0; }
 #menu li { margin-bottom: 1px; }
 
@@ -273,8 +330,11 @@
   position: relative; overflow: hidden;
   padding: 104px clamp(22px, 2.6vw, 42px) 34px;
   display: flex; flex-direction: column; gap: 20px;
-  border-left: 1px solid rgba(255,255,255,.07);
-  background: radial-gradient(120% 90% at 30% 0%, rgba(255,244,222,.055), transparent 62%);
+  /* Çizgi ve ışık yıkaması KALDIRILDI. İkisi de eski siyah dikdörtgen
+     panel için yazılmıştı; boyalı bir yüzeyin ÜSTÜNE x=255'te cetvelle
+     çizilmiş düz bir sınır bırakıyorlardı ve boya illüzyonunu tam
+     içeriden bozuyorlardı. Sütunları ayıran şey artık yalnızca boşluk —
+     bir tuvalde de öyledir. */
 }
 #mon-kutu { position: relative; flex: 1 1 auto; min-height: 0; display: grid; place-items: center; }
 #mon-img {
@@ -319,8 +379,11 @@
 #menu button:focus-visible {
   outline: 2px solid var(--m-dil-aktif, #f8f4ee);
   outline-offset: 3px;
-  border-radius: 2px;
 }
+/* Yarıçap yalnızca bağlantılarda: ortak kuralda verilince kapatma
+   düğmesinin yarıçapını (50%) eziyor ve klavyeyle odaklanan beyaz disk
+   2 px köşeli kareye dönüyordu. */
+#menu a:focus-visible { border-radius: 2px; }
 #menu a:focus-visible { transform: translateX(4px); }
 #menu a:focus-visible::before { opacity: .9; }
 
@@ -328,7 +391,16 @@
    aynı ağırlık ve aynı tondaydı, hangi dilde olduğun belli değildi.
    Kontrastı bozmadan geri getiriliyor: etkin olan tam opak ve altı
    çizili, ötekiler biraz geride. */
-#lang button { opacity: .62; }
+/* Hiyerarsi OPAKLIKLA DEGIL renkle. `opacity: .62` olculdu ve WCAG
+   AA'nin altina dusuruyordu: bildirilen murekkep #e2d8d0 tek basina
+   ~6.7:1 verirken, %62 opaklikta gercek olcum 3.50-3.63:1 cikiyor.
+   Daha kotusu, firca.py'nin kontrast kapisi murekkebi TAM opaklikta
+   kullaniyor, yani opaklik carpanini modellemiyor: kapi geciyor,
+   tarayici kaliyordu. Bu, kabuk.js/satirAyari yorumunda korkulan hata
+   sinifinin aynisi (olcum bir sayiyi olcerken calisan kod baskasini
+   kullaniyor), sadece degisken adi farkli.
+   Etkin dilin ayrimi zaten alti cizili + daha acik murekkep. */
+#lang button { opacity: 1; }
 #lang button[aria-current="true"] {
   opacity: 1;
   color: var(--m-dil-aktif, #f8f4ee);
@@ -415,7 +487,11 @@
    #boya da onun boyunda kalıyor. Taban katman kartın tamamını kaplıyor;
    darbeler onun üstünde, tırtıklı kenar yine görünür. */
 @media (max-width: 760px) {
-  #boya { inset: -6px -10px -10px -6px; }
+  /* Boya kartı taşıyor ama kartın alt %13'ü boyasız kalıyordu: darbelerin
+     silueti orada bitiyor. Taban renk katmanı kartın tamamını (ve biraz
+     dışını) kaplıyor; darbeler onun üstünde, tırtıklı kenar yine görünür,
+     ama dipte açık bir yer kalmıyor. */
+  #boya { inset: -8px -12px -26px -8px; }
 }
 
 /* ── içerik paneli ───────────────────────────────────────────────────────── */
@@ -426,11 +502,19 @@
   --don: 0deg;                       /* 3B dönme açısı */
   --derinlik: 2200px;                /* perspektif uzaklığı */
 
-  /* Menteşe SOL kenar. Menü soldan geldiği için kâğıt oradan tutulup
-     çevriliyor; dönme hem jesti veriyor hem izdüşüm genişliğini
-     daraltıyor, yani kâğıt menünün altından çıkıyor. Tek hareket iki iş
-     yapıyor — von Kaufmann'ın sitesinde de sebep bu. */
-  transform-origin: 0 50%;
+  /* Menteşe SAĞ kenar. Önce solda denendi ve yanlıştı: sol kenar çivili
+     kalıp sağ uç savruluyordu, yani bükülme itmenin geldiği yerde değil
+     karşı uçta oluyordu — hareket "menü kâğıdı itiyor" değil "kâğıt
+     menünün üstünde dönüyor" diye okunuyordu. İtme soldan geldiğine göre
+     yerini bırakacak kenar da sol kenar: artık sağ kenar yerinde duruyor,
+     sol kenar arkaya kaçıyor.
+
+     Ölçülen yan fayda: sağ kenar z=0'da kaldığı için --kac onu birebir
+     kaydırıyor (sağa taşma aritmetik olarak imkânsız oluyor), perspektif
+     de sol ucu menteşeye doğru çektiğinden kâğıt cos(38°) tahmininden
+     daha dar görünüyor. İkisi birlikte menüye açılan boşluğu bedavaya
+     getiriyor: 1440 px'te ölçek .84'ten .89'a çıktı. */
+  transform-origin: 100% 50%;
   /* scale: 38 derecelik daralma tek basina yetmiyordu -- olculdu, 1440
      px'lik pencerede kagidin sag kenari 1460'a, golgesi 1550'ye tasiyordu.
      Kucuk bir olcek ikisini de ekrana sokuyor. */
@@ -526,7 +610,10 @@ html.menuacik #shell {
      sebebi görünmeyen bir "kesik köşe" bırakma hatasını da kapatıyor —
      clip-path sağ üst köşeden 96-210 px'lik bir üçgeni gerçekten kesip
      atıyordu. */
-  --don: 38deg;
+  /* Menteşe sağa geçtiği için işaret de ters: menteşeden solda kalan
+     noktalar için EKSİ açı sol ucu ekranın içine gönderiyor (artı açı
+     öne, kullanıcıya doğru çıkarıyordu). */
+  --don: -38deg;
   --kucul: .94;
   filter: drop-shadow(0 6px 10px rgba(0,0,0,.22))
           drop-shadow(0 26px 40px rgba(0,0,0,.32));
@@ -546,7 +633,12 @@ html:not(.menuacik) #shell {
      sebebi tam olarak buydu. Artık kâğıt yine kenara çekiliyor, sadece
      geçişsiz ve dönmeden: yer değiştirme işlev, dönme gösteri. */
   #shell { transition: none; }
-  html.menuacik #shell { --don: 0deg; --kucul: 1; }
+  /* `--kucul: 1` buradan KALDIRILDI: olu koddu. kagidiKacir onu satir
+     ici yaziyor ve satir ici bildirim her medya kuralini yener --
+     olculdu, CSS 1 derken hesaplanmis deger 0.72 idi. Olcek karari
+     tek yerde: kabuk.js/kagidiKacir, orada da hareket azaltma icin
+     ayri bir taban var. */
+  html.menuacik #shell { --don: 0deg; }
   html:not(.menuacik) #shell { transition: none; }
   /* Satırların 22 ms/satır kademeli girişi de kapanıyor. */
   #menu li, #menu .grouplbl, #lang {
@@ -564,12 +656,31 @@ html:not(.menuacik) #shell {
   #mon { display: none; }
 }
 
+/* En dar masaustu araligi. Olculdu: 796 px'te menu 330 iken menu+boya
+   427 px yer tutuyor ve kagit en kucuk olcekte (.72) bile yetismiyordu,
+   boya kagidin alt kosesindeki kunyenin ustune 42 px biniyordu.
+   Secenekler: kagidi daha da kucultmek, boyayi kirpmak (yine bicak
+   kenari) ya da menuyu daraltmak. Menuyu daraltmak uculunun icinde
+   hicbir seyi bozmayan tek secenek: tek kolonluk baglanti listesi
+   280 px'te rahat okunuyor, darbeler panelin tamamini kapladigi icin
+   olcum garantisi de degismiyor (boyanin kaplamasi orana bagli). */
+@media (max-width: 900px) and (min-width: 761px) {
+  #menu { width: min(280px, 92vw); }
+}
+
 /* Telefonda menü küçük bir kart; kâğıdın üstüne binmiyor, döndürmek
    gereksiz ve dar ekranda okunurluğu bozuyor. Köşe katı da artık hiç
    yok, o yüzden sebebi görünmeyen "kesik köşe" sorunu da kalmadı. */
 @media (max-width: 760px) {
   html.menuacik #shell { --don: 0deg; --kac: 0px; --kucul: 1; }
   #menu { height: auto; }
+  /* Kirpma telefonda DAR kalir. Masaustunde gevsetildi cunku olculen
+     tasma %29 ve kagit o kadar kenara cekiliyor; telefonda kagit hic
+     cekilmiyor (yukaridaki --kac: 0), yani tasan boyanin altinda duvar
+     degil dogrudan icerik var. Olculdu: gevsek kirpmayla kart 390 px'te
+     x=420'ye kadar tasiyor ve icerigi cirkin sekilde kapatiyordu.
+     Burada boya kartin kendisi olarak kaliyor. */
+  #boya { clip-path: inset(-30px -22px -34px -20px); }
 }
 
 /* Buradaki ikinci satir blogu kaldirildi. .open yolu icin yazilmisti ama

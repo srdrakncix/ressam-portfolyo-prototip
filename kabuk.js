@@ -144,12 +144,19 @@ function onizlemeIcin(route) {
   const cv = (L().cv || SITE.cv || []);
   const yay = (L().publications || SITE.publications || []);
   const bas = (L().press || SITE.press || []);
-  const yillar = SITE.works.map((w) => w.year);
-  const aralik = Math.min(...yillar) + ' — ' + Math.max(...yillar);
+  /* Yıllar henüz girilmedi (künye bilgileri müşteriden gelmedi) ve bu
+     hesap sıfırdan yapılıp menüde "0 — 0" yazıyordu. Sıfır basmak
+     eksiklikten kötü: koleksiyoner bunu görünce kataloğun geri kalanına
+     da güvenmez. Yıl yoksa aralık da yok. */
+  const yillar = SITE.works.map((w) => w.year).filter(Boolean);
+  const aralik = yillar.length
+    ? Math.min(...yillar) + ' — ' + Math.max(...yillar) : '';
 
   if (!route) {
     return { ust: SITE.artist.mark, ad: SITE.artist.name,
-             alt: SITE.works.length + ' eser · ' + SITE.series.length + ' seri · ' + aralik,
+             alt: [SITE.works.length + ' eser',
+                   SITE.series.length + ' seri',
+                   aralik || null].filter(Boolean).join(' · '),
              img: yeniEser() };
   }
   if (route === '/galeri') {
@@ -157,7 +164,8 @@ function onizlemeIcin(route) {
   }
   if (route === '/son') {
     return { ust: t('nav_recent'), ad: SITE.works.length + ' eser · ' + SITE.series.length + ' seri',
-             alt: aralik + ' · ' + t('medium'), img: yeniEser() };
+             alt: [aralik || null, t('medium')].filter(Boolean).join(' · '),
+             img: yeniEser() };
   }
   const m = route.match(/^\/seri\/(.+)$/);
   if (m) {
@@ -295,6 +303,10 @@ function buildMenu() {
     b.type = 'button';
     b.setAttribute('aria-current', String(code === LANG));
     b.setAttribute('aria-label', SITE.i18n[code].ui.lang_name);
+    /* Dugmenin kendi dili. lang="tr" bir belgede "English" ve
+       "Français" Turkce fonetikle okunuyordu -- etiketleriYaz'in gomulu
+       Turkce etiketler icin duzelttigi hatanin ters yonu. */
+    b.lang = code;
     b.addEventListener('click', () => setLang(code));
     lang.appendChild(b);
   });
@@ -402,30 +414,88 @@ function kagidiKacir() {
     return;
   }
 
-  const bosluk = 26;
+  /* Kâğıda açılacak boşluk ÖLÇÜLEN taşmadan geliyor. Eskiden burada
+     `bosluk = 56` yazıyordu ("taşma 40 + 16 temiz") ve kabuk.css'te de
+     kırpma ayrıca -40 px yazılıydı: aynı varlığı tarif eden iki ayrı
+     tahmin, ikisi de yanlış. Gerçek taşma panel eninin %29'u
+     (firca.py ölçüyor, firca.css --tasma-oran ile yayınlıyor).
+     Sağ pay ayrı bir şey: o boyayla ilgili değil, yalnız ekrandan
+     taşmayı engelliyor. */
+  const TEMIZ = 16;
+  const boyaEl = document.getElementById('boya');
+  const oran = boyaEl
+    ? parseFloat(getComputedStyle(boyaEl).getPropertyValue('--tasma-oran')) : 0;
   const menuSag = menuEl.getBoundingClientRect().right;
+  const panelEn = boyaEl ? boyaEl.offsetWidth : menuEl.offsetWidth;
+  const bosluk = (oran > 0 ? oran * panelEn : 40) + TEMIZ;
+  const sagPay = 26;
   const sol = shell.offsetLeft;
   const en = shell.offsetWidth;
   if (!en) return;
 
-  /* Çevrilince kâğıdın izdüşümü daralıyor: yaklaşık en × cos(açı).
-     Açı CSS'ten okunuyor, burada ikinci kez yazılmıyor. */
+  /* Açı ve perspektif CSS'ten okunuyor, burada ikinci kez yazılmıyor. */
   const aci = parseFloat(getComputedStyle(shell).getPropertyValue('--don')) || 0;
-  const daralma = Math.cos(aci * Math.PI / 180) || 1;
+  const A = Math.abs(aci) * Math.PI / 180;
+  const derin =
+    parseFloat(getComputedStyle(shell).getPropertyValue('--derinlik')) || 2200;
 
-  /* Sert kural: kâğıt EKRANDAN TAŞMAYACAK. Tercih menünün altından tam
-     çıkmak, ama 600 px'lik menü ile tam genişlikte kâğıt dar ekranda
-     yan yana sığmıyor (ölçüldü: 1024 px'te 82 px taşıyordu). O zaman
-     kurtulmadan vazgeçiliyor, taşmadan asla. */
-  const enAz = 0.78, enCok = 0.94;
-  let hedefSol = menuSag + bosluk;
-  let kucul = Math.min(enCok, Math.max(enAz,
-    (window.innerWidth - bosluk - hedefSol) / (en * daralma)));
-  const genislik = en * daralma * kucul;
-  if (hedefSol + genislik > window.innerWidth - bosluk) {
-    hedefSol = Math.max(bosluk, window.innerWidth - bosluk - genislik);
-  }
-  shell.style.setProperty('--kac', Math.max(0, hedefSol - sol).toFixed(1) + 'px');
+  /* Taban KIPE BAGLI. Donme varken cos(38) daralmasi izdusumu kendisi
+     daraltiyor, o yuzden 0.72 yetiyor (0.78'de boya kagidin alt
+     kosesindeki kunyeye biniyordu -- olculdu). Hareket azaltmada ise
+     donme kapali, yani o daralma KAZANCI YOK ve olcegin isi tek basina
+     yapmasi gerekiyor.
+     Uc ayri degerlendirici bunu bagimsiz olarak olctu: 0.72 tabani
+     hareket azaltmada kagidi menunun altindan cikaramiyor, 1381 px'te
+     270 px, 1440 px'te 212 px binisme kaliyor -- yani hareketten
+     rahatsiz olan, tam da bu ayari acan kullanicida panelin icerigin
+     ustune binmemesi islevi cokuyor. 1440'ta gereken 0.53, 1381'de
+     0.42; taban 0.40'a cekiliyor.
+     Not: kabuk.css'teki `--kucul: 1` bildirimi OLU koddu, cunku burada
+     satir ici yaziliyor ve satir ici her medya kuralini yener. Orada
+     silindi, karar tek yerde: burada. */
+  const enAz = A === 0 ? 0.40 : 0.72, enCok = 0.94;
+  const hedefSol = menuSag + bosluk;
+  const sagSinir = window.innerWidth - sagPay;
+  const sagYerli = sol + en;              /* dönüşümsüz sağ kenar = menteşe */
+
+  /* MENTEŞE SAĞ KENARDA, ve bu bütün hesabı değiştiriyor. Dönüşüm
+     menteşeye göre uygulanıyor, perspective()'in izdüşüm merkezi de o:
+     sağ kenar z=0'da kalıyor, yani --kac onu BİREBİR kaydırıyor ve
+     kâğıdın en sağdaki noktası o. Sert kural ("kâğıt ekrandan
+     TAŞMAYACAK") böylece tek kelepçeye iniyor — eski sol menteşede
+     tahmin-ve-kırp hesabıydı ve 1024 px'te 82 px taşımıştı.
+
+     Sol kenar ise arkaya gittiği için perspektif onu menteşeye doğru
+     ÇEKİYOR; kâğıt en×cos(A) tahmininden daha da dar görünüyor:
+       u = en*kucul,  F = derin/(derin + u*sin A)
+       sol kenar L = sagYerli + (kac - u*cos A) * F              */
+  const D = hedefSol - sagYerli;
+  const F = (u) => derin / (derin + u * Math.sin(A));
+
+  /* Kaydırma GEREKTİĞİ kadar, azami kadar değil. Sağ kenarı her zaman
+     sınıra dayamak taşmayı sıfırlıyordu ama jesti bozuyordu: ölçüldü,
+     1920 px'te kâğıt sağa yapışıp menüyle arasında 545 px boşluk
+     bırakıyordu (hedef 56). Menteşe sağa geçtiğinden dönme ve ölçek
+     sol kenarı kendiliğinden sağa çekiyor; geniş ekranda kaydırmaya
+     hiç gerek kalmıyor. L = hedefSol'dan gereken kac çözülüyor:
+       kac = D/F + u*cos A
+     Kelepçe: 0 ile sağ sınır arası. Sınır eksiyse (kâğıt zaten
+     taşıyorsa) kaydırma sola dönüyor, çünkü taşmama pazarlık dışı. */
+  const u0 = en * enCok;
+  const kac = Math.min(sagSinir - sagYerli,
+                       Math.max(0, D / F(u0) + u0 * Math.cos(A)));
+
+  /* Ölçek: o kac ile L >= hedefSol eşitliğinden. L, kucul'de azalan.
+       u <= derin*(kac - D) / (derin*cos A + D*sin A)
+     A=0 (hareket azaltma) halinde (sagSinir - hedefSol)/en'e düşüyor,
+     yani dönmesiz oturtma — sınır değeri doğru. */
+  const bol = derin * Math.cos(A) + D * Math.sin(A);
+  let kucul = bol > 0 ? derin * (kac - D) / (bol * en) : enCok;
+  /* Menünün altından tam çıkmak tercih; sığmıyorsa kurtulmadan
+     vazgeçiliyor (enAz), taşmadan asla — taşmayı kac zaten kesiyor. */
+  kucul = Math.min(enCok, Math.max(enAz, kucul));
+
+  shell.style.setProperty('--kac', kac.toFixed(1) + 'px');
   shell.style.setProperty('--kucul', kucul.toFixed(4));
 }
 
@@ -433,6 +503,15 @@ addEventListener('resize', kagidiKacir, { passive: true });
 
 function openMenu() {
   buildMenu();
+  /* Kayma kilidi. Menu gorsel olarak kipli, `inert` ile fiilen kipli --
+     ama kiplilgin ucuncu ayagi olan kayma kilidi eksikti: olculdu, menu
+     acikken document.scrollingElement.scrollTop = 400 yazmak TUTUYORDU.
+     popover=auto kaymayi kilitlemiyor, inert de yalniz pointer-events'i
+     kesiyor; tekerlek perdenin ustunden goruntu alanina gidiyordu ve
+     kullanici menuyu kaydirirken kagit altindan kayip gidiyordu.
+     Orunru sergi.html'de detay katmani icin zaten vardi, menuye
+     uygulanmamisti. */
+  document.documentElement.classList.add('durdur');
   document.documentElement.classList.add('menuacik');
   kOniz(null, true);
   if (menuEl.showPopover) menuEl.showPopover();
@@ -482,6 +561,7 @@ function arkaPlanDondur(kapat) {
 /* Kapanışta yapılacak toparlama: hangi jestle kapanırsa kapansın (düğme,
    Escape, dışına tıklama) burası çalışıyor. */
 function toparla() {
+  document.documentElement.classList.remove('durdur');
   document.documentElement.classList.remove('menuacik');
   btn.setAttribute('aria-expanded', 'false');
   arkaPlanDondur(false);

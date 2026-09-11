@@ -68,7 +68,10 @@ EN, BOY = 600, 857
 # Darbelerin kutu DISINA tasma payi. Bu olmadan kompozisyon tam kutu
 # boyunda bir tuvalde kuruluyordu ve tasan her sey varligin kendisinde
 # kesiliyordu; panelin dort kenari da cetvel gibi duzdu.
-PAY_SOL, PAY_UST, PAY_SAG, PAY_ALT = 46, 44, 86, 74
+# Sag pay KUCULTULDU: 86 iken boya panelin cok disina tasip sagdaki
+# beyaz kagidin (eserin sayfasi) uzerine biniyordu -- eserin ustune
+# leke gibi duruyordu. Tirtikli kenar icin bu kadari yetiyor.
+PAY_SOL, PAY_UST, PAY_SAG, PAY_ALT = 46, 40, 40, 60
 TUVAL_EN = PAY_SOL + EN + PAY_SAG
 TUVAL_BOY = PAY_UST + BOY + PAY_ALT
 TABAN = 0.92        # yazi altinda en dusuk opaklik
@@ -100,7 +103,6 @@ MUREKKEP = {
     'dil-aktif': (248, 244, 238),
     'oniz-ust':  (231, 216, 190),   # "KATALOG" gibi kucuk etiket
     'oniz-alt':  (236, 230, 220),
-    'kapat':     (240, 236, 230),
 }
 SAT_TAVAN = 0.40
 LIG_TABAN = 0.90
@@ -127,7 +129,10 @@ _KUTULAR = (
     [('satir%02d' % i, 30, y, 195, 41) for i, y in enumerate(SATIR_Y)]
     + [('grup', 30, 290, 195, 17),
        ('dil', 30, 802, 195, 29),
-       ('kapat', 30, 30, 58, 58),
+       # Kapatma dugmesi olcumden CIKARILDI: beyaz opak bir disk ve
+       # uzerindeki cizgi koyu. Ne opakligi ne kontrasti panelin boyasina
+       # bagli; onu boyaya karsi olcmek var olmayan bir kontrolu
+       # olcmekti ve yanlis alarm uretiyordu.
        ('oniz-gorsel', 293, 226, 270, 152),
        ('oniz-ust', 293, 520, 270, 17),
        ('oniz-ad', 293, 544, 270, 30),
@@ -149,6 +154,9 @@ SECIM = [('govde-1', 'badana-11.jpg'), ('govde-2', 'bicak-11.jpg'),
 #   (darbe, sol%, ust%, genislik%, donme, yatay_ayna)
 YERLESIM = [
     ('govde-1',    -14,  -9, 134,  -4, False),
+    # Tam 90 derece degil: "boya capraz akiyor ama tam dikey, koyu ince
+    # bir iz var" diye yakalandi. Firca o yonde gitmiyorsa iz de tam
+    # dikey durmamali.
     ('govde-3',     -4,  -4, 164,  90, False),
     ('karakter-2',  -6,  -5, 116,   5, False),
     ('govde-2',    -14,  26, 132,  -2, True),
@@ -184,7 +192,25 @@ EGRI_LO, EGRI_HI = 14, 168   # ham yogunluk egrisi: pus sifira, cekirdek opak
 # Kenar bandinin genisligi. Bu bantta dolgu YOK, gercek boyanin alfasi
 # var. Genisledikce kenar daha boya gibi, ama yazi kutulari ic bolgenin
 # disina tasarsa okunurluk garantisi duser -- olcum bunu denetliyor.
+# Tasma olcumunde "gorunur" sayilan en kucuk alfa. Kuru firca ucunda
+# alfasi 1-2 olan uzun kuyruklar var; koyu duvarin uzerinde gozle
+# secilmiyorlar ama alfa>0 ile olculunce tasmayi 13 px sisiriyorlar ve
+# kagit bedava kucultuluyordu.
+GORUNUR_ESIK = 28
+
 KENAR_BANDI = 16
+
+# Yazi kutularindan bu kadar uzakta boya NEFES ALIYOR: dolgu devreden
+# cikiyor, fircanin atladigi yerler delik kaliyor ve altindaki duvar
+# okunuyor. Pay buyudukce panel daha kapali, kucuuldukce yaziya daha
+# yakin delik aciliyor.
+# 18 iken olcum reddetti: 9 yazi kutusunda %1-24 delik acildi. Sebep
+# bulaniklik -- guvenli bolgenin sinirini yumusatmak icin 9 px bulanik
+# uygulaniyor ve bu ACIKLIGI kutunun icine tasiriyordu. Pay, bulanigin
+# tasma mesafesini de kapsayacak kadar buyuk olmali.
+GUVENLI_PAY = 44
+# Delik sayilan esik: ham yogunluk bunun altindaysa o piksel aciliyor.
+NEFES_ESIK = 132
 
 
 # ══ 1. FOTOGRAFTAN DARBEYI AYIKLA ═══════════════════════════════════════
@@ -379,6 +405,46 @@ def fr(t):
     return FR[-1][1]
 
 
+def nefes_dokusu(darbeler):
+    """Butun darbelerin PAYLASTIGI delik dokusu.
+
+    Her darbeye ayri delik acmak ise yaramiyor: delikler hizalanmadigi
+    icin ust uste binen dokuz kat birbirinin deligini kapatiyor
+    (olculdu, panel ici iki ayri zemin uzerinde birebir ayni renk
+    cikiyordu). Ortak doku ile delikler ayni yerde ve alt gercekten
+    okunuyor.
+
+    Doku kuru firca fotografinin kendi yogunlugundan: deliklerin
+    dagilimi da gercek bir darbeden geliyor.
+    """
+    ham = darbeler['karakter-1']
+    d = ham.resize((TUVAL_EN, TUVAL_BOY), Image.LANCZOS)
+    # Cogu yer acik (delik yok), az yer koyu (delik). Egri bunu kuruyor:
+    # 190 ustu tam opak, 120 altı tam delik.
+    # Egri DARALTILDI: ilk denemede panel yuzey olmaktan cikip lekeye
+    # dondu, kaplama %99'dan %86'ya dustu. Ressam bir nefes deligi
+    # istedi, saydamlik degil. Artik yalnizca gercekten kuru yerler
+    # aciliyor ve tam delik degil, incelme.
+    return d.point(lambda v: 255 if v >= 150 else
+                   (96 if v <= 84 else int(96 + (v - 84) * 159.0 / 66)))
+
+
+def guvenli_bolge():
+    """Yazinin UZAGINDAKI bolge. Burada boya nefes alabilir.
+
+    Yazi kutulari olculmus koordinatlar oldugu icin bu maske tahmin
+    degil: kutular GUVENLI_PAY kadar buyutulup cikariliyor.
+    """
+    m = Image.new('L', (TUVAL_EN, TUVAL_BOY), 255)
+    d = ImageDraw.Draw(m)
+    for ad, x, y, w, h in YAZI_KUTULARI:
+        d.rectangle([x - GUVENLI_PAY, y - GUVENLI_PAY,
+                     x + w + GUVENLI_PAY, y + h + GUVENLI_PAY], fill=0)
+    # Kenarlari yumusat: sert bir sinir "buraya kadar delik, buradan sonra
+    # yok" diye okunur ve yine cetvel etkisi yapar.
+    return m.filter(ImageFilter.GaussianBlur(9))
+
+
 def donustur(ham, wy, donme, ayna):
     if ayna:
         ham = ham.transpose(Image.FLIP_LEFT_RIGHT)
@@ -392,18 +458,33 @@ def donustur(ham, wy, donme, ayna):
     return ham, siluet
 
 
-def boya_darbe(ham, siluet, ox, oy):
+def boya_darbe(ham, siluet, ox, oy, guvenli=None, nefes=None):
     """Doku RENKTE, alfa siluet. Ince boya acilir ama solmaz -- doygunlugu
     korumazsak panel plastik ortu gibi duruyor (denendi)."""
     w, h = siluet.size
     im = Image.new('RGBA', (w, h), (0, 0, 0, 0))
     px, hp, sp = im.load(), ham.load(), siluet.load()
+    gp = guvenli.load() if guvenli is not None else None
+    np_ = nefes.load() if nefes is not None else None
     for y in range(h):
         ty = (oy + y - PAY_UST) / float(BOY)
         for x in range(w):
             a = sp[x, y]
             if not a:
                 continue
+            if gp is not None:
+                gx, gy = ox + x, oy + y
+                if 0 <= gx < TUVAL_EN and 0 <= gy < TUVAL_BOY:
+                    g = gp[gx, gy]
+                    if g and np_ is not None:
+                        # Yazidan uzakta ORTAK dokunun deligi aciliyor.
+                        # g=0 korumali (hic degisme), g=255 guvenli.
+                        nv = np_[gx, gy]
+                        if nv < 255:
+                            hedef = a * nv / 255.0
+                            a = int(a + (hedef - a) * (g / 255.0))
+                            if a <= 0:
+                                continue
             r, g, b = fr(0.30 * ((ox + x - PAY_SOL) / float(EN)) + 0.70 * ty)
             kal = hp[x, y] / 255.0
             ac = 1.0 + (1.0 - kal) * 0.20
@@ -417,12 +498,14 @@ def boya_darbe(ham, siluet, ox, oy):
 
 def kur(darbeler):
     panel = Image.new('RGBA', (TUVAL_EN, TUVAL_BOY), (0, 0, 0, 0))
+    guvenli = guvenli_bolge()
+    nefes = nefes_dokusu(darbeler)
     parcalar = []
     for ad, xy, yy, wy, donme, ayna in YERLESIM:
         ham, siluet = donustur(darbeler[ad], wy, donme, ayna)
         ox = int(EN * xy / 100.0) + PAY_SOL
         oy = int(BOY * yy / 100.0) + PAY_UST
-        d = boya_darbe(ham, siluet, ox, oy)
+        d = boya_darbe(ham, siluet, ox, oy, guvenli, nefes)
         gec = Image.new('RGBA', (TUVAL_EN, TUVAL_BOY), (0, 0, 0, 0))
         gec.paste(d, (ox, oy))
         panel = Image.alpha_composite(panel, gec)
@@ -483,7 +566,7 @@ def tum_paletler():
     return {k: (v.get('palette') or ['#e4cecd'] * 9) for k, v in d.items()}
 
 
-def ic_kontrol(panel, pay=45):
+def ic_kontrol(panel, pay=45, guvenli=None):
     """Panelin ICINDE delik olmamali.
 
     Yazi kutulari tek tek gecse bile aralarinda kalan bir bosluk panelin
@@ -496,10 +579,16 @@ def ic_kontrol(panel, pay=45):
     kadar iceride her yer opak.
     """
     ap = panel.getchannel('A').load()
+    # Yazinin UZAGINDAKI delikler kasitli: ressamin istedigi 'nefes'.
+    # Kapi yalnizca yaziya YAKIN bolgedeki delikleri sayiyor, yoksa
+    # kendi kastimizi hata olarak bildiriyor.
+    gp = guvenli.load() if guvenli is not None else None
     kotu = []
     # Yalnizca MENU KUTUSUNUN icine bakiyoruz; pay bolgesi zaten tasma.
     for y in range(PAY_UST + pay, PAY_UST + BOY - pay, 3):
         for x in range(PAY_SOL + pay, PAY_SOL + EN - pay, 3):
+            if gp is not None and gp[x, y] > 40:
+                continue                    # kasitli nefes bolgesi
             if ap[x, y] < TABAN * 255:
                 kotu.append((x, y))
     toplam = (len(range(PAY_UST + pay, PAY_UST + BOY - pay, 3))
@@ -526,7 +615,12 @@ def gerilmis_olc(panel, hedef_boy):
     gerilmis = panel.resize((TUVAL_EN, max(1, round(TUVAL_BOY * k))),
                             Image.LANCZOS)
     yeni_ust = round(PAY_UST * k)
-    kutular = [(ad, x, yeni_ust + (y - PAY_UST), w, h)
+    # #mon bir flex kolon ve iki cocugu da `flex: 1 1 auto`: fazla
+    # yukseklik ikiye bolunuyor, yani onizleme kutulari asagi KAYIYOR.
+    # Satirlar ise tepeye capalı. Ayni kaydirmayi uygulamak yanlis olurdu.
+    kay = round((hedef_boy - BOY) / 2.0)
+    kutular = [(ad, x, yeni_ust + (y - PAY_UST) + (kay if ad.startswith('oniz') else 0),
+                w, h)
                for ad, x, y, w, h in YAZI_KUTULARI]
     return olc(gerilmis, kutular, gerilmis.size)
 
@@ -605,6 +699,12 @@ def disari(parcalar):
         if not kutu:
             continue
         kirpik = g.crop(kutu)
+        # Gorunur sag uc: alfasi esigin ustune cikan en sagdaki sutun.
+        # Dosya alfa>0'a gore kirpiliyor (dogru, kuyruk da boyadir) ama
+        # kagida ne kadar yer acilacagi GORUNEN boyaya gore olculmeli.
+        gk = (kirpik.getchannel('A')
+              .point(lambda v: 255 if v >= GORUNUR_ESIK else 0).getbbox())
+        gsag = kutu[0] + (gk[2] if gk else kirpik.width)
         ad = 'panel-%d.webp' % i
         kirpik.save(os.path.join(VARLIK, ad), 'WEBP', quality=80, method=6, exact=True)
         dikey = kirpik.height > kirpik.width * 1.25
@@ -616,18 +716,56 @@ def disari(parcalar):
             'ust': round((p['oy'] + kutu[1] - PAY_UST) / BOY * 100, 2),
             'en': round(kirpik.width / EN * 100, 2),
             'boy': round(kirpik.height / BOY * 100, 2),
+            'sag_gor': round((p['ox'] + gsag - PAY_SOL) / EN * 100, 2),
             'yon': yogun_uc(kirpik, dikey),
             'bayt': os.path.getsize(os.path.join(VARLIK, ad)),
         })
     return satirlar
 
 
-def css_yaz(satirlar):
+def taban_uret():
+    """Yazinin altindaki opak zemin. Boya gelmezse okunurluk buna kaliyor.
+
+    Butun kutuyu kaplayan bir renk DEGIL: korumali bolgenin kendisi.
+    Yoksa boyanin nefes delikleri duvari degil bu zemini gosteriyor ve
+    delik acmanin hicbir anlami kalmiyor.
+    """
+    g = guvenli_bolge()                      # 255 = guvenli, 0 = korumali
+    koru = g.point(lambda v: 255 - v)        # korumali bolge
+    kutu = koru.getbbox()
+    if not kutu:
+        return None
+    koru = koru.crop(kutu)
+    renk = fr(0.5)
+    im = Image.new('RGBA', koru.size, renk + (0,))
+    im.putalpha(koru)
+    ad = 'taban.webp'
+    im.save(os.path.join(VARLIK, ad), 'WEBP', quality=86, method=6, exact=True)
+    return {'dosya': 'assets/firca/' + ad,
+            'sol': round((kutu[0] - PAY_SOL) / EN * 100, 2),
+            'ust': round((kutu[1] - PAY_UST) / BOY * 100, 2),
+            'en': round(koru.width / EN * 100, 2),
+            'boy': round(koru.height / BOY * 100, 2),
+            'bayt': os.path.getsize(os.path.join(VARLIK, ad))}
+
+
+def css_yaz(satirlar, taban=None):
     p = ['/* URETILDI - python firca.py. Elle duzenleme: yerlesim olculerek',
          '   bulunuyor, elle degistirilirse yazi altindaki opaklik garantisi',
          '   bozulur. Kaynak: firca.py YERLESIM. */']
-    p.append('#boya { --darbe: %d; }   /* kabuk.js kac <i> uretecegini buradan okuyor */'
+    # Sag tasma: panel kutusunun disina TASAN gorunur boya, kutu eninin
+    # orani olarak. Iki tuketici de bunu okuyor -- kabuk.css kirpmayi,
+    # kabuk.js kagida acilacak boslugu. Onceden ikisi de ayri ayri
+    # tahminle yaziliydi (40 px ve 56 px) ve ikisi de yanlisti: gercek
+    # tasma kutu eninin ~%30'u, yani kirpma boyayi duz bir dikey cizgi
+    # halinde kesiyordu.
+    tasma = max(0.0, max(r['sag_gor'] for r in satirlar) - 100.0) / 100.0
+    p.append('#boya {')
+    p.append('  --darbe: %d;        /* kabuk.js kac <i> uretecegini buradan okuyor */'
              % len(satirlar))
+    p.append('  --tasma-oran: %.4f; /* olculdu: gorunur boya kutunun %%%.1f\'i kadar tasiyor */'
+             % (tasma, tasma * 100))
+    p.append('}')
     # Satir renk parametreleri de buradan cikiyor: ayni sayilar hem
     # olcumde (firca.py) hem calisan kodda (kabuk.js/paintMenu) gecerli
     # olmak zorunda. Iki yerde elle tutulsaydi ilk degisiklikte ayrisir
@@ -654,6 +792,17 @@ def css_yaz(satirlar):
     # coktan bitmis oluyor -- olculdu: acilistan 80 ms sonra darbe %99
     # tamamlanmisti. Secici acik duruma baglaninca animasyon o anda
     # olusuyor, yani supurme acilisla birlikte basliyor.
+    if taban:
+        p.append('/* Yazinin altindaki opak zemin. Butun kutuyu kaplamiyor:')
+        p.append('   yalnizca yazi bolgesi, yoksa boyanin nefes delikleri')
+        p.append('   duvari degil bu zemini gosterir. */')
+        p.append('#boya::before {')
+        p.append('  content: ""; position: absolute; pointer-events: none;')
+        p.append('  left: %.2f%%; top: %.2f%%; width: %.2f%%; height: %.2f%%;'
+                 % (taban['sol'], taban['ust'], taban['en'], taban['boy']))
+        p.append('  background: url(%s) 0 0 / 100%% 100%% no-repeat;'
+                 % taban['dosya'])
+        p.append('}')
     p.append('#boya i { animation-duration: %dms;'
              ' animation-timing-function: %s; }' % (SURE, FIRCA_EGRI))
     for i, r in enumerate(satirlar, 1):
@@ -702,7 +851,7 @@ def main():
                  r['yazi'][0], r['yazi'][1], r['yazi'][2],
                  'tamam' if tamam else 'KALDI'))
 
-    ic_oran, ic_kutu = ic_kontrol(panel)
+    ic_oran, ic_kutu = ic_kontrol(panel, guvenli=guvenli_bolge())
     if ic_kutu:
         print('IC DELIK  %.2f%%  kutu x%d..%d  y%d..%d'
               % (ic_oran * 100, ic_kutu[0], ic_kutu[2], ic_kutu[1], ic_kutu[3]))
@@ -736,7 +885,13 @@ def main():
                          % (kalan, kalan2, ikinci, ic_oran * 100))
 
     satirlar = disari(parcalar)
-    css_yaz(satirlar)
+    print('sag tasma        %%%5.1f  (gorunur alfa >= %d)'
+          % (max(r['sag_gor'] for r in satirlar) - 100.0, GORUNUR_ESIK))
+    taban = taban_uret()
+    css_yaz(satirlar, taban)
+    if taban:
+        print('taban.webp        %5.1f%% x %5.1f%%  %6d bayt'
+              % (taban['en'], taban['boy'], taban['bayt']))
 
     print('\n%-16s %8s %8s %8s %8s %7s %8s'
           % ('darbe', 'sol', 'ust', 'en', 'boy', 'yon', 'bayt'))

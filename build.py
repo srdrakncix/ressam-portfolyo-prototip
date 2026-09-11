@@ -340,10 +340,61 @@ def render(tpl_path, data, standalone):
     kit = io.open(os.path.join(HERE, 'kit.js'), encoding='utf-8').read()
     out = tpl.replace('/*__KIT__*/', kit).replace('/*__SITE_DATA__*/', payload)
 
+    # Paylasim gorseli. Elle yazilinca sessizce kirildi: silinmis bir
+    # esere bakiyordu, yani paylasilan her link bos kart aciyordu ve
+    # hicbir sey hata vermiyordu. Artik ilk eserin ORTAM gorselinden
+    # uretiliyor (oda kurgusu duz eserden daha iyi kart veriyor ve
+    # 1672x941 ile og:image'in 1200x630 alt sinirini gecen tek olcu o),
+    # kok URL de sablonun kendi canonical'indan okunuyor. Eksik olan
+    # her sey derlemeyi DURDURUYOR -- kusurun sebebi bu denetimin
+    # olmamasiydi.
+    if '__OG_GORSEL__' in out:
+        m = re.search(r'<link rel="canonical" href="([^"]+)"', out)
+        if not m:
+            sys.exit('HATA: canonical yok, paylasim gorseli uretilemedi.')
+        kok_url = m.group(1).rstrip('/')
+        isler = data.get('works') or []
+        if not isler:
+            sys.exit('HATA: eser yok, paylasim gorseli uretilemedi.')
+        yol = isler[0].get('ortam') or isler[0].get('src')
+        if not yol:
+            sys.exit('HATA: ilk eserde gorsel yok, og:image uretilemedi.')
+        # Denetim: gorselin KAYNAGI gercekten var mi. Kusurun sebebi
+        # tam olarak bu denetimin olmamasiydi -- silinmis bir esere
+        # bakan sabit bir yol kimseyi uyarmadan yayina gidiyordu.
+        temel = os.path.splitext(os.path.basename(yol))[0]
+        gdizin = os.path.join(HERE, 'icerik', 'gorseller')
+        varmi = any(os.path.splitext(f)[0] == temel
+                    for f in os.listdir(gdizin)) if os.path.isdir(gdizin) else False
+        if not varmi:
+            sys.exit('HATA: paylasim gorseli kaynakta yok -> %s' % temel)
+        tam = kok_url + '/' + yol
+        out = out.replace('__OG_GORSEL__', tam)
+        out = out.replace(
+            '<meta property="og:image" content="%s">' % tam,
+            '<meta property="og:image" content="%s">%s'
+            '<meta name="twitter:image" content="%s">%s'
+            '<meta property="og:url" content="%s/">'
+            % (tam, chr(10), tam, chr(10), kok_url), 1)
+
     # Kabuk: tablo zemini, hamburger, menu paneli ve beyaz kagit. Iki sayfa
     # da ayni kabugu kullaniyor; kopyalanmis olsalardi zamanla ayrisirlardi.
     # Belirteci olmayan sablon da derlenir - her sayfanin kabugu olmasi
     # gerekmiyor.
+    # Firca darbelerinin on yuklemesi: liste varlik dosyalarindan
+    # uretiliyor, elle tutulmuyor. Sayi degisince kendiliginden guncel.
+    if '<!--__FIRCA_ONYUK__-->' in out:
+        fdizin = os.path.join(HERE, 'varlik', 'firca')
+        adlar = sorted((f for f in os.listdir(fdizin)
+                        if f.startswith('panel-') and f.endswith('.webp')),
+                       key=lambda f: int(f.split('-')[1].split('.')[0])) \
+            if os.path.isdir(fdizin) else []
+        if not adlar:
+            sys.exit('HATA: varlik/firca bos, on yukleme uretilemedi.')
+        out = out.replace('<!--__FIRCA_ONYUK__-->', '\n'.join(
+            '<link rel="preload" as="image" type="image/webp"'
+            ' fetchpriority="low" href="assets/firca/%s">' % a for a in adlar))
+
     # Sira onemli: KABUK_CSS once giriyor ve icinde FIRCA_CSS belirteci
     # var; sonraki tur onu yakaliyor.
     for belirtec, dosya in (('/*__KABUK_CSS__*/', 'kabuk.css'),
