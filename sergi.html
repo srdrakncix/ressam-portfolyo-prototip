@@ -869,7 +869,11 @@ function zoomAc(src, alt) {
      odaklanabilir oge var, yani Tab onun disina cikmamali. */
   detay.setAttribute('inert', '');
   zkat.hidden = false;
-  zipucu.textContent = t('zoom_ipucu');
+  /* Ipucu CIHAZA gore. Masaustunde "iki parmakla yakinlastirin"
+     yaziyordu ve orada parmak diye bir sey yok -- yanlis talimat.
+     pointer:coarse dokunmatik birincil girdi demek. */
+  const dokunmatik = matchMedia('(pointer: coarse)').matches;
+  zipucu.textContent = t(dokunmatik ? 'zoom_ipucu' : 'zoom_ipucu_fare');
   zipucu.classList.remove('gizle');
   /* Ipucu bir kez okunup kayboluyor; kalici olsa gorselin onunde
      duruyor. */

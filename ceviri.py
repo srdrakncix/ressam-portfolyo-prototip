@@ -35,6 +35,7 @@ UI = {
         'gal_works': 'Eserler',
         'hero_alt': 'Sekiz eser bir sergi salonunda, duvarlara asili.',
                 'zoom_ipucu': 'Sürükleyerek gezinin · iki parmakla yakınlaştırın',
+        'zoom_ipucu_fare': 'Sürükleyerek gezinin · tekerlekle yakınlaştırın',
 'gal_label': 'Katalog',
         'gal_title': 'Bütün eserler',
         'gal_sub': 'Bir esere tıklayınca tam ekran açılır.',
@@ -90,6 +91,7 @@ UI = {
         'gal_works': 'Works',
         'hero_alt': 'Eight paintings hung together in a gallery room.',
                 'zoom_ipucu': 'Drag to pan · pinch to zoom',
+        'zoom_ipucu_fare': 'Drag to pan · scroll to zoom',
 'gal_label': 'Catalogue',
         'gal_title': 'All works',
         'gal_sub': 'Click a work to open it full screen.',
@@ -145,6 +147,7 @@ UI = {
         'hero_alt': "Huit tableaux accrochés ensemble dans une"
                     " salle d'exposition.",
                 'zoom_ipucu': "Faites glisser pour naviguer · pincez pour zoomer",
+        'zoom_ipucu_fare': "Faites glisser pour naviguer · molette pour zoomer",
 'gal_label': 'Catalogue',
         'gal_title': 'Toutes les œuvres',
         'gal_sub': 'Cliquez sur une œuvre pour l’ouvrir en plein écran.',
