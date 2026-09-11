@@ -332,6 +332,37 @@ function menuGit(route) {
   for (let i = 0; i < (n > 0 ? n : 0); i++) boya.appendChild(document.createElement('i'));
 })();
 
+/* ── MENÜ AÇILINCA KÂĞIT ÇEVRİLİP KENARA ÇEKİLİR ──────────────────────────
+   Menü panelinin kâğıdın üstüne binmemesi için. Kayma miktarı elle
+   yazılmıyor: menünün gerçek sağ kenarı ve kâğıdın YERLEŞİM ölçüleri
+   okunuyor.
+
+   offsetLeft/offsetWidth kullanılıyor, getBoundingClientRect DEĞİL —
+   rect dönüşüm uygulanmış hâli verir, yani menü ikinci kez açıldığında
+   kâğıdın çevrilmiş hâlini ölçüp üstüne bir daha kaydırırdı. offset*
+   değerleri yerleşimden gelir, transform onları etkilemez. */
+function kagidiKacir() {
+  const shell = document.getElementById('shell');
+  if (!shell) return;
+
+  const kapali = matchMedia('(max-width: 760px)').matches ||
+                 matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const acik = menuEl && menuEl.matches('.open, :popover-open');
+  if (kapali || !acik) {
+    shell.style.removeProperty('--kac');
+    return;
+  }
+
+  const bosluk = 26;
+  const menuSag = menuEl.getBoundingClientRect().right;
+  const sol = shell.offsetLeft;
+  if (!shell.offsetWidth) return;
+  shell.style.setProperty('--kac',
+    Math.max(0, menuSag + bosluk - sol).toFixed(1) + 'px');
+}
+
+addEventListener('resize', kagidiKacir, { passive: true });
+
 function openMenu() {
   buildMenu();
   document.documentElement.classList.add('menuacik');
@@ -339,6 +370,9 @@ function openMenu() {
   if (menuEl.showPopover) menuEl.showPopover();
   else { menuEl.classList.add('open'); trapRelease = K.trap(menuEl); }
   btn.setAttribute('aria-expanded', 'true');
+  /* Menü görünür OLDUKTAN sonra ölçülüyor: kapalı popover'ın sağ
+     kenarı 0 gelir ve kâğıt hiç kaçmaz. */
+  kagidiKacir();
   const first = menuEl.querySelector('a');
   if (first) first.focus({ preventScroll: true });
 }
@@ -346,10 +380,24 @@ function closeMenu() {
   document.documentElement.classList.remove('menuacik');
   if (menuEl.hidePopover && menuEl.matches(':popover-open')) menuEl.hidePopover();
   menuEl.classList.remove('open');
+  /* --kac satır içi yazılıyor; sınıfı kaldırmak onu temizlemez ve kâğıt
+     kaymış hâlde takılı kalırdı. Temizlik menü GERÇEKTEN kapandıktan
+     sonra: daha önce çağrılıyordu ve ölçüm menüyü hâlâ açık görüp değeri
+     yeniden yazıyordu (ölçüldü: kapandıktan sonra --kac 508 px kalıyordu,
+     --don 0 olduğu için kâğıt dönmeden 508 px sağda duruyordu). */
+  kagidiKacir();
   btn.setAttribute('aria-expanded', 'false');
   if (trapRelease) { trapRelease(); trapRelease = null; }
 }
-btn.addEventListener('click', () => menuEl.classList.contains('open') ? closeMenu() : openMenu());
+/* Düğme GERÇEK açık durumuna bakıyor. Eskiden yalnızca .open sınıfına
+   bakıyordu; o sınıf ise popover DESTEKLENMEYEN yolda ekleniyor. Yani
+   normal tarayıcıda menü açıkken düğmeye basmak closeMenu yerine
+   openMenu çağırıyor, showPopover açık bir popover'da hata atıyor ve
+   menü kapanmıyordu. Hamburger görsel olarak ✕'e dönüştüğü için
+   kullanıcı ona basıp kapanmasını bekliyor. Ölçerek yakalandı:
+   ikinci tıklamadan sonra popover=true kalıyordu. */
+btn.addEventListener('click', () =>
+  (menuEl.matches('.open, :popover-open') ? closeMenu() : openMenu()));
 const kapatBtn = document.getElementById('mkapat');
 if (kapatBtn) kapatBtn.addEventListener('click', closeMenu);
 /* Esc, disina tiklama ve ust katman popover'dan geliyor; elle yazilmasina

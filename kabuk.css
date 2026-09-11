@@ -347,7 +347,21 @@
 
 #shell {
   --k: 0px;                          /* katlanan köşenin boyu */
-  transition: --k 640ms cubic-bezier(.2,.86,.24,1);
+  --kac: 0px;                        /* menü açılınca sağa kayma (JS ölçer) */
+  --don: 0deg;                       /* 3B dönme açısı */
+  --derinlik: 2200px;                /* perspektif uzaklığı */
+
+  /* Menteşe SOL kenar. Menü soldan geldiği için kâğıt oradan tutulup
+     çevriliyor; dönme hem jesti veriyor hem izdüşüm genişliğini
+     daraltıyor, yani kâğıt menünün altından çıkıyor. Tek hareket iki iş
+     yapıyor — von Kaufmann'ın sitesinde de sebep bu. */
+  transform-origin: 0 50%;
+  transform: perspective(var(--derinlik))
+             translateX(var(--kac))
+             rotateY(var(--don));
+  transition: --k 640ms cubic-bezier(.2,.86,.24,1),
+              transform 640ms cubic-bezier(.22,.84,.28,1),
+              filter 640ms cubic-bezier(.22,.84,.28,1);
   /* Sayfa gölgesi panelde box-shadow olarak duramaz: clip-path onu da
      kırpar. drop-shadow kesilmiş silueti takip ediyor. */
   filter: drop-shadow(0 3px 5px rgba(0,0,0,.16))
@@ -413,7 +427,30 @@
   background-blend-mode: multiply;
 }
 
-html.menuacik #shell { --k: clamp(96px, 15vw, 210px); }
+/* Kâğıt çevrilirken gölgesi derinleşiyor: yaprak menteşeden kalkıp
+   uzaklaşıyor. --kac'ı JS ölçüyor (kabuk.js/kagidiKacir); elle yazılsaydı
+   1440'ta doğru, 1280'de yanlış olurdu.
+
+   Açı tek sayı: burayı değiştirmek yeter. 45° von Kaufmann'ın değeri ve
+   1180 px'lik kâğıdı ~834 px'e daraltıyor, yani ekrana sığıyor. */
+html.menuacik #shell {
+  --k: clamp(96px, 15vw, 210px);
+  --don: 45deg;
+  filter: drop-shadow(0 8px 12px rgba(0,0,0,.22))
+          drop-shadow(0 40px 60px rgba(0,0,0,.34));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Dönme bir gösteri, işlev değil: menü yine açılıyor, kâğıt yerinde. */
+  #shell { transition: none; }
+  html.menuacik #shell { --kac: 0px; --don: 0deg; }
+}
+
+/* Telefonda menü küçük bir kart; kâğıdın üstüne binmiyor, döndürmek
+   gereksiz ve dar ekranda okunurluğu bozuyor. */
+@media (max-width: 760px) {
+  html.menuacik #shell { --don: 0deg; --kac: 0px; }
+}
 
 /* Buradaki ikinci satir blogu kaldirildi. .open yolu icin yazilmisti ama
    secicisi popover yolunda da eslesiyor ve transform: translateY(9px)
