@@ -60,6 +60,57 @@ ESER_DIZIN = os.path.join(HERE, 'icerik', 'eserler')
 GORSEL_DIZIN = os.path.join(HERE, 'icerik', 'gorseller')
 TAM_EN, TAM_KALITE, LQIP_EN, LQIP_KALITE = 1686, 78, 20, 40
 
+# Duyarli boylar. Olculdu: tek boy (1080) her cihaza gidiyordu ve 390 px
+# telefon ile 1440 px masaustu BIREBIR ayni bayti indiriyordu. Gerekli
+# olanlar: izgara masaustunde 479 CSS px (DPR1), telefonda 310 CSS px x
+# DPR2 = 620, isik kutusu ~970, yakinlastirma tam ekran.
+# Orijinaller 1080 px oldugu icin bu uc boy hicbir buyutme yapmiyor.
+# En buyuk boy ayrica uretilmiyor: ana dosya (eser-N.webp) zaten
+# orijinal olcude ve isik kutusu/yakinlastirma onu kullaniyor. Ikinci kez
+# yazilinca site/ 2.54 MB'dan 3.69 MB'a cikmisti -- ayni gorsel iki kez.
+DUYARLI_BOYLAR = (540, 810)
+
+
+def yorumsuz(metin, dil):
+    """TAM SATIR yorumlarini dusurur. Satir ici yorumlara DOKUNMAZ.
+
+    Neden naif degil: bir dizge ya da regex icindeki `/*` veya `//`
+    dizisi naif bir siyiriciyi bozar (`'http://x'` gibi). Belirtecleyici
+    yazmak yerine yalniz satirin BASINDA baslayan yorumlar kaldiriliyor
+    -- oyle bir satir kod olamaz. Kazancin neredeyse tamami zaten tam
+    satir bloklarda: kabuk.css 38.221 -> 12.469 bayt.
+
+    dil: 'css' yalniz /* */ bloklarini, 'js' ayrica // satirlarini alir.
+    """
+    cikti = []
+    blokta = False
+    for satir in metin.split('\n'):
+        kirp = satir.strip()
+        if blokta:
+            if '*/' in kirp:
+                blokta = False
+                # Kapanistan SONRA kod varsa satiri koru.
+                kalan = kirp.split('*/', 1)[1].strip()
+                if kalan:
+                    cikti.append(kalan)
+            continue
+        if kirp.startswith('/*'):
+            if '*/' not in kirp:
+                blokta = True
+                continue
+            kalan = kirp.split('*/', 1)[1].strip()
+            if kalan:
+                cikti.append(satir.split('*/', 1)[1].rstrip())
+            continue
+        if dil == 'js' and kirp.startswith('//'):
+            continue
+        if not kirp:
+            # Bos satirlar da dusuyor: yorumlar gidince geride
+            # bosluk yiginlari kaliyor.
+            continue
+        cikti.append(satir.rstrip())
+    return '\n'.join(cikti)
+
 
 def _kodla(im, en, kalite, bulanik=0):
     """Gorseli webp'e cevirip base64 dondurur."""
@@ -310,6 +361,36 @@ def write_assets(data, out_dir):
         total += len(raw)
         w['src'] = 'assets/' + name          # lqip veri-URI kalır: 160 bayt, istek yok
 
+        # Duyarli boylar. Kucultme ORIJINALDEN yapiliyor; gomulu webp'den
+        # yapilsa ikinci bir kayipli kodlama olurdu. Orijinal bulunamazsa
+        # (gomulu derleme, elle konmus varlik) srcset uretilmiyor ve
+        # sayfa tek boyla calismaya devam ediyor.
+        kaynak = None
+        for uz in ('.jpg', '.jpeg', '.png', '.webp', '.JPG', '.JPEG'):
+            aday = os.path.join(GORSEL_DIZIN, w['id'] + uz)
+            if os.path.exists(aday):
+                kaynak = aday
+                break
+        if kaynak:
+            with Image.open(kaynak) as ana:
+                ana = ana.convert('RGB')
+                parcalar = []
+                for boy in DUYARLI_BOYLAR:
+                    if boy > ana.width:
+                        continue
+                    k = ana.copy()
+                    k.thumbnail((boy, boy * 10), Image.LANCZOS)
+                    ad2 = f"{w['id']}-{boy}.webp"
+                    k.save(os.path.join(adir, ad2), 'WEBP',
+                           quality=TAM_KALITE, method=6)
+                    total += os.path.getsize(os.path.join(adir, ad2))
+                    parcalar.append('assets/%s %dw' % (ad2, k.width))
+                if parcalar:
+                    # Ana dosya en buyuk aday: ayri bir kopya yazmaya
+                    # gerek yok, zaten orijinal olcude.
+                    parcalar.append('%s %dw' % (w['src'], ana.width))
+                    w['srcset'] = ', '.join(parcalar)
+
         # Ortam gorseli (Smartist ev maketi): eserin YERINE gecmiyor, yanina
         # dusuyor. Detay sayfasinda ikinci kare olarak gosteriliyor.
         if w.get('ortamSrc'):
@@ -319,6 +400,31 @@ def write_assets(data, out_dir):
                 f.write(ham)
             total += len(ham)
             w['ortam'] = 'assets/' + oad
+            # Oda kurgusu ana sayfadaki giris kartinda 310x200'e
+            # ciziliyor; 1672 px'lik dosya orada gereksiz.
+            okaynak = None
+            for uz in ('.webp', '.jpg', '.jpeg', '.png'):
+                aday = os.path.join(GORSEL_DIZIN, 'ortam-' + w['id'] + uz)
+                if os.path.exists(aday):
+                    okaynak = aday
+                    break
+            if okaynak:
+                with Image.open(okaynak) as oa:
+                    oa = oa.convert('RGB')
+                    op = []
+                    for boy in (540, 810):
+                        if boy > oa.width:
+                            continue
+                        k = oa.copy()
+                        k.thumbnail((boy, boy * 10), Image.LANCZOS)
+                        ad3 = 'ortam-%s-%d.webp' % (w['id'], boy)
+                        k.save(os.path.join(adir, ad3), 'WEBP',
+                               quality=TAM_KALITE, method=6)
+                        total += os.path.getsize(os.path.join(adir, ad3))
+                        op.append('assets/%s %dw' % (ad3, k.width))
+                    if op:
+                        op.append('%s %dw' % (w['ortam'], oa.width))
+                        w['ortamSrcset'] = ', '.join(op)
         w.pop('ortamSrc', None)
     return total
 
@@ -354,7 +460,11 @@ def render(tpl_path, data, standalone):
             sys.exit(f'HATA: {tpl_path} içinde {token} yok.')
 
     payload = 'const SITE = ' + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + ';'
-    kit = io.open(os.path.join(HERE, 'kit.js'), encoding='utf-8').read()
+    # Yorumlar KAYNAKTA kaliyor, derlemede dusuyor. Olculdu: kit.js
+    # 7.894 -> 5.539, kabuk.css 36.274 -> 12.758, kabuk.js 33.100 ->
+    # 16.700 bayt. Bu belge render'i blokeleyen tek kaynak.
+    kit = yorumsuz(io.open(os.path.join(HERE, 'kit.js'),
+                           encoding='utf-8').read(), 'js')
     out = tpl.replace('/*__KIT__*/', kit).replace('/*__SITE_DATA__*/', payload)
 
     # Paylasim gorseli. Elle yazilinca sessizce kirildi: silinmis bir
@@ -446,9 +556,17 @@ def render(tpl_path, data, standalone):
             if os.path.isdir(fdizin) else []
         if not adlar:
             sys.exit('HATA: varlik/firca bos, on yukleme uretilemedi.')
-        out = out.replace('<!--__FIRCA_ONYUK__-->', '\n'.join(
-            '<link rel="preload" as="image" type="image/webp"'
-            ' fetchpriority="low" href="assets/firca/%s">' % a for a in adlar))
+        # ON YUKLEME KALDIRILDI, yerine liste JS'e veriliyor.
+        # Olculdu: dokuz preload 324 KB indiriyor ve Chrome her biri icin
+        # "preloaded but not used within a few seconds" uyarisi veriyor --
+        # panel display:none bir popover, ilk tiklamaya kadar hic
+        # gorunmuyor. O dokuz istek 198-530 ms arasi baglanti havuzunu
+        # tutuyordu ve eserler ancak 466 ms'de basliyordu.
+        # Darbeler artik hamburgere ilk temasta (hover/odak/dokunma)
+        # yukleniyor; menu acilmadan once hazir oluyor.
+        out = out.replace('<!--__FIRCA_ONYUK__-->',
+                          '<script>window.FIRCA_LISTE=%s;</script>'
+                          % json.dumps(['assets/firca/' + a for a in adlar]))
 
     # Sira onemli: KABUK_CSS once giriyor ve icinde FIRCA_CSS belirteci
     # var; sonraki tur onu yakaliyor.
@@ -459,7 +577,9 @@ def render(tpl_path, data, standalone):
             yol = os.path.join(HERE, dosya)
             if not os.path.exists(yol):
                 sys.exit(f'HATA: {tpl_path} {belirtec} istiyor ama {dosya} yok.')
-            out = out.replace(belirtec, io.open(yol, encoding='utf-8').read())
+            dil = 'css' if dosya.endswith('.css') else 'js'
+            out = out.replace(belirtec, yorumsuz(
+                io.open(yol, encoding='utf-8').read(), dil))
 
     if standalone:
         # Artifact ortamı <html>/<head>/<body> sarmalayıcısını kendi ekliyordu.

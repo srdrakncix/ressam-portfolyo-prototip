@@ -57,7 +57,10 @@ jobs:
           # mekan.html / sergi.html / salon.html artik uretilmiyor.
           gerekli = ['site/index.html', 'site/galeri/index.html',
                      'site/404.html', 'site/favicon.svg', 'site/robots.txt',
-                     'site/sitemap.xml', 'site/assets/duvar/salon.webp',
+                     # duvar/salon.webp artik yayina kopyalanmiyor: uretilmeyen 3B
+          # salon sayfasindan kalmaydi ve hicbir sayfa referans
+          # vermiyordu. Yerine gercekten kullanilan bir zemin.
+          'site/sitemap.xml', 'site/assets/zemin/acilis.webp',
                      'site/yayin.json',
                      'site/eserler.json',
                      'site/panel/index.html', 'site/panel/secenekler.json']

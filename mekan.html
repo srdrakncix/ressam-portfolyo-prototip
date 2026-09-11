@@ -15,8 +15,13 @@
 <!-- Başlık yazı tipi: galeri sayfası da aynısını yükler. İki sayfanın
      tek dizgiyle konuşması için burada da gerekiyor; yoksa ana sayfa
      Georgia'ya düşüyor ve ayrışma sürüyor. -->
+<!-- preconnect BLOKELEYEN host icin de gerekli. Once yalniz
+     gstatic vardi, yani el sikismasi render'i blokeleyen
+     googleapis icin degil ondan SONRA gelen host icin
+     hazirlaniyordu. Olculdu: font CSS 199->435 ms, ilk boya 456. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&display=swap">
 <!-- Fırça darbeleri: display:none bir popover içindeki CSS arka planı
      olduğu için ilk açılışa kadar indirilmiyorlar ve panel boyasız
      açılabiliyordu. fetchpriority=low: ana görselle yarışmasınlar.
@@ -381,7 +386,13 @@ function viewHome() {
     const f = K.el('figure', 'hero');
     const hi = new Image();
     hi.src = SITE.hero.src;
-    if (SITE.hero.srcset) { hi.srcset = SITE.hero.srcset; hi.sizes = '100vw'; }
+    /* sizes 100vw DEGIL: hero kagit kolonunun icinde, olculdu 997 CSS
+       px / 1440 = %69. 100vw yaziliyken tarayici 2400w surumunu
+       seciyordu (173 KB); dogru degerle 1200w geliyor (76 KB). */
+    if (SITE.hero.srcset) {
+      hi.srcset = SITE.hero.srcset;
+      hi.sizes = '(max-width: 760px) 92vw, 70vw';
+    }
     if (SITE.hero.en) { hi.width = SITE.hero.en; hi.height = SITE.hero.boy; }
     hi.alt = t('hero_alt');
     hi.decoding = 'async';
@@ -400,7 +411,18 @@ function viewHome() {
      sayfa kendini tekrar ediyordu. */
   const a2 = SITE.works.find(x => x.ortam && x.ortam !== (SITE.hero || {}).src)
              || w;
-  const img = new Image(); img.src = a2.ortam || a2.src; img.alt = '';
+  /* Giris kartinin zemini: 1672 px'lik oda kurgusu 310x200'e
+     ciziliyordu ve srcset'i yoktu. */
+  const img = new Image();
+  img.src = a2.ortam || a2.src;
+  if (a2.ortamSrcset) {
+    img.srcset = a2.ortamSrcset;
+    img.sizes = '(max-width: 760px) 92vw, 70vw';
+  } else if (!a2.ortam && a2.srcset) {
+    img.srcset = a2.srcset;
+    img.sizes = '(max-width: 760px) 92vw, 70vw';
+  }
+  img.alt = '';
   const txt = K.el('div', 'txt');
   txt.innerHTML = '<div class="lbl">' + t('gal_label') + '</div>' +
                   '<div class="big">' + t('gal_title') + '</div>' +

@@ -19,8 +19,13 @@
      ve yedide kalmıştı, darbe sayısı dokuza çıkınca son ikisi ilk
      açılışta geç geliyordu. */ -->
 <!--__FIRCA_ONYUK__-->
+<!-- preconnect BLOKELEYEN host icin de gerekli. Once yalniz
+     gstatic vardi, yani el sikismasi render'i blokeleyen
+     googleapis icin degil ondan SONRA gelen host icin
+     hazirlaniyordu. Olculdu: font CSS 199->435 ms, ilk boya 456. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&display=swap">
 
 <style>
 /* Sayfalar arasi gecis. Galeri ayri bir HTML dosyasi oldugu icin
@@ -615,9 +620,16 @@ function kartlariKur() {
     a.innerHTML =
       '<div class="alan">' +
         /* alt metni BOS DEGIL: izgaradaki 16 gorselin hicbirinde alt
-           metni yoktu. Bagimsiz okunabilir olsun diye eser adi. */
+           metni yoktu. Bagimsiz okunabilir olsun diye eser adi.
+           srcset/sizes: tek boy her cihaza gidiyordu (olculdu, 390 px
+           telefon ile 1440 px masaustu birebir ayni bayt).
+           width/height: galeride CLS 0.214 olculdu -- gorsel inince
+           altindaki kunye asagi sicriyordu. */
         '<img class="tuval" src="' + w.src + '" alt="' +
              w.title.replace(/"/g, '&quot;') + '" loading="lazy" ' +
+             (w.srcset ? 'srcset="' + w.srcset + '" sizes="'
+               + '(max-width: 760px) 80vw, 34vw" ' : '') +
+             (w.px ? 'width="' + w.px[0] + '" height="' + w.px[1] + '" ' : '') +
              'style="background:' + (w.tone || '#e6e3dc') + '">' +
       '</div><div class="kunye"></div>';
     a.addEventListener('click', (e) => {

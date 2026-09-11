@@ -78,10 +78,17 @@ def main():
             yol = os.path.join(KOK, cikis)
             s = io.open(yol, encoding='utf-8').read()
             once = s
+            # Onunde gelebilecek BUTUN sinirlar. Once yalniz " ' ( vardi
+            # ve srcset kirilmisti: virgulle ayrilmis adaylar bosluk ile
+            # geliyor, yani "../assets/x-540.webp 540w, assets/x-810.webp"
+            # gibi yarim duzeltilmis bir deger uretiliyordu. Olculdu --
+            # ikinci ve ucuncu aday 404 verecekti.
             for ham in ('assets/', 'favicon.svg', 'apple-touch-icon.png'):
-                s = s.replace('"' + ham, '"' + ust + ham)
-                s = s.replace("'" + ham, "'" + ust + ham)
-                s = s.replace('(' + ham, '(' + ust + ham)
+                for on in ('"', "'", '(', ', ', ',', ' '):
+                    s = s.replace(on + ham, on + ust + ham)
+                # Cift duzeltmeyi geri al: yukaridaki dongude bir deger
+                # birden fazla sinira uyabiliyor.
+                s = s.replace(ust + ust + ham, ust + ham)
             s = s.replace('href="./"', 'href="' + ust + '"')
             s = s.replace("location.href = './#'", "location.href = '" + ust + "#'")
             if s == once:
@@ -100,7 +107,14 @@ def main():
     kaynak_varlik = os.path.join(KOK, 'varlik')
     hedef_varlik = os.path.join(CIKTI, 'assets')
     n = 0
-    for kok, _, dosyalar in os.walk(kaynak_varlik):
+    # Iki klasor YAYINA GIRMIYOR. Olculdu: assets/cerceve/*.webp
+    # (370 KB) ve assets/duvar/salon.webp (43 KB) iki sayfanin
+    # hicbirinden referans almiyor -- cerceveler raflanan Fransiz
+    # salonundan, duvar da artik uretilmeyen 3B salon sayfasindan kalma.
+    # Kaynakta duruyorlar; yalnizca kopyalanmiyorlar.
+    ATLA = {'cerceve', 'duvar'}
+    for kok, dizinler, dosyalar in os.walk(kaynak_varlik):
+        dizinler[:] = [d for d in dizinler if d not in ATLA]
         bagil = os.path.relpath(kok, kaynak_varlik)
         hedef_dizin = hedef_varlik if bagil == '.' else os.path.join(hedef_varlik, bagil)
         os.makedirs(hedef_dizin, exist_ok=True)

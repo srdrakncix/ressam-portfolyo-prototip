@@ -529,6 +529,37 @@ function kagidiKacir() {
   shell.style.setProperty('--kucul', kucul.toFixed(4));
 }
 
+/* Firca darbeleri hamburgere ILK TEMASTA yukleniyor. Onceden dokuzu
+   da <link rel=preload> ile her sayfada iniyordu (324 KB) ve Chrome
+   "preloaded but not used" uyarisi veriyordu: panel display:none bir
+   popover, ziyaretcilerin cogu hic acmiyor. Temas anindan menunun
+   acilmasina kadar gecen sure (hover -> tik) darbelerin inmesine
+   yetiyor; dokunmatikte pointerdown ile tik arasinda yine bir pay var.
+   Tek kaynak korunuyor: liste derlemede varlik dosyalarindan uretiliyor
+   (window.FIRCA_LISTE). */
+let fircaYuklendi = false;
+function fircayiYukle() {
+  if (fircaYuklendi) return;
+  fircaYuklendi = true;
+  const liste = (typeof window !== 'undefined' && window.FIRCA_LISTE) || [];
+  for (const yol of liste) { const g = new Image(); g.src = yol; }
+}
+if (btn) {
+  for (const olay of ['pointerenter', 'focus', 'pointerdown']) {
+    btn.addEventListener(olay, fircayiYukle, { once: true, passive: true });
+  }
+}
+/* Temas TEK basina yetmiyor: dokunmatikte pointerdown ile tik arasi
+   ~50-100 ms ve 324 KB o surede inmez. Onyukleme tam bu yuzden
+   eklenmisti ("panel boyasiz acilabiliyordu"). Cozum ikisini birlestirmek:
+   tarayici BOSTA kalinca sessizce yukle -- ilk boyamayi etkilemiyor ama
+   menu acilmadan once hazir oluyor. Destegi yoksa gecikmeli zamanlayici. */
+if (typeof requestIdleCallback === 'function') {
+  requestIdleCallback(fircayiYukle, { timeout: 2500 });
+} else {
+  setTimeout(fircayiYukle, 1800);
+}
+
 addEventListener('resize', kagidiKacir, { passive: true });
 
 function openMenu() {
