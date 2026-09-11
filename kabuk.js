@@ -16,6 +16,16 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 const KABUK = window.KABUK || {};
+
+/* Element.matches() GECERSIZ SECICIDE ISTISNA ATAR. ':popover-open'i
+   tanimayan bir tarayicida matches('.open, :popover-open') cagrisi
+   SyntaxError firlatiyor, yani hamburgere her basis patliyor ve menu HIC
+   acilmiyordu. Ustelik bu, yedek yolu duzeltmek icin yazdigim kodun tam
+   kendisiydi.
+
+   Destek bir kez sorulup saklaniyor; secici dizesi bir daha kurulmuyor. */
+const POPOVER_VAR = typeof HTMLElement !== 'undefined' &&
+                    'popover' in HTMLElement.prototype;
 /* Menudeki karsilik sutunu kabugun kendi isi: iki sayfada da ayni menu
    dursun diye buraya tasindi. */
 const kOniz = (r, hemen) => { if (hemen) onizSon = '\u0000'; onizYaz(r, hemen); };
@@ -187,6 +197,10 @@ function onizYaz(route, hemen) {
   const mon = monEl();
   if (!mon || !onizVarMi() || route === onizSon) return;
   onizSon = route;
+  /* Üst satır ile başlık aynı metne düşebiliyor: varsayılan önizlemede
+     ust = sanatçının imzası, ad = sanatçının adı ve ikisi aynı kelimeler.
+     Galeri sayfasında "CEMAL SAĞLAM / Cemal Sağlam" diye iki kez
+     yazıyordu. Aynıysa üst satır düşüyor. */
   const d = onizlemeIcin(route);
   /* Menu acilirken ilk yazim beklemesin: solma gecikmesi orada bosluk
      olarak goruluyordu. Capraz gecis yalniz satirdan satira gecerken. */
@@ -197,7 +211,9 @@ function onizYaz(route, hemen) {
                  img.alt = d.img.title; }
     else { img.hidden = true; img.removeAttribute('src'); }
     mon.classList.toggle('yazi-only', !d.img);
-    document.getElementById('mon-ust').textContent = d.ust || '';
+    const ayni = (d.ust || '').toLocaleUpperCase('tr-TR').trim() ===
+                 (d.ad || '').toLocaleUpperCase('tr-TR').trim();
+    document.getElementById('mon-ust').textContent = ayni ? '' : (d.ust || '');
     document.getElementById('mon-ad').textContent = d.ad || '';
     document.getElementById('mon-alt').textContent = d.alt || '';
     mon.classList.remove('degisiyor');
@@ -249,7 +265,14 @@ function buildMenu() {
   const ul = K.el('ul');
   menuModel().forEach((it) => {
     const li = K.el('li');
-    if (it.sep) { li.className = 'sep'; ul.appendChild(li); return; }
+    /* Ici bos ayirici: ekran okuyucu bunu bos bir liste ogesi olarak
+       sayiyordu. */
+    if (it.sep) {
+      li.className = 'sep';
+      li.setAttribute('aria-hidden', 'true');
+      ul.appendChild(li);
+      return;
+    }
     if (it.group) { li.className = 'grouplbl'; li.textContent = it.group; ul.appendChild(li); return; }
     const a = K.el('a', 'nav-item' + (it.ozel ? ' ozel' : '') + (it.cikis ? ' cikis' : ''),
                    it.label);
@@ -353,13 +376,26 @@ function menuGit(route) {
    rect dönüşüm uygulanmış hâli verir, yani menü ikinci kez açıldığında
    kâğıdın çevrilmiş hâlini ölçüp üstüne bir daha kaydırırdı. offset*
    değerleri yerleşimden gelir, transform onları etkilemez. */
+/* Menu acik mi? Secici yerine duruma bakiyor: bkz. POPOVER_VAR notu. */
+function menuAcikMi() {
+  if (!menuEl) return false;
+  if (POPOVER_VAR && menuEl.showPopover) {
+    try { return menuEl.matches(':popover-open'); } catch (e) { /* yut */ }
+  }
+  return menuEl.classList.contains('open');
+}
+
 function kagidiKacir() {
   const shell = document.getElementById('shell');
   if (!shell) return;
 
-  const kapali = matchMedia('(max-width: 760px)').matches ||
-                 matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const acik = menuEl && menuEl.matches('.open, :popover-open');
+  /* Hareket azaltma kaymayi KAPATMIYOR: panelin iceriğin ustune binmemesi
+     bir islev, donme ise gosteri. CSS tarafinda --don ve --kucul
+     sifirlaniyor, gecis de kapali; yani kagit zipliyor ama yerini
+     birakiyor. Onceden burada erken cikilıyordu ve panel iceriğin
+     ustunde kaliyordu -- CSS yorumu bunun tersini soyluyordu. */
+  const kapali = matchMedia('(max-width: 760px)').matches;
+  const acik = menuAcikMi();
   if (kapali || !acik) {
     shell.style.removeProperty('--kac');
     shell.style.removeProperty('--kucul');
@@ -406,8 +442,15 @@ function openMenu() {
      kenarı 0 gelir ve kâğıt hiç kaçmaz. */
   kagidiKacir();
   arkaPlanDondur(true);
-  const first = menuEl.querySelector('a');
-  if (first) first.focus({ preventScroll: true });
+  /* Odak ilk satıra değil PANELE veriliyor. Eskiden ilk bağlantı
+     odaklanıyordu ve üstünde tarayıcının odak dikdörtgeni kalıyordu:
+     elle boyanmış bir panelde tek geometrik-dijital unsur oydu ve
+     "dışarıdan eklenmiş" duruyordu. Panele odaklanmak klavye erişimini
+     bozmuyor — Tab ilk satıra gidiyor — ama gereksiz halkayı kaldırıyor.
+     Kipli bir katmanda odağı kabın kendisine vermek yaygın ve doğru
+     örüntü. */
+  menuEl.setAttribute('tabindex', '-1');
+  menuEl.focus({ preventScroll: true });
 }
 /* Menü GÖRSEL OLARAK kipli: perde sahneyi karartıyor ve üst katman
    arkadaki tıklamaları yiyor. Ama popover=auto KİPLİ DEĞİL — odağı
@@ -419,10 +462,21 @@ function openMenu() {
    inert ikisini birden çözüyor: odak dışarı çıkmıyor ve arka içerik
    erişilebilirlik ağacından düşüyor. */
 function arkaPlanDondur(kapat) {
-  const hedefler = [document.getElementById('shell'),
-                    document.getElementById('bgA'),
-                    document.getElementById('bgB')];
-  hedefler.forEach((el) => { if (el) el.inert = !!kapat; });
+  /* Sabit liste eksik kaliyordu: sergi sayfasindaki #detay (tam ekran
+     eser katmani) #shell'in KARDESI ve listede yoktu; o katman acikken
+     menu acilirsa odak oradaki yedi dugmeye kaciyordu. Artik govdenin
+     butun ust duzey cocuklari kapsaniyor -- menunun kendisi ve ekran
+     okuyucu duyuru bolgesi haric.
+
+     Ozellik degil NITELIK yaziliyor: [inert] bir CSS kancasi olarak da
+     kullanilabiliyor ve destegi olmayan tarayicida en azindan
+     pointer-events kapatilabiliyor. */
+  const birak = new Set([menuEl, document.getElementById('duyuru'),
+                         document.getElementById('menubtn')]);
+  Array.prototype.forEach.call(document.body.children, (el) => {
+    if (birak.has(el) || el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return;
+    el.toggleAttribute('inert', !!kapat);
+  });
 }
 
 /* Kapanışta yapılacak toparlama: hangi jestle kapanırsa kapansın (düğme,
@@ -436,8 +490,14 @@ function toparla() {
 }
 
 function closeMenu() {
-  document.documentElement.classList.remove('menuacik');
-  if (menuEl.hidePopover && menuEl.matches(':popover-open')) menuEl.hidePopover();
+  /* Toparlama popover yolunda `toggle` olayindan da geliyor; burada
+     tekrar cagirmak onu iki kez kosturuyordu. Bu yuzden closeMenu yalniz
+     KAPATIYOR, toparlamayi olaya birakiyor. Yedek yolda olay hic
+     atesenmedigi icin orada elle cagriliyor. */
+  if (POPOVER_VAR && menuEl.hidePopover && menuAcikMi()) {
+    menuEl.hidePopover();
+    return;                     /* toparlama toggle olayindan gelecek */
+  }
   menuEl.classList.remove('open');
   /* Toparlama menü GERÇEKTEN kapandıktan sonra: daha önce önce
      çağrılıyordu ve ölçüm menüyü hâlâ açık görüp --kac'ı yeniden
@@ -451,14 +511,20 @@ function closeMenu() {
    menü kapanmıyordu. Hamburger görsel olarak ✕'e dönüştüğü için
    kullanıcı ona basıp kapanmasını bekliyor. Ölçerek yakalandı:
    ikinci tıklamadan sonra popover=true kalıyordu. */
-btn.addEventListener('click', () =>
-  (menuEl.matches('.open, :popover-open') ? closeMenu() : openMenu()));
+btn.addEventListener('click', () => (menuAcikMi() ? closeMenu() : openMenu()));
 const kapatBtn = document.getElementById('mkapat');
 if (kapatBtn) kapatBtn.addEventListener('click', closeMenu);
 /* Esc, disina tiklama ve ust katman popover'dan geliyor; elle yazilmasina
    gerek yok. Yalnizca popover desteklenmeyen tarayicida yedek gerekiyor. */
-if (!menuEl.showPopover) {
+if (!POPOVER_VAR || !menuEl.showPopover) {
   addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+  /* Yedek yolda `toggle` olayi hic atesenmiyor, yani hafif kapanma da
+     yoktu: menu yalniz iki dugmeyle kapaniyordu. */
+  addEventListener('pointerdown', (e) => {
+    if (!menuAcikMi()) return;
+    if (menuEl.contains(e.target) || btn.contains(e.target)) return;
+    closeMenu();
+  }, true);
 }
 /* Menü Escape ya da dışına tıklamayla da kapanıyor (popover'ın hafif
    kapanması) ve o yol closeMenu'dan GEÇMİYORDU: geriye --kac satır içi
@@ -480,6 +546,11 @@ menuEl.addEventListener('toggle', (e) => {
 function etiketleriYaz() {
   btn.setAttribute('aria-label', t('menu_open'));
   menuEl.setAttribute('aria-label', t('menu_label'));
+  /* Menu artik fiilen kipli: perde sahneyi karartiyor, arka icerik
+     inert. Ama yardimci teknolojiye bunu soyleyen bir sey yoktu,
+     yani ekran okuyucu kullanicisi kipe girdigini duymuyordu. */
+  menuEl.setAttribute('role', 'dialog');
+  menuEl.setAttribute('aria-modal', 'true');
   const kapatBtn = document.getElementById('mkapat');
   if (kapatBtn) kapatBtn.setAttribute('aria-label', t('menu_close'));
 }

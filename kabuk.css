@@ -107,7 +107,11 @@
    (Acik durumda `transition`i kisaltmak denendi ve birakildi: kisayaz
     listeyi komple degistirdigi icin display/overlay'in allow-discrete
     girisleri de dusuyor ve kapanis bozuluyor.) */
-#menu:popover-open, #menu.open { opacity: 1; }
+/* AYRI kurallar. Tek seciciye ":popover-open, .open" yazmak, seciciyi
+   tanimayan tarayicida kuralin TAMAMINI dusuruyor ve yedek yol icin
+   yazilan .open dali da gidiyor. */
+#menu:popover-open { opacity: 1; }
+#menu.open { opacity: 1; }
 @starting-style { #menu:popover-open { opacity: 1; } }
 
 /* POPOVER DESTEKLENMEYEN TARAYICI. İki ayrı kusur vardı:
@@ -117,7 +121,13 @@
        tarayıcıda ekranın sol yarısını kaplayan, görünmez, tıklamaları
        yiyen ve 13 bağlantısı Tab ile gezilebilen bir katman kalıyordu.
    Aşağıdaki kural ikisini de kapatıyor: açık değilse yok. */
-#menu:not(:popover-open):not(.open) { display: none; }
+/* :is() BAGISLAYICIDIR: icindeki bilinmeyen secici kurali dusurmez,
+   yalnizca eslesmez. Ciplak :not(:popover-open) yazildiginda kural
+   tamamen gecersiz oluyordu -- yani "acik degilse yok" garantisi tam
+   olarak ihtiyac duyulan tarayicida yoktu. z-index de veriliyor: ust
+   katman yoksa panel #shell'in (z-index:10) altinda kaliyordu. */
+#menu:not(.open):not(:is(:popover-open)) { display: none; }
+#menu { z-index: 45; }
 
 #menu::backdrop {
   background: rgba(6,7,5,0);
@@ -186,7 +196,11 @@
   transition: opacity 380ms var(--ease), translate 420ms var(--ease),
               filter 380ms var(--ease);
 }
-#menu:popover-open li, #menu:popover-open .grouplbl, #menu:popover-open #lang,
+/* Yine AYRI kurallar, ayni sebeple. */
+#menu:popover-open li, #menu:popover-open .grouplbl, #menu:popover-open #lang {
+  opacity: 1; translate: none; transform: none; filter: none;
+  transition-delay: var(--d, 0ms);
+}
 #menu.open li, #menu.open .grouplbl, #menu.open #lang {
   opacity: 1; translate: none; transform: none; filter: none;
   transition-delay: var(--d, 0ms);
@@ -296,7 +310,32 @@
   min-width: 34px; min-height: 34px; padding: 8px 7px;
   color: var(--m-dil, #e2d8d0);
 }
-#lang button[aria-current="true"] { color: #fff; }
+/* Odak halkası boyanın üstünde okunmuyordu: --link (#5f5326) beyaz kâğıt
+   için seçilmiş bir renk ve gül boya üzerinde ölçülen kontrastı 1.05:1
+   (eşik 3:1). Menü içindeki odak kendi rengini kullanıyor. Ayrıca odak
+   jesti (soldaki çizgi + kayma) yalnız `hover: hover` içinde tanımlıydı,
+   yani dokunmatik + klavye kullanan cihazlarda hiç görünmüyordu. */
+#menu a:focus-visible,
+#menu button:focus-visible {
+  outline: 2px solid var(--m-dil-aktif, #f8f4ee);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+#menu a:focus-visible { transform: translateX(4px); }
+#menu a:focus-visible::before { opacity: .9; }
+
+/* Etkin dil: okunurluk düzeltilirken hiyerarşi kaybolmuştu — üç kod da
+   aynı ağırlık ve aynı tondaydı, hangi dilde olduğun belli değildi.
+   Kontrastı bozmadan geri getiriliyor: etkin olan tam opak ve altı
+   çizili, ötekiler biraz geride. */
+#lang button { opacity: .62; }
+#lang button[aria-current="true"] {
+  opacity: 1;
+  color: var(--m-dil-aktif, #f8f4ee);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+}
 
 /* -- TELEFON: perde degil, basparmakla ulasilan alt tabaka ----------------
    Ekrani kaplayan bir ortu yerine alttan gelen bir tabaka. Satirlar asagida
@@ -354,7 +393,9 @@
 #mkapat:hover { transform: scale(1.05); }
 #mkapat i {
   position: absolute; width: 22px; height: 4px; border-radius: 1px;
-  background: #24241f;
+  /* Üretilen mürekkebi kullanıyor: --m-kapat firca.py'de tanımlıydı ama
+     hiçbir yerde okunmuyordu, yani "tek kaynak" iddiası yarımdı. */
+  background: var(--m-kapat-cizgi, #24241f);
 }
 #mkapat i:nth-child(1) { transform: rotate(45deg); }
 #mkapat i:nth-child(2) { transform: rotate(-45deg); }
@@ -367,7 +408,15 @@
 
 /* dil anahtarı menünün dibinde -- YINELENEN blok kaldirildi, tanim
    yukarida tek yerde. */
-#lang .sep2 { color: var(--m-dil, #e2d8d0); opacity: .5; font-size: var(--t-micro); }
+#lang .sep2 { color: var(--m-dil, #e2d8d0); opacity: .38; font-size: var(--t-micro); }
+
+/* Telefonda boyalı alan dibe varmıyordu: darbeler y~760'ta bitiyor,
+   altında koyu bir bant kalıyordu. Kart içerik boyunda olduğu için
+   #boya da onun boyunda kalıyor. Taban katman kartın tamamını kaplıyor;
+   darbeler onun üstünde, tırtıklı kenar yine görünür. */
+@media (max-width: 760px) {
+  #boya { inset: -6px -10px -10px -6px; }
+}
 
 /* ── içerik paneli ───────────────────────────────────────────────────────── */
 

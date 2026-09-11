@@ -1,7 +1,7 @@
 /* URETILDI - python firca.py. Elle duzenleme: yerlesim olculerek
    bulunuyor, elle degistirilirse yazi altindaki opaklik garantisi
    bozulur. Kaynak: firca.py YERLESIM. */
-#boya { --darbe: 7; }   /* kabuk.js kac <i> uretecegini buradan okuyor */
+#boya { --darbe: 9; }   /* kabuk.js kac <i> uretecegini buradan okuyor */
 :root { --satir-doygunluk: 0.40; --satir-parlaklik: 0.90; --satir-adim: 0.015; }
 :root {
   --m-dil: #e2d8d0;
@@ -11,13 +11,16 @@
   --m-oniz-alt: #ece6dc;
   --m-oniz-ust: #e7d8be;
   --panel-taban: #633e36;
+  --m-kapat-cizgi: #482c29;
 }
 #boya i { animation-duration: 300ms; animation-timing-function: cubic-bezier(.38,.12,.56,.94); }
 #boya i:nth-child(1) {
-  left: -12.67%; top: -5.13%; width: 132.50%; height: 40.02%;
+  left: -12.67%; top: -5.13%; width: 132.50%; height: 39.91%;
   background-image: url(assets/firca/panel-1.webp);
 }
-#menu:popover-open #boya i:nth-child(1),
+#menu:popover-open #boya i:nth-child(1) {
+  animation-name: sup-sol; animation-delay: 0ms;
+}
 #menu.open #boya i:nth-child(1) {
   animation-name: sup-sol; animation-delay: 0ms;
 }
@@ -25,15 +28,19 @@
   left: -4.00%; top: -3.97%; width: 43.33%; height: 114.82%;
   background-image: url(assets/firca/panel-2.webp);
 }
-#menu:popover-open #boya i:nth-child(2),
+#menu:popover-open #boya i:nth-child(2) {
+  animation-name: sup-ust; animation-delay: 44ms;
+}
 #menu.open #boya i:nth-child(2) {
   animation-name: sup-ust; animation-delay: 44ms;
 }
 #boya i:nth-child(3) {
-  left: -3.83%; top: -3.38%; width: 117.33%; height: 73.05%;
+  left: -3.83%; top: -3.38%; width: 117.17%; height: 73.05%;
   background-image: url(assets/firca/panel-3.webp);
 }
-#menu:popover-open #boya i:nth-child(3),
+#menu:popover-open #boya i:nth-child(3) {
+  animation-name: sup-sag; animation-delay: 84ms;
+}
 #menu.open #boya i:nth-child(3) {
   animation-name: sup-sag; animation-delay: 84ms;
 }
@@ -41,7 +48,9 @@
   left: -13.50%; top: 27.54%; width: 132.50%; height: 55.66%;
   background-image: url(assets/firca/panel-4.webp);
 }
-#menu:popover-open #boya i:nth-child(4),
+#menu:popover-open #boya i:nth-child(4) {
+  animation-name: sup-sag; animation-delay: 120ms;
+}
 #menu.open #boya i:nth-child(4) {
   animation-name: sup-sag; animation-delay: 120ms;
 }
@@ -49,7 +58,9 @@
   left: -11.00%; top: 44.11%; width: 140.67%; height: 78.41%;
   background-image: url(assets/firca/panel-5.webp);
 }
-#menu:popover-open #boya i:nth-child(5),
+#menu:popover-open #boya i:nth-child(5) {
+  animation-name: sup-sol; animation-delay: 152ms;
+}
 #menu.open #boya i:nth-child(5) {
   animation-name: sup-sol; animation-delay: 152ms;
 }
@@ -57,15 +68,39 @@
   left: -12.00%; top: 70.36%; width: 138.17%; height: 24.85%;
   background-image: url(assets/firca/panel-6.webp);
 }
-#menu:popover-open #boya i:nth-child(6),
+#menu:popover-open #boya i:nth-child(6) {
+  animation-name: sup-sag; animation-delay: 180ms;
+}
 #menu.open #boya i:nth-child(6) {
   animation-name: sup-sag; animation-delay: 180ms;
 }
 #boya i:nth-child(7) {
-  left: 4.17%; top: 30.34%; width: 73.33%; height: 17.39%;
+  left: 4.17%; top: 30.46%; width: 73.33%; height: 17.27%;
   background-image: url(assets/firca/panel-7.webp);
 }
-#menu:popover-open #boya i:nth-child(7),
+#menu:popover-open #boya i:nth-child(7) {
+  animation-name: sup-sol; animation-delay: 204ms;
+}
 #menu.open #boya i:nth-child(7) {
+  animation-name: sup-sol; animation-delay: 204ms;
+}
+#boya i:nth-child(8) {
+  left: 15.00%; top: 23.69%; width: 43.83%; height: 9.33%;
+  background-image: url(assets/firca/panel-8.webp);
+}
+#menu:popover-open #boya i:nth-child(8) {
+  animation-name: sup-sag; animation-delay: 204ms;
+}
+#menu.open #boya i:nth-child(8) {
+  animation-name: sup-sag; animation-delay: 204ms;
+}
+#boya i:nth-child(9) {
+  left: 62.17%; top: 67.44%; width: 41.83%; height: 8.63%;
+  background-image: url(assets/firca/panel-9.webp);
+}
+#menu:popover-open #boya i:nth-child(9) {
+  animation-name: sup-sol; animation-delay: 204ms;
+}
+#menu.open #boya i:nth-child(9) {
   animation-name: sup-sol; animation-delay: 204ms;
 }

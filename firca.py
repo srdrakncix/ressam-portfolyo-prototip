@@ -155,6 +155,8 @@ YERLESIM = [
     ('karakter-3', -14,  43, 140,   3, True),
     ('karakter-1', -12,  68, 138,  -3, True),
     ('karakter-1',   4,  29,  74,  -7, False),
+    ('karakter-1',  14,  23,  44,   5, True),    # satir02 civari
+    ('karakter-1',  62,  67,  42,  -4, False),   # onizleme alti
 ]
 
 # Mat kil gulu. Onceki hal doygun Fransiz kirmizisiydi ve cirtlak
@@ -178,6 +180,11 @@ FR = [(0.00, (112, 74, 63)), (0.28, (106, 69, 59)), (0.60, (96, 60, 52)),
       (0.85, (84, 51, 46)), (1.00, (72, 44, 41))]
 
 EGRI_LO, EGRI_HI = 14, 168   # ham yogunluk egrisi: pus sifira, cekirdek opak
+
+# Kenar bandinin genisligi. Bu bantta dolgu YOK, gercek boyanin alfasi
+# var. Genisledikce kenar daha boya gibi, ama yazi kutulari ic bolgenin
+# disina tasarsa okunurluk garantisi duser -- olcum bunu denetliyor.
+KENAR_BANDI = 16
 
 
 # ══ 1. FOTOGRAFTAN DARBEYI AYIKLA ═══════════════════════════════════════
@@ -350,7 +357,13 @@ def doldur(a, esik=76, yaricap=10):
     delik = ters.point(lambda v: 255 if v == 255 else 0).crop((1, 1, w + 1, h + 1))
     dolu = ikili.copy()
     dolu.paste(255, (0, 0), delik)
-    return ImageChops.lighter(a, dolu)
+
+    # Dolgu yalnizca IC BOLGEYE. Kenar bandinda gercek boyanin kendi
+    # alfasi kaliyor: kuruyan uc, dagilan kil, solan yuk. Eskiden cikti
+    # sinirini doldurulmus ikili belirliyordu ve kenar her noktada tam
+    # opakti -- 'makasla kesilmis' gorunuyordu, fircayla degil.
+    ic = _daralt(dolu, KENAR_BANDI)
+    return ImageChops.lighter(a, ic)
 
 
 # ══ 3. PANELE YERLESTIR VE BOYA ═════════════════════════════════════════
@@ -498,13 +511,35 @@ def ic_kontrol(panel, pay=45):
     return len(kotu) / float(toplam), (min(xs), min(ys), max(xs), max(ys))
 
 
-def olc(panel):
+def gerilmis_olc(panel, hedef_boy):
+    """Panel BASKA bir yukseklikte de olculuyor.
+
+    Butun garanti tek bir gorunum yuksekligine (857 px) cakiliydi. Ama
+    #menu artik 100dvh ve darbelerin konumu YUZDE; yani 950 px'lik bir
+    ekranda boya dikeyde geriliyor, yazi satirlari ise yerinde kaliyor.
+    Olculen hizalama o ekranda artik gecerli degil.
+
+    Burada CSS'in yaptigi sey taklit ediliyor: bilesik dikeyde geriliyor,
+    yazi kutulari ise panel tepesinden ayni piksel uzakligında biraktılıyor.
+    """
+    k = hedef_boy / float(BOY)
+    gerilmis = panel.resize((TUVAL_EN, max(1, round(TUVAL_BOY * k))),
+                            Image.LANCZOS)
+    yeni_ust = round(PAY_UST * k)
+    kutular = [(ad, x, yeni_ust + (y - PAY_UST), w, h)
+               for ad, x, y, w, h in YAZI_KUTULARI]
+    return olc(gerilmis, kutular, gerilmis.size)
+
+
+def olc(panel, kutular=None, boyut=None):
     px = panel.load()
+    kutular = YAZI_KUTULARI if kutular is None else kutular
+    sinir = (TUVAL_EN, TUVAL_BOY) if boyut is None else boyut
     paletler = tum_paletler()
     # Her kutu icin her sayfanin satir rengi denenip EN KOTUSU aliniyor.
     tum_satirlar = {k: satir_renkleri(v) for k, v in paletler.items()}
     rapor = []
-    for i, (ad, x, y, w, h) in enumerate(YAZI_KUTULARI):
+    for i, (ad, x, y, w, h) in enumerate(kutular):
         # Satirin kendi rengi. Ama menudeki iki satira paintMenu renk
         # YAZMIYOR: 'Ana sayfa' ve bulundugun sayfa altin kaliyor
         # (#d9b9a0). Hangi satirin ozel oldugu sayfaya gore degistigi
@@ -519,7 +554,13 @@ def olc(panel):
         dusuk, altta, n, en_kotu = 255, 0, 0, 99.0
         for yy in range(y + 2, y + h - 2, 2):
             for xx in range(x + 2, x + w - 2, 2):
-                if not (0 <= xx < EN and 0 <= yy < BOY):
+                # Sinirlar PAYLI tuvale gore. Eskiden ciplak EN/BOY ile
+                # karsilastiriliyordu ama kutular +PAY_SOL/+PAY_UST
+                # kaydirilmisti: 'dil' kutusunun (y 846-873) yalnizca bir
+                # kismi, 'oniz-*' kutularinin ise sag 9 px'i olcum disinda
+                # kaliyordu -- yani panelin boyanin en inceldigi alt kenari
+                # hic denetlenmiyordu.
+                if not (0 <= xx < sinir[0] and 0 <= yy < sinir[1]):
                     continue
                 r, g, b, a = px[xx, yy]
                 dusuk = min(dusuk, a)
@@ -565,7 +606,7 @@ def disari(parcalar):
             continue
         kirpik = g.crop(kutu)
         ad = 'panel-%d.webp' % i
-        kirpik.save(os.path.join(VARLIK, ad), 'WEBP', quality=88, method=6, exact=True)
+        kirpik.save(os.path.join(VARLIK, ad), 'WEBP', quality=80, method=6, exact=True)
         dikey = kirpik.height > kirpik.width * 1.25
         satirlar.append({
             'dosya': 'assets/firca/' + ad,
@@ -603,6 +644,10 @@ def css_yaz(satirlar):
     # taban da kendiliğinden degisiyor.
     orta = fr(0.5)
     p.append('  --panel-taban: #%02x%02x%02x;' % orta)
+    # Kapatma dugmesinin cizgileri BEYAZ daire uzerinde duruyor, yani
+    # koyu olmali -- MUREKKEP tablosundakiler boyanin uzerine yazilan
+    # acik murekkepler. Paletin en koyu ucundan aliniyor.
+    p.append('  --m-kapat-cizgi: #%02x%02x%02x;' % fr(1.0))
     p.append('}')
     # Konum ve gorsel her zaman gecerli; ANIMASYON yalnizca menu acikken
     # tanimli. Yoksa animasyon sayfa yuklenirken kosuyor ve menu acildiginda
@@ -617,11 +662,15 @@ def css_yaz(satirlar):
                  % (r['sol'], r['ust'], r['en'], r['boy']))
         p.append('  background-image: url(%s);' % r['dosya'])
         p.append('}')
-        p.append('#menu:popover-open #boya i:nth-child(%d),' % i)
-        p.append('#menu.open #boya i:nth-child(%d) {' % i)
-        p.append('  animation-name: sup-%s; animation-delay: %dms;'
-                 % (r['yon'], GECIKMELER[min(i - 1, len(GECIKMELER) - 1)]))
-        p.append('}')
+        # AYRI kurallar. Tek seciciye ":popover-open, .open" yazmak,
+        # seciciyi tanimayan tarayicida kuralin TAMAMINI dusuruyor ve
+        # yedek yol icin yazilan dal da gidiyor.
+        gec = GECIKMELER[min(i - 1, len(GECIKMELER) - 1)]
+        for durum in (':popover-open', '.open'):
+            p.append('#menu%s #boya i:nth-child(%d) {' % (durum, i))
+            p.append('  animation-name: sup-%s; animation-delay: %dms;'
+                     % (r['yon'], gec))
+            p.append('}')
     io.open(CSS_YOL, 'w', encoding='utf-8', newline='\n').write('\n'.join(p) + '\n')
 
 
@@ -665,6 +714,27 @@ def main():
     kapla = sum(1 for v in kutu_alfa.tobytes() if v > 20) / float(EN * BOY)
     print('\npanel kaplama %.0f%%   kalan kutu %d/%d' % (kapla * 100, kalan, len(rapor)))
 
+    # IKINCI YUKSEKLIK. Butun garanti 857 px'lik tek bir gorunume
+    # cakiliydi; #menu artik 100dvh ve darbeler yuzde konumlu, yani
+    # daha uzun ekranda boya geriliyor ama yazi yerinde kaliyor.
+    ikinci = 980
+    rapor2 = gerilmis_olc(panel, ikinci)
+    kalan2 = sum(1 for r in rapor2
+                 if r['dusuk'] < TABAN or r['kontrast'] < KONTRAST_TABAN)
+    print('%d px yukseklikte  kalan kutu %d/%d' % (ikinci, kalan2, len(rapor2)))
+    if kalan2:
+        for r in rapor2:
+            if r['dusuk'] < TABAN or r['kontrast'] < KONTRAST_TABAN:
+                print('   %-12s opaklik %.0f%%  kontrast %.2f:1'
+                      % (r['ad'], r['dusuk'] * 100, r['kontrast']))
+
+    # KAPI IHRACTAN ONCE. Eskiden disari()+css_yaz() bu kontrolden once
+    # kosuyordu: olcum dusse bile varliklar diske yaziliyordu.
+    if kalan or kalan2 or ic_oran > 0.001:
+        raise SystemExit('HATA: %d kutu (857px), %d kutu (%dpx), ic delik %%%.2f'
+                         ' -- VARLIKLAR YAZILMADI'
+                         % (kalan, kalan2, ikinci, ic_oran * 100))
+
     satirlar = disari(parcalar)
     css_yaz(satirlar)
 
@@ -684,9 +754,7 @@ def main():
     tab.paste(panel, (0, 0), panel)
     tab.save(os.path.join(OLCUM, 'panel.png'))
 
-    if kalan or ic_oran > 0.001:
-        raise SystemExit('\nHATA: %d yazi kutusu yetersiz, ic delik %%%.2f'
-                         % (kalan, ic_oran * 100))
+
 
 
 if __name__ == '__main__':
