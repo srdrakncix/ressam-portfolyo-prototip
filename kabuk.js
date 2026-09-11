@@ -413,6 +413,7 @@ function kagidiKacir() {
   if (!acik) {
     shell.style.removeProperty('--kac');
     shell.style.removeProperty('--kucul');
+    shell.style.removeProperty('--mentese-y');
     return;
   }
 
@@ -510,6 +511,15 @@ function kagidiKacir() {
      vazgeçiliyor (enAz), taşmadan asla — taşmayı kac zaten kesiyor. */
   kucul = Math.min(enCok, Math.max(enAz, kucul));
 
+  /* DIKEY mentese yeri. CSS'te %50 yaziliydi ve o shell'in KENDI
+     yuksekliginin ortasi demek -- kisa sayfada tesadufen goruntu
+     alaninin ortasina denk geliyordu, uzun sayfada degil. Olculdu:
+     galeri sayfasinda shell 2795 px, mentese y=1397 ve kagit ekranin
+     tamamen disina savruluyordu (ust 825, ekran 780).
+     Dogrusu goruntu alaninin ortasi; menu acikken kayma kilitli oldugu
+     icin bu deger acilis anindaki konuma gore sabit. */
+  const menteseY = (window.scrollY + window.innerHeight / 2) - shell.offsetTop;
+  shell.style.setProperty('--mentese-y', menteseY.toFixed(1) + 'px');
   shell.style.setProperty('--kac', kac.toFixed(1) + 'px');
   shell.style.setProperty('--kucul', kucul.toFixed(4));
 }
