@@ -279,15 +279,9 @@ html.durdur { scrollbar-gutter: stable; }
   opacity: 1; translate: none; transform: none; filter: none;
   transition-delay: var(--d, 0ms);
 }
-/* Bu blok olmadan satirlar HIC gecis yapmiyordu: eleman display:none'dan
-   geliyor, tarayicinin baslayacak bir onceki degeri yok, dolayisiyla
-   dogrudan son halinde beliriyor. Olculdu: 80 ms'de opaklik zaten 1.00
-   ve satirlar boyadan once ortaya cikiyordu. */
-@starting-style {
-  #menu:popover-open li, #menu:popover-open .grouplbl, #menu:popover-open #lang {
-    opacity: 0; translate: 0 9px; filter: blur(2px);
-  }
-}
+/* @starting-style blogu KALDIRILDI. Kademeli giris kalkinca gecis de
+   kalmadi, ama bu blok hala opacity:0 veriyordu: gecis olmadigi icin
+   satirlar bir kare gorunmez kalip sonra atliyor -- titreme. */
 
 /* Satirlar duz: dolgu yok, cerceve yok, hap bicimi yok. Bir menu okunacak
    bir liste; her satiri kapsule koymak listeyi arayuz gurultusune ceviriyor.
