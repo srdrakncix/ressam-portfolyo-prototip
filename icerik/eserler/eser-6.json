@@ -9,7 +9,10 @@
   "seri": "eserler",
   "yil": null,
   "durum": "",
-  "olcu": null,
+  "olcu": {
+    "yukseklik_cm": 81,
+    "genislik_cm": 116
+  },
   "koleksiyon": {
     "ad": "",
     "yil": null

@@ -96,7 +96,6 @@
   --serif: "Cormorant Garamond", Garamond, "EB Garamond", Georgia, serif;
   --ease:  cubic-bezier(.19, 1, .22, 1);
 
-  --ppc: 1.6px;          /* piksel / santimetre — JS yazıyor */
   --en:  1180px;         /* okuma genişliği */
   color-scheme: light;
 }
@@ -183,67 +182,52 @@ a { color: inherit; }
 .kart { text-decoration: none; display: block; }
 .kart[hidden] { display: none; }
 
-/* Nötr saha: her eserde AYNI. Ölçüyü okuyabilmenin tek yolu ortak bir zemin. */
+/* Kutu = ESERIN KENDISI. Once sabit 4:3 bir saha ve icinde gercek
+   cm'den cizilmis bir tuval vardi; olculdu, dikey eserler o sahadan
+   TASIYOR ve overflow:hidden ustlerini altlarini KESIYORDU (eser-2 %119,
+   eser-5 %126 doluluk). Musteri karari: "tam boy halinde olacak hepsi,
+   simetri sikintisi yok bu durum icin."
+   Kutunun oranini biz VERMIYORUZ, gorselin kendisine biraktiriyoruz:
+   `aspect-ratio: var(--cw)/var(--ch)` denendi ve 1-3 px kirpiyordu,
+   cunku kunyedeki cm yuvarlanmis (120/90 = 1.3333, fotograf 1.332).
+   Kutu = gorsel olunca uyusmazlik diye bir sey kalmiyor. */
 .alan {
-  position: relative; aspect-ratio: 4 / 3;
+  position: relative;
   /* Zemin YOK. Gri saha + eserin golgesi birlikte cerceve etkisi
      yaratiyordu: eser kagidin uzerinde kendi kutusunun icinde duruyor
      gibi gorunuyordu. Eser dogrudan kagidin uzerinde dursun. */
   background: transparent;
-  display: grid; place-items: center;
-  overflow: hidden;
+  display: block;
 }
-/* Eser: gerçek santimetre ölçüsünden çiziliyor ( --cw / --ch × --ppc ).
-   Kırpma YOK — object-fit devrede değil, kutu zaten eserin oranında. */
+/* Eser kolonun tam genisliginde, kendi oraninda. Ne kirpma ne germe:
+   kutu gorselin kendisi oldugu icin object-fit'in yapacak isi yok.
+   (`height: auto` sart -- yuzdeli yukseklik burada COZULMUYOR; ebeveynin
+   yuksekligi acikca verilmediginde yuzde auto'ya dusuyor ve `max-height:
+   92%` denemeleri bu yuzden hicbir sey yapmamisti.) */
 .tuval {
   display: block;
-  width:  calc(var(--cw) * var(--ppc));
-  height: calc(var(--ch) * var(--ppc));
-  /* Kutu künyedeki cm ölçüsünden çiziliyor. Fotoğrafın oranı tutmazsa
-     object-fit olmadan görsel GERİLİR — bir tabloyu germek kırpmaktan
-     beterdir. cover kırpar, asla bozmaz; panel zaten uyuşmazlığı yüklerken
-     uyarıyor. */
-  object-fit: cover;
+  width: 100%; height: auto;
+  object-fit: fill;
   /* Golge kaldirildi: gri sahayla birlikte cerceve gibi okunuyordu. */
   transition: transform 620ms var(--ease), opacity 620ms var(--ease);
 }
 
-/* Kutu ESERIN KENDI ORANINDA. Once kutu sabit 4:3 idi ve eser onun
-   icine yerlestiriliyordu; olculdu, dikey eserler kutudan TASIYORDU
-   (eser-2 %119, eser-5 %126 doluluk) ve .alan'in overflow:hidden'i
-   tasan kismi KESIYORDU -- yani ust ve alt kirpiliyordu.
-   Konulan `max-height: 92%` hic calismamisti: yuzdeli max-height,
-   ebeveynin yuksekligi acikca verilmediginde (burada aspect-ratio'dan
-   turuyor) cozumlenmiyor.
-   Kutu esere uyunca kirpma da bosluk da kalmiyor. Kartlarin yuksekligi
-   birbirinden farkli oluyor; bu bir kusur degil, musterinin karari:
-   "tam boy halinde olacak hepsi, simetri sikintisi yok". */
-/* Kutunun oranini VERMIYORUZ, gorselin kendisine biraktiriyoruz.
-   aspect-ratio: var(--cw)/var(--ch) denendi ve 1-3 px kirpiyordu:
-   nominal cm degerleri yuvarlanmis (120/90 = 1.3333, gercek 1.332) ve
-   kutu ile gorsel bu kadar ayrisinca overflow:hidden farki kesiyordu.
-   Kutu = gorsel olunca uyusmazlik diye bir sey kalmiyor. */
-.kart.olcusuz .alan { aspect-ratio: auto; display: block; }
-
-/* OLCU YOKKEN gercek-olcu sistemi devre disi: eser kareyi doldurur.
-   Sebep olculdu -- kunyede olcu olmadigi icin derleme her esere nominal
-   bir cm degeri turetiyor ve hepsi 120'de tavanlaniyor. Sistem "en
-   buyuk eser 120 cm YUKSEK olabilir" diye yer ayiriyor ama hicbiri
-   degil, dolayisiyla 120x90'lik bir eser karenin ancak %58'ini
-   kapliyordu. Yani olcu karsilastirmasi hicbir sey karsilastirmiyor,
-   yalnizca eseri kucultuyordu; oda kurgusu bunu gizliyordu.
-   Gercek olculer gelince `olcusuz` sinifi dusuyor ve karsilastirma
-   kendiliginden geri geliyor. */
-.kart.olcusuz .tuval {
-  /* height: auto -- yuzdeli yukseklik burada CALISMIYOR. Ebeveynin
-     yuksekligi acikca verilmediginde yuzde cozumlenmiyor ve deger
-     auto'ya dusuyor; `max-height: 92%` ve `height: 100%` denemelerinin
-     ikisi de bu yuzden hicbir sey yapmamisti. Genislik %100, yukseklik
-     gorselin kendi orani. object-fit devre disi kaliyor (kutu zaten
-     gorselin olcusunde), yani kirpma da germe de yok. */
-  width: 100%; height: auto;
-  object-fit: fill;
-}
+/* GERCEK-CM OLCEKLEMESI KALDIRILDI (`olcusuz` ayrimiyla birlikte).
+   Tasarim soyleydi: her eser gercek santimetresiyle orantili cizilsin --
+   160 cm'lik eser 81 cm'liginin iki kati genis gorunsun. Kunyede olcu
+   olmadigi icin devre disiydi ve "olculer gelince kendiliginden geri
+   gelir" diye yazilmisti.
+   Olculer geldi (musteri sekizinin de olcusunu verdi) ama dal GERI
+   ACILMADI, iki sebeple:
+     1. Acilsa musterinin reddettigi sey geri geliyordu: sabit 4:3 kutu +
+        `object-fit: cover`. Dikey eserler kutudan tasip kesilir, kunye
+        orani fotografla tutmayan eser de kirpilir -- eser-8'de %16.
+     2. Musterinin karari acik: "tam boy halinde olacak hepsi". Orantili
+        cizimde 116 cm'lik eser kolonun %72'sinde kalirdi.
+   Gercek olcek yine istenirse yolu kisa: kutuya oran VERMEDEN
+   `width: calc(var(--cw) * var(--ppc))` yeter -- yukseklik `auto`
+   kaldigi icin kirpma yine olmaz. Olcu bilgisi kaybolmuyor: kunyede
+   (izgara satiri + detay) yaziyor. */
 /* Asil ve TEK goruntu eserin kendisi. Once oda kurgusu asildi ve
    tuval imlecle geliyordu; iki sebeple kaldirildi:
    - Musteri duz tablo istedi.
@@ -594,45 +578,22 @@ function durumMetni(s) {
        : s === 'koleksiyonda' ? t('avail_private') : t('avail_gone');
 }
 
-/* ── ÖLÇEK ────────────────────────────────────────────────────────────
-   Her eser aynı boyutta nötr bir alanın içinde, kendi gerçek ölçüsüyle.
-   Ölçek BÜTÜN koleksiyona göre hesaplanıyor, süzgeçten geçene göre değil:
-   yoksa aynı eser "Tümü" ile "Hava" görünümünde iki farklı boyutta çıkardı
-   ve ölçek karşılaştırması anlamını yitirirdi. */
-const EN_GENIS  = Math.max.apply(null, WORKS.map((w) => w.cw));
-const EN_YUKSEK = Math.max.apply(null, WORKS.map((w) => w.ch));
-const DOLULUK = 0.84;      /* en büyük eser alanın %84'ünü kaplasın */
-const EN_KUCUK = 0.10;     /* güvenlik tabanı: bir aykırı ölçü 2 px'e inmesin */
-
-function olcekle() {
-  const el = izgara.querySelector('.alan');
-  if (!el) return;
-  const r = el.getBoundingClientRect();
-  if (!r.width || !r.height) return;
-  const ppc = Math.min(r.width * DOLULUK / EN_GENIS, r.height * DOLULUK / EN_YUKSEK);
-  izgara.style.setProperty('--ppc', ppc.toFixed(4) + 'px');
-  /* Taban: koleksiyonda uçlar çok açıksa küçük eser kaybolmasın. */
-  const taban = r.width * EN_KUCUK;
-  izgara.querySelectorAll('.kart').forEach((a) => {
-    const g = Number(a.dataset.cw) * ppc;
-    a.style.setProperty('--ppc', g < taban ? (taban / Number(a.dataset.cw)).toFixed(4) + 'px' : '');
-  });
-}
+/* OLCEK HESABI KALDIRILDI (bkz. .tuval yanindaki not). Eser kolonun tam
+   genisliginde, kendi oraninda duruyor; hesaplanacak piksel/santimetre
+   yok, dolayisiyla yeniden boyutlandirmada olculecek bir sey de yok. */
 
 /* ── ızgara ─────────────────────────────────────────────────────────────── */
 function kartlariKur() {
   izgara.innerHTML = '';
   WORKS.forEach((w) => {
     const a = document.createElement('a');
-    /* Kunyede gercek olcu yoksa gercek-olcu cizimi anlamsiz: nominal
-       cm degerleri uydurma ve hepsi ayni tavanda. */
-    a.className = w.size ? 'kart' : 'kart olcusuz';
+    /* Tek cizim bicimi: kolonun tam genisliginde, gorselin kendi
+       oraninda. Once `w.size` varsa gercek-cm dalina geciyordu; o dal
+       kaldirildi (kirpiyordu, bkz. .tuval notu). */
+    a.className = 'kart';
     a.href = '#/eser/' + encodeURIComponent(w.slug);
     a.dataset.slug = w.slug;
     a.dataset.seri = w.series;
-    a.dataset.cw = w.cw;
-    a.style.setProperty('--cw', w.cw);
-    a.style.setProperty('--ch', w.ch);
     a.innerHTML =
       '<div class="alan">' +
         /* alt metni BOS DEGIL: izgaradaki 16 gorselin hicbirinde alt
@@ -726,7 +687,6 @@ function suz(anahtar) {
   bos.textContent = t('gal_empty');
   bos.hidden = gorunen.length > 0;
   sayiyiYaz();
-  olcekle();
 }
 
 /* ── detay ──────────────────────────────────────────────────────────────── */
@@ -1185,9 +1145,6 @@ function dilUygula() {
 setBackdrop('galeri');
 kartlariKur();
 dilUygula();
-olcekle();
-addEventListener('resize', olcekle, { passive: true });
-addEventListener('load', olcekle);
 /* Adres değişince de tepki ver: tarayıcının geri/ileri tuşuyla bir eserin
    adresine dönüldüğünde katalog da o esere açılsın. */
 addEventListener('hashchange', () => {

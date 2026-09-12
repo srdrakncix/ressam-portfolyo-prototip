@@ -202,13 +202,19 @@ def build_data():
         kol = (k.get('koleksiyon') or {})
         ortam = (k.get('ortam_gorseli') or '').strip()
 
-        # Kunye olcusu ile fotografin orani uyusmazsa duvarda eser KIRPILIR
-        # (.eser img object-fit: cover). Sessiz kalmasin: panel de uyariyor
-        # ama biri JSON'u elle duzenlerse tek uyari burasi olur.
+        # Kunye olcusu ile fotografin orani uyusmuyor mu? Artik EKRANDA
+        # bir sey bozmuyor -- galeri gorseli kendi oraninda ciziyor, ne
+        # kirpiyor ne geriyor (bkz. sergi.html .tuval). Ama sayilardan
+        # biri yanlis demektir: ya olcu yanlis girilmis ya fotograf
+        # kirpilmis. Ikisi de sessiz gecmemeli, cunku olcu satiri
+        # koleksiyonerin okudugu bir iddia.
         bek, ger = cw / ch, im.width / im.height
         if olcu_var and abs(ger - bek) / bek > 0.03:
-            print(f'UYARI  {k["slug"]}: gorsel orani {ger:.2f}, kunye {cw}x{ch} cm '
-                  f'({bek:.2f}). Duvarda kirpilacak.')
+            ima = round(ch * ger)
+            print(f'UYARI  {k["slug"]}: fotograf orani {ger:.3f}, kunye '
+                  f'{cw}x{ch} cm ({bek:.3f}) -- %{abs(ger-bek)/bek*100:.0f} '
+                  f'sapma. Fotografa gore {ch} cm yuksekligin karsiligi '
+                  f'{ima} cm genislik.')
 
         works.append({
             'id':     k['slug'],
