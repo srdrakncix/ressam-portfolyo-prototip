@@ -27,94 +27,39 @@
   left: -6.17%; top: 5.37%; width: 111.33%; height: 99.53%;
   background: url(assets/firca/taban.webp) 0 0 / 100% 100% no-repeat;
 }
-#boya i { animation-duration: 300ms; animation-timing-function: cubic-bezier(.38,.12,.56,.94); }
 #boya i:nth-child(1) {
   left: -12.50%; top: -5.13%; width: 132.33%; height: 39.91%;
   background-image: url(assets/firca/panel-1.webp);
-}
-#menu:popover-open #boya i:nth-child(1) {
-  animation-name: sup-sol; animation-delay: 0ms;
-}
-#menu.open #boya i:nth-child(1) {
-  animation-name: sup-sol; animation-delay: 0ms;
 }
 #boya i:nth-child(2) {
   left: -4.00%; top: -3.97%; width: 43.33%; height: 114.82%;
   background-image: url(assets/firca/panel-2.webp);
 }
-#menu:popover-open #boya i:nth-child(2) {
-  animation-name: sup-alt; animation-delay: 44ms;
-}
-#menu.open #boya i:nth-child(2) {
-  animation-name: sup-alt; animation-delay: 44ms;
-}
 #boya i:nth-child(3) {
   left: -3.83%; top: -3.38%; width: 117.17%; height: 73.05%;
   background-image: url(assets/firca/panel-3.webp);
-}
-#menu:popover-open #boya i:nth-child(3) {
-  animation-name: sup-sag; animation-delay: 84ms;
-}
-#menu.open #boya i:nth-child(3) {
-  animation-name: sup-sag; animation-delay: 84ms;
 }
 #boya i:nth-child(4) {
   left: -13.00%; top: 27.54%; width: 132.00%; height: 55.66%;
   background-image: url(assets/firca/panel-4.webp);
 }
-#menu:popover-open #boya i:nth-child(4) {
-  animation-name: sup-sag; animation-delay: 120ms;
-}
-#menu.open #boya i:nth-child(4) {
-  animation-name: sup-sag; animation-delay: 120ms;
-}
 #boya i:nth-child(5) {
   left: -10.50%; top: 44.11%; width: 140.00%; height: 78.41%;
   background-image: url(assets/firca/panel-5.webp);
-}
-#menu:popover-open #boya i:nth-child(5) {
-  animation-name: sup-sol; animation-delay: 152ms;
-}
-#menu.open #boya i:nth-child(5) {
-  animation-name: sup-sol; animation-delay: 152ms;
 }
 #boya i:nth-child(6) {
   left: -11.83%; top: 70.36%; width: 138.00%; height: 24.62%;
   background-image: url(assets/firca/panel-6.webp);
 }
-#menu:popover-open #boya i:nth-child(6) {
-  animation-name: sup-sag; animation-delay: 180ms;
-}
-#menu.open #boya i:nth-child(6) {
-  animation-name: sup-sag; animation-delay: 180ms;
-}
 #boya i:nth-child(7) {
   left: 4.17%; top: 30.46%; width: 73.33%; height: 17.27%;
   background-image: url(assets/firca/panel-7.webp);
-}
-#menu:popover-open #boya i:nth-child(7) {
-  animation-name: sup-sol; animation-delay: 204ms;
-}
-#menu.open #boya i:nth-child(7) {
-  animation-name: sup-sol; animation-delay: 204ms;
 }
 #boya i:nth-child(8) {
   left: 15.00%; top: 23.69%; width: 43.83%; height: 9.33%;
   background-image: url(assets/firca/panel-8.webp);
 }
-#menu:popover-open #boya i:nth-child(8) {
-  animation-name: sup-sag; animation-delay: 204ms;
-}
-#menu.open #boya i:nth-child(8) {
-  animation-name: sup-sag; animation-delay: 204ms;
-}
 #boya i:nth-child(9) {
   left: 62.17%; top: 67.44%; width: 41.83%; height: 8.63%;
   background-image: url(assets/firca/panel-9.webp);
-}
-#menu:popover-open #boya i:nth-child(9) {
-  animation-name: sup-sol; animation-delay: 204ms;
-}
-#menu.open #boya i:nth-child(9) {
-  animation-name: sup-sol; animation-delay: 204ms;
 }

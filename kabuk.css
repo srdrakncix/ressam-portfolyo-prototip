@@ -243,14 +243,9 @@
      kirpma yaptigi icin kutu sinirinda cetvel gibi duz kenar
      birakiyordu -- gerilmis darbeden kotuydu. */
   background-repeat: no-repeat; background-size: 100% 100%;
-  animation-duration: 300ms;
-  animation-timing-function: var(--ease);
-  animation-fill-mode: both;
+  /* Supurme animasyonu ve @keyframes sup-* KALDIRILDI (musteri
+     karari). Darbeler konumlarinda hazir duruyor. */
 }
-@keyframes sup-sol { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
-@keyframes sup-sag { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0); } }
-@keyframes sup-ust { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
-@keyframes sup-alt { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0); } }
 
 /*__FIRCA_CSS__*/
 
@@ -270,12 +265,11 @@ html.durdur { scrollbar-gutter: stable; }
 #menu ul { list-style: none; margin: 0; padding: 0; }
 #menu li { margin-bottom: 1px; }
 
-/* Satirlar sirayla netlesip geliyor: etiketlerin aydinlanmasi. */
-#menu li, #menu .grouplbl, #lang {
-  opacity: 0; translate: 0 9px; filter: blur(2px);
-  transition: opacity 380ms var(--ease), translate 420ms var(--ease),
-              filter 380ms var(--ease);
-}
+/* KADEMELI GIRIS KALDIRILDI (musteri karari: "normal menu gibi
+   acilsin"). Onceden satirlar opacity/translate/blur ve --d gecikmesiyle
+   sirayla netlesiyordu; simdi panelle birlikte aninda geliyorlar.
+   Asagidaki :popover-open ve .open dallari artik bir sey degistirmiyor
+   ama zararsiz -- baslangic degeri yok, yani gecis de yok. */
 /* Yine AYRI kurallar, ayni sebeple. */
 #menu:popover-open li, #menu:popover-open .grouplbl, #menu:popover-open #lang {
   opacity: 1; translate: none; transform: none; filter: none;
@@ -468,7 +462,12 @@ html.durdur { scrollbar-gutter: stable; }
        Boyanin ucu 373'ten 194'e iniyor -- ekranin %96'sindan %50'sine.
        Formul yine tasmaya bagli: dar ekranda kart + tasma sigmali,
        yoksa tirtikli kenar ekran kenarinda kesilir. */
-    width: min(150px, calc((100vw - 2 * clamp(14px, 4vw, 22px))
+    /* 150'den 132'ye. Musteri: "mobilde menu arayuzu hala cooook yer
+       kapliyor, o yuzden sayfa donme animasyonunu goremiyoruz".
+       Olculdu: menu + tasan boya ekranin %63'unu aliyordu ve kagida
+       120 px kaliyordu. En uzun satir 92.5 px + 34 px dolgu = 126.5,
+       yani 132 hala siğiyor. */
+    width: min(132px, calc((100vw - 2 * clamp(14px, 4vw, 22px))
                            / (1 + var(--tasma-oran, .3))));
     height: auto;
     max-height: calc(100dvh - var(--ust) - 20px);
@@ -480,8 +479,16 @@ html.durdur { scrollbar-gutter: stable; }
   #boya { filter: drop-shadow(0 16px 34px rgba(0,0,0,.6)); }
   #menu::before, #mon { display: none; }
   /* min-height:0 olmadan izgara ogesi kuculuemez, uzun liste karti tasar. */
-  #msol { min-height: 0; padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); }
-  #menu a { padding: 11px 2px 11px 18px; }   /* dokunma hedefi ~44px */
+  /* Dolgular TELEFONDA daha kucuk: kart 132 px'e inince "Son Resimler"
+     iki satira boluniyor ve TR/EN/FR tasiyordu. 16+18 = 34 px dolgu
+     132'nin dortte birini yiyordu; 8+10 = 18 px ile kullanilabilir
+     genislik 98'den 114'e cikiyor. Dikey dolgu degismiyor: dokunma
+     hedefi ~44 px kalmali. */
+  #msol { min-height: 0; padding: 12px 8px calc(14px + env(safe-area-inset-bottom)); }
+  #menu a { padding: 11px 2px 11px 10px; }   /* dokunma hedefi ~44px */
+  /* Dil dugmeleri de sigmali: ayraclar daralıyor. */
+  #lang { gap: 3px; }
+  #lang .sep2 { margin: 0 1px; }
   #lang { margin-top: 20px; }
 }
 

@@ -432,7 +432,11 @@ function kagidiKacir() {
      (firca.py ölçüyor, firca.css --tasma-oran ile yayınlıyor).
      Sağ pay ayrı bir şey: o boyayla ilgili değil, yalnız ekrandan
      taşmayı engelliyor. */
-  const TEMIZ = 16;
+  /* Temiz pay ve ekran payi TELEFONDA daha kucuk: orada her piksel
+     kagida kaliyor ve musteri donmeyi goremediğini soyluyor. Olculdu:
+     menu + tasan boya ekranin %63'unu aliyordu. */
+  const darEkran = window.innerWidth <= 760;
+  const TEMIZ = darEkran ? 10 : 16;
   const boyaEl = document.getElementById('boya');
   const menuSag = menuEl.getBoundingClientRect().right;
   /* Tasma GERCEK OLCUMLE. Once firca.py'nin yayinladigi sabit bir oran
@@ -449,7 +453,7 @@ function kagidiKacir() {
     }
   }
   const bosluk = (darbeSag - menuSag) + TEMIZ;
-  const sagPay = 26;
+  const sagPay = darEkran ? 14 : 26;
   const sol = shell.offsetLeft;
   const en = shell.offsetWidth;
   if (!en) return;

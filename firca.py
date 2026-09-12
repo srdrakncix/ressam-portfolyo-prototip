@@ -959,8 +959,9 @@ def css_yaz(satirlar, taban=None):
         p.append('  background: url(%s) 0 0 / 100%% 100%% no-repeat;'
                  % taban['dosya'])
         p.append('}')
-    p.append('#boya i { animation-duration: %dms;'
-             ' animation-timing-function: %s; }' % (SURE, FIRCA_EGRI))
+    # ANIMASYON KURALI YAZILMIYOR (musteri karari: "normal menu gibi
+    # acilsin"). Darbeler konumlarinda hazir duruyor; menu acilirken
+    # yalniz panelin kendi opaklik gecisi var.
     for i, r in enumerate(satirlar, 1):
         p.append('#boya i:nth-child(%d) {' % i)
         # KUTU KAYNAGIN ORANINDA. Once en/boy ikisi de yuzdeydi (biri
@@ -984,15 +985,11 @@ def css_yaz(satirlar, taban=None):
                  % (r['sol'], r['ust'], r['en'], r['boy']))
         p.append('  background-image: url(%s);' % r['dosya'])
         p.append('}')
-        # AYRI kurallar. Tek seciciye ":popover-open, .open" yazmak,
-        # seciciyi tanimayan tarayicida kuralin TAMAMINI dusuruyor ve
-        # yedek yol icin yazilan dal da gidiyor.
-        gec = GECIKMELER[min(i - 1, len(GECIKMELER) - 1)]
-        for durum in (':popover-open', '.open'):
-            p.append('#menu%s #boya i:nth-child(%d) {' % (durum, i))
-            p.append('  animation-name: sup-%s; animation-delay: %dms;'
-                     % (r['yon'], gec))
-            p.append('}')
+        # Supurme kurallari (animation-name + gecikme) KALDIRILDI.
+        # Onceden her darbe icin :popover-open ve .open dallarina ayri
+        # ayri yaziliyordu; sebebi seciciyi tanimayan tarayicida tek
+        # seciciye iki durum yazmanin kuralin tamamini dusurmesiydi.
+        # Animasyon kalkinca ikisi de gereksizleşti.
     io.open(CSS_YOL, 'w', encoding='utf-8', newline='\n').write('\n'.join(p) + '\n')
 
 
