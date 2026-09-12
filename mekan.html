@@ -126,6 +126,13 @@ a:hover { color: var(--link); }
   max-width: 100%; max-height: 78vh;
   width: auto; height: auto;
 }
+/* Baglanti gorselin kutusundan buyuk olmasin: blok bir <a> kagidin
+   tamamini kaplayip esere denk gelmeyen yerleri de tiklanabilir
+   yapiyordu. */
+.hero-bag { display: block; width: fit-content; margin: 0 auto; }
+@media (hover: hover) {
+  .hero-bag:hover img { opacity: .94; transition: opacity 220ms var(--ease); }
+}
 
 .work { margin-bottom: clamp(56px, 8vw, 104px); }
 .work:last-child { margin-bottom: 0; }
@@ -400,6 +407,13 @@ function viewHome() {
   const w = anaEserler[0] || SITE.works[0];
   anaEserler.forEach((eser, i) => {
     const f = K.el('figure', 'hero');
+    /* Eser TIKLANABILIR. Once ciplak <img> konmustu: hero salonun genel
+       gorunusuyken tiklanacak bir hedef yoktu, esere gecirirken baglanti
+       eklenmesi gerekiyordu. `#/eser/<slug>` rotasi bu sayfada zaten
+       tanimli (viewEser). */
+    const bag = K.el('a', 'hero-bag');
+    bag.href = '#/eser/' + encodeURIComponent(eser.slug);
+    bag.setAttribute('aria-label', eser.title);
     const im = new Image();
     im.src = eser.src;
     if (eser.srcset) {
@@ -412,7 +426,8 @@ function viewHome() {
     /* Ilki LCP: hemen ve yuksek oncelikle. Ikincisi tembel. */
     if (i === 0) { im.loading = 'eager'; im.fetchPriority = 'high'; }
     else { im.loading = 'lazy'; }
-    f.appendChild(im);
+    bag.appendChild(im);
+    f.appendChild(bag);
     panel.appendChild(f);
   });
 
