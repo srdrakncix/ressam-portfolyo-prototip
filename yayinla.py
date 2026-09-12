@@ -112,7 +112,9 @@ def main():
     # hicbirinden referans almiyor -- cerceveler raflanan Fransiz
     # salonundan, duvar da artik uretilmeyen 3B salon sayfasindan kalma.
     # Kaynakta duruyorlar; yalnizca kopyalanmiyorlar.
-    ATLA = {'cerceve', 'duvar'}
+    # 'hero' de eklendi: salon kurgusu artik ana sayfada kullanilmiyor
+    # (musteri karari), kaynakta duruyor ama yayina kopyalanmiyor.
+    ATLA = {'cerceve', 'duvar', 'hero'}
     for kok, dizinler, dosyalar in os.walk(kaynak_varlik):
         dizinler[:] = [d for d in dizinler if d not in ATLA]
         bagil = os.path.relpath(kok, kaynak_varlik)

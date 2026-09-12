@@ -116,7 +116,16 @@ a:hover { color: var(--link); }
    yaziliyor ki gorsel inmeden once yeri ayrilsin -- yoksa sayfa
    yuklenirken altindaki her sey ziplar. */
 .hero { margin: 0 0 clamp(48px, 7vw, 88px); }
-.hero img { display: block; width: 100%; height: auto; }
+/* Eser EKRANA SIGIYOR. Tam genislik verilince dikey bir eser (eser-2:
+   1080x1342) 997 px kolonda 1239 px yukseklige cikiyor, yani ekrani 1.4
+   kat asiyor ve "hero" olarak ilk bakista hic gorunmuyor. Yukseklik
+   sinirli, genislik orandan; cerceve yine yok -- gri saha, golge ve
+   kutu yok, kagidin uzerinde duruyor. */
+.hero img {
+  display: block; margin: 0 auto;
+  max-width: 100%; max-height: 78vh;
+  width: auto; height: auto;
+}
 
 .work { margin-bottom: clamp(56px, 8vw, 104px); }
 .work:last-child { margin-bottom: 0; }
@@ -378,34 +387,34 @@ const venueOf = (s) => s.split(' · ').slice(1).join(' · ') || s;
 function viewHome() {
   setBackdrop('acilis'); shell(null);
 
-  /* Hero: salonun genel gorunusu -- sekiz eserin tamami tek mekanda.
-     Onceden tek eserin oda kurgusuydu ve AYNI gorsel sayfada uc kez
-     cikiyordu: hero, giris kartinin arka plani, menu onizlemesi.
-     (Eski kodda `slug === 'dag-sirti'` aramasi da olu koddu -- o eser
-     silineli yok, arama hep bos donup yedege dusuyordu.) */
-  const w = SITE.works.find(x => x.ortam) || SITE.works[0];
-  if (SITE.hero) {
+  /* ANA SAYFA: iki eser, cercevesiz, tam genislik. Once salonun genel
+     gorunusu vardi; musteri karari ile eserin kendisi duruyor. Hangi
+     eserler oldugu SITE.anaEserler'den (build.py ANA_ESERLER) -- sayfa
+     ve paylasim gorseli ayni kaynagi okuyor, cunku og:image bir kez
+     elle yazilmisti ve silinmis bir esere bakip 404 vermisti.
+     Cercevesiz: gri saha yok, golge yok, kutu gorselin kendisi --
+     galeri izgarasinda yapilanin aynisi. */
+  const hepsi = new Map(SITE.works.map(x => [x.slug, x]));
+  const anaEserler = (SITE.anaEserler || [])
+    .map(sl => hepsi.get(sl)).filter(Boolean);
+  const w = anaEserler[0] || SITE.works[0];
+  anaEserler.forEach((eser, i) => {
     const f = K.el('figure', 'hero');
-    const hi = new Image();
-    hi.src = SITE.hero.src;
-    /* sizes 100vw DEGIL: hero kagit kolonunun icinde, olculdu 997 CSS
-       px / 1440 = %69. 100vw yaziliyken tarayici 2400w surumunu
-       seciyordu (173 KB); dogru degerle 1200w geliyor (76 KB). */
-    if (SITE.hero.srcset) {
-      hi.srcset = SITE.hero.srcset;
-      hi.sizes = '(max-width: 760px) 92vw, 70vw';
+    const im = new Image();
+    im.src = eser.src;
+    if (eser.srcset) {
+      im.srcset = eser.srcset;
+      im.sizes = '(max-width: 760px) 92vw, 70vw';
     }
-    if (SITE.hero.en) { hi.width = SITE.hero.en; hi.height = SITE.hero.boy; }
-    hi.alt = t('hero_alt');
-    hi.decoding = 'async';
-    hi.loading = 'eager';
-    hi.fetchPriority = 'high';
-    f.appendChild(hi);
+    if (eser.px) { im.width = eser.px[0]; im.height = eser.px[1]; }
+    im.alt = eser.title;
+    im.decoding = 'async';
+    /* Ilki LCP: hemen ve yuksek oncelikle. Ikincisi tembel. */
+    if (i === 0) { im.loading = 'eager'; im.fetchPriority = 'high'; }
+    else { im.loading = 'lazy'; }
+    f.appendChild(im);
     panel.appendChild(f);
-  } else {
-    panel.appendChild(workBlock(w, { eager: true, src: w.ortam,
-                                     ratio: w.ortamRatio }));
-  }
+  });
 
   const a = K.el('a', 'enter');
   a.href = '#/galeri';

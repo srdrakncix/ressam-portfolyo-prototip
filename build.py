@@ -70,6 +70,12 @@ TAM_EN, TAM_KALITE, LQIP_EN, LQIP_KALITE = 1686, 78, 20, 40
 # yazilinca site/ 2.54 MB'dan 3.69 MB'a cikmisti -- ayni gorsel iki kez.
 DUYARLI_BOYLAR = (540, 810)
 
+# Ana sayfada gosterilen eserler, sirasiyla. Musteri karari: iki eser,
+# cercevesiz, hero gibi. Hem sayfa hem paylasim gorseli buradan okuyor --
+# og:image bir kez elle yazilmisti ve silinmis bir esere bakip 404
+# vermisti.
+ANA_ESERLER = ('eser-2', 'eser-7')
+
 
 def yorumsuz(metin, dil):
     """TAM SATIR yorumlarini dusurur. Satir ici yorumlara DOKUNMAZ.
@@ -445,22 +451,15 @@ def render(tpl_path, data, standalone):
         veri = w.pop('ortamSrc', None)
         if veri and not w.get('ortam'):
             w['ortam'] = veri
-    # Hero: salonun genel gorunusu, sekiz eser tek mekanda (hero.py
-    # uretiyor, varlik/hero altina yaziyor). Yoksa alan hic konmuyor ve
-    # ana sayfa eski davranisina doner -- eksik varlik sayfayi bozmasin.
-    hdizin = os.path.join(HERE, 'varlik', 'hero')
-    buyuk = os.path.join(hdizin, 'salon-2400.webp')
-    kucuk = os.path.join(hdizin, 'salon-1200.webp')
-    if os.path.isfile(buyuk):
-        with Image.open(buyuk) as _i:
-            _en, _boy = _i.size
-        ikili = os.path.isfile(kucuk)
-        data['hero'] = {
-            'src': 'assets/hero/salon-%s.webp' % ('1200' if ikili else '2400'),
-            'srcset': ('assets/hero/salon-1200.webp 1200w,'
-                       ' assets/hero/salon-2400.webp 2400w') if ikili else '',
-            'en': _en, 'boy': _boy,
-        }
+    # Salon kurgusu ARTIK HERO DEGIL (musteri karari: ana sayfada
+    # eserin kendisi duruyor). Kaynak varlik/hero altinda kaliyor ama
+    # yayina kopyalanmiyor (bkz. yayinla.py ATLA).
+    # Ana sayfa eserleri: sirasi ANA_ESERLER'den, verisi works'ten.
+    _hepsi = {w['slug']: w for w in (data.get('works') or [])}
+    data['anaEserler'] = [s for s in ANA_ESERLER if s in _hepsi]
+    if len(data['anaEserler']) != len(ANA_ESERLER):
+        eksik = [s for s in ANA_ESERLER if s not in _hepsi]
+        sys.exit('HATA: ana sayfa eseri yok -> %s' % ', '.join(eksik))
 
     tpl = io.open(tpl_path, encoding='utf-8').read()
     for token in ('/*__SITE_DATA__*/', '/*__KIT__*/'):
@@ -492,21 +491,18 @@ def render(tpl_path, data, standalone):
         # eser sitenin tamamini temsil etmiyor. Hero sekiz eseri ayni
         # mekanda gosteriyor, yani paylasilan link sanatcinin isini
         # topluca gosteriyor. Hero yoksa yine ilk esere dusuyor.
-        hero = (data.get('hero') or {})
-        # Buyuk surum: og:image'in onerilen alt siniri 1200x630 ve
-        # hero'nun kucuk surumu 1200x568 ile yuksekligi gecmiyor.
-        yol = (hero.get('srcset') or '').split()[0] if hero.get('srcset') else None
-        if hero.get('srcset'):
-            parcalar = [p.strip().split() for p in hero['srcset'].split(',')]
-            en_buyuk = max(parcalar, key=lambda p: int(p[1].rstrip('w')))
-            yol = en_buyuk[0]
-        if not yol:
-            yol = hero.get('src')
+        # Paylasim gorseli: ana sayfanin ILK eseri. Salon kurgusu artik
+        # kullanilmadigi icin ondan aliniyordu, simdi sayfanin gercekten
+        # gosterdigi seyden aliniyor. Tam olcu (srcset'in en buyugu
+        # degil, ana dosya) -- 1080 px genislik og:image icin yeterli.
         isler = data.get('works') or []
+        _hepsi2 = {w['slug']: w for w in isler}
+        _ilk = _hepsi2.get((data.get('anaEserler') or [None])[0])
+        yol = _ilk.get('src') if _ilk else None
         if not yol:
             if not isler:
                 sys.exit('HATA: eser yok, paylasim gorseli uretilemedi.')
-            yol = isler[0].get('ortam') or isler[0].get('src')
+            yol = isler[0].get('src')
         if not yol:
             sys.exit('HATA: paylasim gorseli uretilemedi.')
         # Denetim: gorselin KAYNAGI gercekten var mi. Kusurun sebebi
