@@ -50,19 +50,33 @@ const upTR = (s) => s.toLocaleUpperCase('tr-TR');
 
 const BG = SITE.backdrops || {};
 const bgEls = [document.getElementById('bgA'), document.getElementById('bgB')];
-let bgTurn = 0, bgKey = null;
+let bgTurn = 0, bgKey = null, bgSrc = null;
 
 function setBackdrop(key) {
   const b = BG[key] || BG.acilis;
   if (!b || key === bgKey) return;
   bgKey = key;
-  const next = bgEls[bgTurn % 2], prev = bgEls[(bgTurn + 1) % 2];
-  next.style.backgroundImage = 'url(' + b.src + ')';
-  next.classList.add('on');
-  prev.classList.remove('on');
-  bgTurn++;
+  if (bgSrc === b.src) {
+    /* AYNI ÖRÜNTÜ. Tema tek olduğu için bütün sayfalar aynı görseli
+       paylaşıyor, sayfalar yalnız yatay fazda ayrışıyor. Burada katman
+       değiştirilseydi iki katman aynı görseli farklı fazda gösterip
+       birbirine karışırdı — çapraz geçiş değil çift pozlama. Onun yerine
+       açık duran katmanın fazı kayıyor (CSS geçişi konumu da kapsıyor).
+       Farklı görsele geçiş yolu duruyor: tema bir gün ikiye çıkarsa
+       çapraz geçiş kendiliğinden geri gelir. */
+    const aktif = bgEls[(bgTurn + 1) % 2];
+    if (b.pos) aktif.style.backgroundPosition = b.pos;
+  } else {
+    const next = bgEls[bgTurn % 2], prev = bgEls[(bgTurn + 1) % 2];
+    next.style.backgroundImage = 'url(' + b.src + ')';
+    if (b.pos) next.style.backgroundPosition = b.pos;
+    next.classList.add('on');
+    prev.classList.remove('on');
+    bgTurn++;
+    bgSrc = b.src;
+  }
   paintMenu(b.palette || []);
-  paintBurger(b.src);
+  paintBurger(b.src, b.cubuk);
 }
 
 /* Menü satırlarının rengi o sayfanın zemininden geliyor — her satır ayrı ton.
@@ -120,10 +134,15 @@ function paintMenu(pal) {
   });
 }
 
-/* Hamburger'in üç çubuğu: gerçek boyadan kesilmiş şeritler. */
-function paintBurger(src) {
-  document.querySelectorAll('#menubtn i').forEach((el) => {
+/* Hamburger'in üç çubuğu: gerçek boyadan kesilmiş şeritler.
+   Hangi parça kesiliyor: zemin.py ÖLÇEREK seçiyor (cubuk). Konumlar
+   kabuk.css'te elle yazılıydı ve yeni örüntüde üçüncü çubuk beyaz diskin
+   üzerinde 2.66:1'e düşüyordu -- grafik eşiği 3:1. CSS'teki değerler
+   yedek olarak duruyor (veri gelmezse simge yine boyalı). */
+function paintBurger(src, cubuk) {
+  document.querySelectorAll('#menubtn i').forEach((el, i) => {
     el.style.backgroundImage = 'url(' + src + ')';
+    if (cubuk && cubuk[i]) el.style.backgroundPosition = cubuk[i];
   });
 }
 

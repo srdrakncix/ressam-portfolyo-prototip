@@ -1,156 +1,222 @@
 {
- "galeri": {
-  "src": "assets/zemin/galeri.webp",
+ "acilis": {
+  "src": "assets/zemin/oruntu.webp",
+  "pos": "0% top",
+  "cubuk": [
+   "37% 7%",
+   "71% 46%",
+   "96% 78%"
+  ],
   "palette": [
-   "#e4cecd",
-   "#e4cdcd",
-   "#e3cdcc",
-   "#e3cccc",
-   "#e4d0cc",
-   "#e1c9c8",
-   "#e2cac9",
-   "#e3cbcb",
-   "#e3cfcc"
+   "#d2dfe7",
+   "#d1dfe6",
+   "#d0dfe5",
+   "#e0dbde",
+   "#e8d6d4",
+   "#e8d5d4",
+   "#e8d6d5",
+   "#ebdadd",
+   "#ebdade"
   ]
  },
- "acilis": {
-  "src": "assets/zemin/acilis.webp",
+ "galeri": {
+  "src": "assets/zemin/oruntu.webp",
+  "pos": "9% top",
+  "cubuk": [
+   "37% 7%",
+   "71% 46%",
+   "96% 78%"
+  ],
   "palette": [
-   "#e4d9cc",
-   "#e2d7c9",
-   "#e4dace",
-   "#e2d8ca",
-   "#e2dcc9",
-   "#d6decc",
-   "#e2d6ca",
-   "#dfe1c9",
-   "#d4dcce"
+   "#d2dfe7",
+   "#d1dfe6",
+   "#d0dfe5",
+   "#e0dbde",
+   "#e8d6d4",
+   "#e8d5d4",
+   "#e8d6d5",
+   "#ebdadd",
+   "#ebdade"
   ]
  },
  "son": {
-  "src": "assets/zemin/son.webp",
+  "src": "assets/zemin/oruntu.webp",
+  "pos": "18% top",
+  "cubuk": [
+   "37% 7%",
+   "71% 46%",
+   "96% 78%"
+  ],
   "palette": [
-   "#dddcc8",
-   "#c6e0cc",
-   "#c6d7e0",
-   "#c7d9e1",
-   "#e0d5c5",
-   "#dfdac7",
-   "#c4dfdd",
-   "#c6d6e0",
-   "#dfd2c4"
+   "#d2dfe7",
+   "#d1dfe6",
+   "#d0dfe5",
+   "#e0dbde",
+   "#e8d6d4",
+   "#e8d5d4",
+   "#e8d6d5",
+   "#ebdadd",
+   "#ebdade"
   ]
  },
  "seri": {
-  "src": "assets/zemin/seri.webp",
+  "src": "assets/zemin/oruntu.webp",
+  "pos": "27% top",
+  "cubuk": [
+   "37% 7%",
+   "71% 46%",
+   "96% 78%"
+  ],
   "palette": [
-   "#c6c9e0",
-   "#c6cbe0",
-   "#c6cae0",
-   "#c7cde1",
-   "#c7cee1",
-   "#c6cce0",
-   "#c7cae0",
-   "#c7cce0",
-   "#c5c9e0"
+   "#d2dfe7",
+   "#d1dfe6",
+   "#d0dfe5",
+   "#e0dbde",
+   "#e8d6d4",
+   "#e8d5d4",
+   "#e8d6d5",
+   "#ebdadd",
+   "#ebdade"
   ]
  },
  "atolye": {
-  "src": "assets/zemin/atolye.webp",
+  "src": "assets/zemin/oruntu.webp",
+  "pos": "36% top",
+  "cubuk": [
+   "37% 7%",
+   "71% 46%",
+   "96% 78%"
+  ],
   "palette": [
-   "#dec3cb",
-   "#dfc3cb",
-   "#dfc4cb",
-   "#dec2c8",
-   "#dec1c7",
-   "#c1d1dd",
-   "#c6d3e0",
-   "#c7d5e1",
-   "#c6d4e0"
+   "#d2dfe7",
+   "#d1dfe6",
+   "#d0dfe5",
+   "#e0dbde",
+   "#e8d6d4",
+   "#e8d5d4",
+   "#e8d6d5",
+   "#ebdadd",
+   "#ebdade"
   ]
  },
  "biyografi": {
-  "src": "assets/zemin/biyografi.webp",
+  "src": "assets/zemin/oruntu.webp",
+  "pos": "45% top",
+  "cubuk": [
+   "37% 7%",
+   "71% 46%",
+   "96% 78%"
+  ],
   "palette": [
-   "#c4dfd1",
-   "#c2decd",
-   "#d4dec2",
-   "#c6e0d6",
-   "#dec4c3",
-   "#c3deca",
-   "#cedec2",
-   "#cfdec2",
-   "#d4ddc1"
+   "#d2dfe7",
+   "#d1dfe6",
+   "#d0dfe5",
+   "#e0dbde",
+   "#e8d6d4",
+   "#e8d5d4",
+   "#e8d6d5",
+   "#ebdadd",
+   "#ebdade"
   ]
  },
  "sergiler": {
-  "src": "assets/zemin/sergiler.webp",
+  "src": "assets/zemin/oruntu.webp",
+  "pos": "54% top",
+  "cubuk": [
+   "37% 7%",
+   "71% 46%",
+   "96% 78%"
+  ],
   "palette": [
-   "#c9c1dd",
-   "#cac1de",
-   "#cac2de",
-   "#cdc1dd",
-   "#c8c1de",
-   "#c8c2de",
-   "#c7c1dd",
-   "#ccc1dd",
-   "#cec1de"
+   "#d2dfe7",
+   "#d1dfe6",
+   "#d0dfe5",
+   "#e0dbde",
+   "#e8d6d4",
+   "#e8d5d4",
+   "#e8d6d5",
+   "#ebdadd",
+   "#ebdade"
   ]
  },
  "koleksiyon": {
-  "src": "assets/zemin/koleksiyon.webp",
+  "src": "assets/zemin/oruntu.webp",
+  "pos": "63% top",
+  "cubuk": [
+   "37% 7%",
+   "71% 46%",
+   "96% 78%"
+  ],
   "palette": [
-   "#e4d5cd",
-   "#e3d4cc",
-   "#e1cec8",
-   "#e1d0c8",
-   "#e2d3c9",
-   "#e4d6cd",
-   "#e3d6cb",
-   "#e2d4ca",
-   "#e2d5ca"
+   "#d2dfe7",
+   "#d1dfe6",
+   "#d0dfe5",
+   "#e0dbde",
+   "#e8d6d4",
+   "#e8d5d4",
+   "#e8d6d5",
+   "#ebdadd",
+   "#ebdade"
   ]
  },
  "yayinlar": {
-  "src": "assets/zemin/yayinlar.webp",
+  "src": "assets/zemin/oruntu.webp",
+  "pos": "72% top",
+  "cubuk": [
+   "37% 7%",
+   "71% 46%",
+   "96% 78%"
+  ],
   "palette": [
-   "#e4d8ce",
-   "#e5cfcf",
-   "#e4cdcd",
-   "#e3cccc",
-   "#e4cecd",
-   "#e5cecf",
-   "#e5d5cf",
-   "#e4d5cd",
-   "#e5d7ce"
+   "#d2dfe7",
+   "#d1dfe6",
+   "#d0dfe5",
+   "#e0dbde",
+   "#e8d6d4",
+   "#e8d5d4",
+   "#e8d6d5",
+   "#ebdadd",
+   "#ebdade"
   ]
  },
  "basin": {
-  "src": "assets/zemin/basin.webp",
+  "src": "assets/zemin/oruntu.webp",
+  "pos": "81% top",
+  "cubuk": [
+   "37% 7%",
+   "71% 46%",
+   "96% 78%"
+  ],
   "palette": [
-   "#d0d3d6",
-   "#dad5ce",
-   "#d3dbce",
-   "#dad6cd",
-   "#e1e0c8",
-   "#d8dace",
-   "#c5cae0",
-   "#d4d1d2",
-   "#d2d1d6"
+   "#d2dfe7",
+   "#d1dfe6",
+   "#d0dfe5",
+   "#e0dbde",
+   "#e8d6d4",
+   "#e8d5d4",
+   "#e8d6d5",
+   "#ebdadd",
+   "#ebdade"
   ]
  },
  "iletisim": {
-  "src": "assets/zemin/iletisim.webp",
+  "src": "assets/zemin/oruntu.webp",
+  "pos": "90% top",
+  "cubuk": [
+   "37% 7%",
+   "71% 46%",
+   "96% 78%"
+  ],
   "palette": [
-   "#e2c9ca",
-   "#e2cac9",
-   "#e1c9c9",
-   "#e3cccb",
-   "#e2cbca",
-   "#e3cbcb",
-   "#e3d1cb",
-   "#e2ccca",
-   "#e3d0cc"
+   "#d2dfe7",
+   "#d1dfe6",
+   "#d0dfe5",
+   "#e0dbde",
+   "#e8d6d4",
+   "#e8d5d4",
+   "#e8d6d5",
+   "#ebdadd",
+   "#ebdade"
   ]
  }
 }

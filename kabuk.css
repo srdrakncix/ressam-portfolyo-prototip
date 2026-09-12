@@ -9,11 +9,20 @@
    ayrışırdı; galeri "başka bir site" gibi durmasın diye birleştirildiler,
    tek kaynakta durması da bunun şartı.
    ═══════════════════════════════════════════════════════════════════════ */
-/* ── zemin: ressamın boyası, sabit, sayfa değişince yumuşak geçiş ────────── */
+/* ── zemin: ressamın boyası, ÖRÜNTÜ olarak ───────────────────────────────── */
+
+/* Görsel yüklenene kadar (ve zeminin dışında kalan her yerde) görünen düz
+   renk. Sayı elle seçilmedi: örüntünün turkuaz ucundan ölçülüyor ve
+   zemin.py her derlemede buradaki değerle aynı olduğunu doğruluyor.
+   İki sayfada ayrı ayrı yazılıydı ve ikisi farklı sırada geliyordu (birinde
+   kabuk.css'ten önce, öbüründe sonra) — yani aynı satır bir sayfada
+   kazanıyor, öbüründe kaybediyordu. Tek yere alındı. */
+:root { --zemin-kati: #15252e; }
+html { background: var(--zemin-kati); }
 
 /* Zemin tablosu sayfayla BİRLİKTE GELMEMELİ.
    inset:0 tek başına yetmiyordu: mobilde adres çubuğu açılıp kapandıkça
-   100vh değişiyor, background-size:cover yeniden hesaplanıyor ve görsel
+   100vh değişiyor, background-size yeniden hesaplanıyor ve görsel
    her kaydırmada yeniden çözülüyordu (gereksiz yükleme + takılma).
    Çözüm: yüksekliği kaydırmayla değişmeyen 100lvh'ye sabitlemek, katmanı
    kendi compositor katmanına almak ve lastik-bant esnemesini kapatmak. */
@@ -22,9 +31,34 @@
   width: 100%;
   height: 100vh;
   height: 100lvh;                 /* adres çubuğu gizlenince değişmez */
-  background-size: cover; background-position: center;
-  background-repeat: no-repeat;
-  opacity: 0; transition: opacity 900ms var(--ease);
+
+  /* ÖRÜNTÜ. Kaynak dikey bir şerit (298x1282): `cover` ile 1920 px'e
+     gerdirilseydi 6.4 kat büyütülüp plastikleşecekti. Onun yerine şerit
+     ekran boyuna oturuyor ve yana doğru tekrar ediyor — boyalı paravan.
+     Böylece büyütme yok, sayfanın dikey renk geçişi de fotoğrafın kendi
+     geçişi oluyor: üstte turkuaz, altta mercan.
+     Şerit aynalanarak karolandığı için (zemin.py) ek yeri yok; dikiş
+     her derlemede ölçülüyor.
+     ÖLÇEK 135%: şerit ekran boyunun bir katından biraz fazlası. Üç
+     oran denendi (%100 / %135 / %175, aynı sayfanın ekran görüntüleri
+     karşılaştırıldı). %100'de şerit 209 px'e düşüyor, yedi tekrar
+     görünüyor ve örüntü kilim gibi okunuyor; %175'te tek tekrar kalıyor,
+     bu kez örüntü yok. %135'te şerit 282 px, boya fırça izi olarak
+     okunacak kadar büyük, tekrar da görünüyor. Üstten hizalı: fazlalık
+     alttan kırpılıyor, yani fotoğrafın en açık pembe ucu dışarıda kalıyor
+     ve turkuaz üstte duruyor.
+     max(): yatık telefonda ekran 390 px kalıyor ve şerit 91 px'e inip
+     örüntü kaleydoskopa dönüyordu — 620 px taban onu 144 px'in altına
+     indirmiyor. */
+  background-size: auto 135%;
+  background-size: auto max(135%, 620px);
+  background-position: 0 top;
+  background-repeat: repeat-x;
+  opacity: 0;
+  /* Konum da geçişli: sayfa değişince örüntünün fazı kayıyor (bkz.
+     kabuk.js setBackdrop -- artık katman değiştirmiyor, kaydırıyor). */
+  transition: opacity 900ms var(--ease),
+              background-position 900ms var(--ease);
   pointer-events: none;
   transform: translateZ(0);       /* kendi katmanı: kaydırmada yeniden boyanmaz */
   will-change: opacity;
