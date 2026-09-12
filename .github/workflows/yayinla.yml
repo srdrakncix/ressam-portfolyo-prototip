@@ -43,6 +43,14 @@ jobs:
       - name: Siteyi üret
         run: python yayinla.py
 
+      # Menu panelinin okunurlugu. Panel boyayken firca.py yirmi yazi
+      # kutusunun altindaki opakligi gercek pikselden olcuyordu; panel duz
+      # kreme gecince olcum kapali forma indi ama KALKMADI -- murekkepler
+      # kabuk.css'te tek yerde duruyor ve kapi onlari oradan okuyup
+      # panelin en koyu ucuna karsi olcuyor.
+      - name: Menü okunurluğu
+        run: python menu.py
+
       # Bozuk bir yayin sessizce gecmesin. Denetim, panelin yazdigi kayitlarla
       # uretilen ciktiyi KARSILASTIRIYOR: her esere bir gorsel dusmus mu?
       # (Once "dosya adi sayi mi" diye bakiyordu; adlar slug'a donunce yanlis

@@ -12,13 +12,6 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<!-- Fırça darbeleri: display:none bir popover içindeki CSS arka planı
-     olduğu için ilk açılışa kadar indirilmiyorlar ve panel boyasız
-     açılabiliyordu. fetchpriority=low: ana görselle yarışmasınlar.
-     Liste DERLEMEDE varlık dosyalarından üretiliyor — elle yazılıydı
-     ve yedide kalmıştı, darbe sayısı dokuza çıkınca son ikisi ilk
-     açılışta geç geliyordu. */ -->
-<!--__FIRCA_ONYUK__-->
 <!-- preconnect BLOKELEYEN host icin de gerekli. Once yalniz
      gstatic vardi, yani el sikismasi render'i blokeleyen
      googleapis icin degil ondan SONRA gelen host icin
@@ -87,9 +80,10 @@
   /* Olculdu (gercek hesaplanmis renkler, gercek opak zeminler):
      --soluk .54 ile 3.63:1, --silik .40 ile ~2.40:1, kunye etiketleri
      .46 ile 2.88:1 -- alti ayri yerde WCAG AA'nin (4.5:1) altinda.
-     firca.py'nin kapisi yalniz MENU murekkeplerini olcuyor, beyaz
-     kagidin ustundeki hicbir metin kapsaminda degil, o yuzden gozden
-     kacmisti. Yeni degerler AA'yi geciyor. */
+     Okunurluk kapisi (once firca.py, simdi menu.py) yalniz MENU
+     murekkeplerini olcuyor; beyaz kagidin ustundeki hicbir metin
+     kapsaminda degil, o yuzden gozden kacmisti. Yeni degerler AA'yi
+     geciyor. */
   --soluk:    rgba(28,33,26,.68);
   --silik:    rgba(28,33,26,.62);
   --cizgi:    rgba(28,33,26,.13);

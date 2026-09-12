@@ -1,5 +1,17 @@
 # -*- coding: utf-8 -*-
-"""Menu panelini firca darbeleriyle boyar.
+"""Menu panelini firca darbeleriyle boyar.  -- DEPODA, YAYINDA DEGIL --
+
+ARTIK DERLEMEDE KOSMUYOR. Musteri karari: "firca darbeli menu de depoya
+kalkiyor, ayni renk kalsin fakat normal, usturuplu, lüks premium bir menu
+olarak kalsin fakat bir o kadar da sade ve gosterissiz olmali." Panel duz
+kreme gecti (kabuk.css panel paleti); rengi bu panelin OLCULEN ortalamasi
+(#e6e1d7), yani "ayni renk" sayiyla karsilandi. Okunurluk kapisi da devam
+ediyor, yalniz kapali formda: menu.py.
+
+Betik, ham fotograflar ve varlik/firca depoda duruyor -- geri istenirse
+`python firca.py` yine calisir; yayina kopyalanmiyor (yayinla.py ATLA) ve
+sayfalara enjekte edilmiyor (build.py'den FIRCA belirtecleri kalkti).
+
 
 Menu artik siyah bir dikdortgen degil: yedi firca darbesiyle boyanmis bir
 alan. Bu betik o darbeleri gercek boya fotograflarindan uretiyor, panele

@@ -98,7 +98,7 @@ html { background: var(--zemin-kati); }
 #menubtn[aria-expanded="true"] i:nth-child(2) { opacity: 0; }
 #menubtn[aria-expanded="true"] i:nth-child(3) { transform: translateY(-11px) rotate(-45deg); }
 
-/* ── siyah menü paneli ───────────────────────────────────────────────────── */
+/* ── menü paneli: düz krem ───────────────────────────────────────────────── */
 
 /* == ANA MENU ==============================================================
    Menu artik elle yonetilen bir div degil, gercek bir popover: ust katman,
@@ -121,12 +121,22 @@ html { background: var(--zemin-kati); }
      ortasında biten bir dikdörtgen gibi duruyordu (858 px'lik ekranda
      687 px). Boyanmış bir yüzey ortada bitmez. */
   height: 100dvh;
-  border: 0; overflow: visible;
-  /* Zemin yok: panelin kendisi boya. Kutu rengi birakilsaydi darbelerin
-     tirtikli kenari o dikdortgenin uzerinde durur, hicbir sey kazanmazdik.
-     Golge de kutuya degil boyaya ait -- #boya uzerinde drop-shadow. */
-  background: none;
-  color: var(--panel);
+  border: 0; overflow: hidden;       /* düz panel: kenarı kutunun kendisi */
+
+  /* PANEL DÜZ KREM (müşteri kararı: "fırça darbeli menü de depoya
+     kalkıyor, aynı renk kalsın fakat normal, usturuplu, sade bir menü").
+     Önceden dokuz fırça darbesi + yazı altı tabanıydı (firca.py
+     üretiyordu, 361 KB varlık); kaynak depoda duruyor, yayına
+     kopyalanmıyor (bkz. yayinla.py ATLA).
+     Renk ÖLÇÜLDÜ, seçilmedi: boyalı panelin gerçek ortalaması #e6e1d7
+     (ton 40°, doygunluk 0.23, aydınlık 0.87) ve düz panelin ortalaması
+     da o. Rampa boyanın kendi yönünde ama zayıf (11 basamak) -- ölü bir
+     levha olmasın, gradyan efekti diye de okunmasın.
+     Gölge yarıya indi: boyada tırtıklı kenarı zeminden ayırmak için
+     rgba(0,0,0,.55) gerekiyordu, düz kenar kendini gösteriyor. */
+  background: linear-gradient(180deg, var(--panel-ust), var(--panel-alt));
+  box-shadow: 1px 0 0 var(--panel-cizgi), 22px 0 40px rgba(0,0,0,.26);
+  color: var(--m-oniz-ad, #2c221d);
   display: grid; grid-template-columns: minmax(205px, 255px) 1fr;
 
   opacity: 0;
@@ -200,90 +210,40 @@ html { background: var(--zemin-kati); }
 #menu:popover-open::backdrop { background: rgba(26,22,16,.34); }
 @starting-style { #menu:popover-open::backdrop { background: rgba(6,7,5,0); } }
 
-/* ══ BOYA ═══════════════════════════════════════════════════════════════
-   Panel yedi firca darbesiyle boyaniyor. Darbeler gercek boya
-   fotograflarindan cikarildi; yerlesim ve gecikmeler firca.py'nin
-   olcumunden geliyor (asagida, uretilmis blok).
+/* ══ PANEL PALETİ ═══════════════════════════════════════════════════════
+   Bu blok önce firca.css'ten geliyordu (firca.py üretiyordu) çünkü panel
+   BOYAYDI: yazının altındaki opaklık darbelerin dokusuna bağlıydı, o
+   yüzden yirmi kutunun altı tek tek ölçülüyordu. Panel düz krem olunca
+   ölçüm kapalı forma indi -- iki hex arasındaki kontrast -- ve tek kaynak
+   burası oldu. Sayıları menu.py denetliyor: her mürekkep panelin EN KOYU
+   ucuna karşı ölçülüyor (metin 4.5:1, grafik 3:1) ve derlemede koşuyor.
+   Mürekkeplerin kendisi değişmedi: kremin üstünde okunmak için
+   seçilmişlerdi, krem de aynı kaldı. */
+:root {
+  --panel-ust: #ece7dc;                 /* panelin üstü */
+  --panel-alt: #e1dbcd;                 /* dibi: kapı buna karşı ölçüyor */
+  --panel-cizgi: rgba(58,46,34,.16);    /* sağ kenardaki saç teli */
 
-   Supurme yonu her darbe icin ayri: firca boyayi BIRAKTIGI ucdan tasimaya
-   baslar, ters yone supuren darbe hemen sahte gorunur. Hangi ucun yuklu
-   oldugu maskeden olculuyor, tahmin edilmiyor.
+  /* Satır renkleri çalışma anında zeminden üretiliyor (kabuk.js
+     paintMenu) ama serbest değil: ton sıcak pencereye, doygunluk ve
+     aydınlık buradaki sayılara kelepçeleniyor. menu.py kelepçenin bütün
+     köşelerini deniyor, yani en kötü hâli de ölçülmüş oluyor. */
+  --satir-doygunluk: 0.40; --satir-parlaklik: 0.20; --satir-adim: 0.015;
+  --satir-ton-merkez: 33.0; --satir-ton-pay: 11.0;
 
-   clip-path secildi cunku bilesikte calisiyor; genislik animasyonu her
-   karede yeniden duzen kurardi. */
-#boya {
-  position: absolute; inset: 0; z-index: 0;
-  /* pointer-events KAPALI DEGIL. Kırpma kalktığından beri boya panelin
-     kutusunu taşıyor (sağda ~140 px, telefonda altta ~95 px). O taşan
-     alan `pointer-events: none` olduğu sürece dokunuşu perdeye
-     gönderiyordu ve perde de popover'ın hafif-kapanmasını tetikliyordu:
-     yani KULLANICI BOYAYA DOKUNUNCA MENÜ KAPANIYORDU. Telefonda görünen
-     kartın üçte biri bu bölgeydi. Sütunlar z-index:1 ile üstte olduğu
-     için bağlantılar etkilenmiyor. */
-  pointer-events: auto;
-  /* Tasma her yone serbest, SAGA degil. Kagidin sol kenari menuden
-     26 px sonra basliyor (kagidiKacir o boslugu birakiyor); boya
-     ondan fazla tasarsa eserin sayfasinin uzerine leke gibi biniyor.
-     18 px tirtikli kenari gostermeye yetiyor, kagida degmiyor. */
-  /* Sağdaki kırpma ÖLÇÜLEN taşmadan geliyor (firca.css'teki
-     --tasma-oran). Elle -40 px yazılıydı ve boyayı bıçakla kesiyordu:
-     görünür boya kutunun %29'u kadar taşıyor, yani 1440 px'te x=640'ta
-     cetvel gibi düz bir dikey kenar oluşuyordu — "darbeler panelin
-     kendisi, tırtıklı kenar kalıcı" kararının tam tersi. Yedek değer
-     taşmayı kesmesin diye bol: varlık gelmezse kırpma devre dışı gibi
-     davranıyor. */
-  /* Kirpma yine ACIK ama artik olculen tasmaya bagli degil: kabuk.js
-     darbelerin gercek kutularini okuyup boslugu ona gore veriyor, bu
-     kural yalnizca boyanin kagida binmesini engelliyor. Deger bol
-     tutuluyor ki kenar kesilmesin. */
-  clip-path: inset(-60px -34% -80px -60px);
-  /* KIRPMA YOK. Darbeler panel kutusunu taşıp kendi tırtıklı, kuruyan
-     uçlarıyla bitiyor — "fırçayla boyandı" iddiası ancak böyle görünür
-     hâle geliyor. Kutu boyunda kırpınca dört kenar da cetvel gibi
-     çıkıyordu ve iki ayrı değerlendirici bunu birinci kusur saydı.
-     (Kökü CSS'te değildi: firca.py kompozisyonu tam kutu boyunda bir
-     tuvalde kuruyordu, kenar VARLIĞA pişiyordu. Artık tuval paylı.)
-
-     Zemin: boya gelmezse -JS erken hata verse ya da webp'ler 404 olsa-
-     menü yazısı sayfanın beyaz kâğıdı üstünde kalıp tamamen okunmaz
-     oluyordu. Bu taban renk darbelerin ALTINDA kalıyor, tırtıklı kenarı
-     bozmuyor, ama panelin hiçbir zaman zeminsiz kalmamasını sağlıyor. */
-  /* Kutuyu kaplayan taban rengi KALDIRILDI: nefes deliklerinin altında
-     duruyordu, yani delikler duvarı değil onu gösteriyordu ve panelin içi
-     iki ayrı sayfada birebir aynı renkte çıkıyordu. Zemin artık yalnızca
-     yazının olduğu bölgede (#boya::before, firca.css'ten). */
-  filter: drop-shadow(26px 0 34px rgba(0,0,0,.55));
-}
-/* TASAN darbeler dokunusu GECIRIYOR. #boya kutusu (panel alani) yutmaya
-   devam ediyor -- boyaya dokununca menunun kapanmasi eski bir hataydi ve
-   geri gelmesin. Ama <i> kutulari panelin ~50 px disina uzaniyor ve
-   orada dokunusu yutunca "bos yere bas, kapanir" calismiyordu: olculdu,
-   390 px'te ekran genisliginin %13'u olu seritti. */
-#boya i { pointer-events: none; }
-
-#boya i {
-  position: absolute; display: block;
-  /* cover, 100% 100% DEGIL. Kutular yuzdeyle tanimli: genislik panelin
-     genisliginin, yukseklik panelin yuksekliginin yuzdesi. Panelin
-     en/boy orani ekrana gore degistigi icin (1440'ta 600x900 = 0.67,
-     390'da 150x580 = 0.26) `100% 100%` darbeyi ANIZOTROPIK geriyordu.
-     Olculdu: 1440'ta anizotropi 0.95, 820'de 0.44, 390'da 0.40 -- yatay
-     kil izleri 2.5 kat sikisip dikey ignelere donuyordu. Yani boya
-     yalniz genis ekranda boyaydi.
-     cover orani koruyor; bedeli kutunun disina tasan kismin gorunmemesi,
-     ama darbeler zaten ust uste biniyor ve kaplama olcumle denetleniyor. */
-  /* `100% 100%` yeniden GUVENLI: kutu artik kaynagin kendi oraninda
-     (firca.css aspect-ratio yaziyor), yani germe yok. cover denendi ve
-     kirpma yaptigi icin kutu sinirinda cetvel gibi duz kenar
-     birakiyordu -- gerilmis darbeden kotuydu. */
-  background-repeat: no-repeat; background-size: 100% 100%;
-  /* Supurme animasyonu ve @keyframes sup-* KALDIRILDI (musteri
-     karari). Darbeler konumlarinda hazir duruyor. */
+  --m-dil: #605046;
+  --m-dil-aktif: #281f1a;
+  --m-grup: #5c4c42;
+  --m-oniz-ad: #2c221d;
+  --m-oniz-alt: #443830;
+  --m-oniz-ust: #60441a;
+  --m-cikis: #68461e;
+  --m-ozel: #624218;
+  --m-kapat-cizgi: #2e241f;
 }
 
-/*__FIRCA_CSS__*/
-
-/* Sutunlar boyanin ustunde kalsin. */
+/* Iki sutun da kendi yiginda: onizleme gorselinin golgesi panelin
+   zeminine dogru dussun. (Once boyanin ustunde kalmak icindi.) */
 #msol, #mon { position: relative; z-index: 1; }
 
 /* overscroll-behavior: liste sonuna gelince kayma arka sayfaya
@@ -385,7 +345,12 @@ html.durdur { scrollbar-gutter: stable; }
 #mon-kutu { position: relative; flex: 1 1 auto; min-height: 0; display: grid; place-items: center; }
 #mon-img {
   max-width: 100%; max-height: 100%; object-fit: contain; display: block;
-  box-shadow: 0 2px 5px rgba(0,0,0,.5), 0 26px 60px -22px rgba(0,0,0,.8);
+  /* Golge KOYU PANEL icin yazilmisti (siyah, %50 ve %80). Krem zeminde
+     o iki katman gorselin altinda kirli bir leke birakiyordu. Simdi
+     panelin kendi sicak murekkebinde ve yarisi kadar: gorseli zeminden
+     ayirmaya yetiyor, gosteri yapmiyor. */
+  box-shadow: 0 1px 2px rgba(58,46,34,.20),
+              0 14px 30px -16px rgba(58,46,34,.45);
   transition: opacity 260ms var(--ease), scale 420ms var(--ease);
 }
 #mon-img[hidden] { display: none; }
@@ -495,17 +460,28 @@ html.durdur { scrollbar-gutter: stable; }
        Olculdu: menu + tasan boya ekranin %63'unu aliyordu ve kagida
        120 px kaliyordu. En uzun satir 92.5 px + 34 px dolgu = 126.5,
        yani 132 hala siğiyor. */
-    width: min(132px, calc((100vw - 2 * clamp(14px, 4vw, 22px))
-                           / (1 + var(--tasma-oran, .3))));
+    /* Bolen KALKTI. Formul boyanin panelin %29 disina tasmasi icindi
+       (kart * (1 + tasma) <= ekran - paylar); tasma bitti, kart artik
+       neyse o. 132'den 150'ye cikti ve YINE de eskisinden az yer
+       kapliyor: onceden 132 + 38 px tasma = 170 px etkili genislikti,
+       simdi 150. Kagida 20 px daha kaliyor. */
+    width: min(150px, calc(100vw - 2 * clamp(14px, 4vw, 22px)));
     height: auto;
     max-height: calc(100dvh - var(--ust) - 20px);
     grid-template-columns: 1fr; grid-template-rows: 1fr;
-    /* Yuvarlak kose kalkti: kartin kenarini artik boya belirliyor.
-       Kose birakilsaydi tirtikli boya duzgun bir yayla kirpilirdi. */
-    overflow: visible;
+    /* Kose GERI GELDI (2 px, yukarida): kartin kenarini artik boya
+       degil kutunun kendisi belirliyor. Tasma da kapali -- yoksa icerik
+       yuvarlatilmis kosenin disina cikabiliyor. */
+    overflow: hidden;
   }
-  #boya { filter: drop-shadow(0 16px 34px rgba(0,0,0,.6)); }
-  #menu::before, #mon { display: none; }
+  /* Telefonda kart: dikey bir panel degil, hamburgerin altindan cikan
+     bir kutu. Golge oradan geldigini soyleyecek kadar, gosteri
+     yapmayacak kadar. 2 px kose: kart kenari usturuplu bitsin. */
+  #menu {
+    border-radius: 2px;
+    box-shadow: 0 1px 0 var(--panel-cizgi), 0 14px 30px rgba(0,0,0,.34);
+  }
+  #mon { display: none; }
   /* min-height:0 olmadan izgara ogesi kuculuemez, uzun liste karti tasar. */
   /* Dolgular TELEFONDA daha kucuk: kart 132 px'e inince "Son Resimler"
      iki satira boluniyor ve TR/EN/FR tasiyordu. 16+18 = 34 px dolgu
@@ -522,8 +498,6 @@ html.durdur { scrollbar-gutter: stable; }
 
 @media (prefers-reduced-motion: reduce) {
   #menu li, #menu .grouplbl, #lang { filter: none; translate: none; }
-  /* Boya son halinde durur: supurme bir gosteri, islev degil. */
-  #boya i { animation: none; clip-path: none; }
 }
 
 /* Menu ust katmanda oldugu icin disaridaki hamburger dugmesi tiklanamaz
@@ -534,8 +508,9 @@ html.durdur { scrollbar-gutter: stable; }
    silmek yerine birakildi ki geri istenirse tek satirla donsun.
    Klavye cikisi kayboluyor mu: hayir -- Escape popover hafif-kapanmasi
    ile calisiyor ve hamburger acikken ✕'e donusup odaklanabilir kaliyor.
-   Telefonda da artik panel disina dokunmak her yerde calisiyor
-   (yukaridaki #boya i duzeltmesi). */
+   Telefonda panel disina dokunmak da her yerde calisiyor: panel artik
+   kendi kutusunda bitiyor, disina tasan gorunmez bir boya kutusu yok
+   (boyaliyken orada ekranin %13'u olu serittti). */
 #mkapat {
   position: absolute; z-index: 2;
   top: clamp(16px, 2.4vw, 30px); left: clamp(16px, 2.4vw, 30px);
@@ -570,18 +545,6 @@ html.durdur { scrollbar-gutter: stable; }
 /* dil anahtarı menünün dibinde -- YINELENEN blok kaldirildi, tanim
    yukarida tek yerde. */
 #lang .sep2 { color: var(--m-dil, #e2d8d0); opacity: .38; font-size: var(--t-micro); }
-
-/* Telefonda boyalı alan dibe varmıyordu: darbeler y~760'ta bitiyor,
-   altında koyu bir bant kalıyordu. Kart içerik boyunda olduğu için
-   #boya da onun boyunda kalıyor. Taban katman kartın tamamını kaplıyor;
-   darbeler onun üstünde, tırtıklı kenar yine görünür. */
-@media (max-width: 760px) {
-  /* Boya kartı taşıyor ama kartın alt %13'ü boyasız kalıyordu: darbelerin
-     silueti orada bitiyor. Taban renk katmanı kartın tamamını (ve biraz
-     dışını) kaplıyor; darbeler onun üstünde, tırtıklı kenar yine görünür,
-     ama dipte açık bir yer kalmıyor. */
-  #boya { inset: -8px -12px -26px -8px; }
-}
 
 /* ── içerik paneli ───────────────────────────────────────────────────────── */
 
@@ -746,7 +709,10 @@ html:not(.menuacik) #shell {
    ekranın yarısını yiyor ve kâğıt da o yüzden altından çıkamıyor
    (ölçüldü: 1024 px'te 241 px binişme kalıyordu, 1256'da 95 px).
    Önizleme sütunu kalkıyor, menü daralıyor: hem menünün oranı
-   düzeliyor hem kâğıt kurtuluyor. */
+   düzeliyor hem kâğıt kurtuluyor.
+   (Sayılar boya varken ölçüldü, yani panelin %29 taşması da hesaba
+   katılıydı. Taşma kalktı; değerler artık gereğinden GENİŞ pay
+   bırakıyor ama menünün oranı gerekçesi aynen duruyor.) */
 @media (max-width: 1380px) and (min-width: 761px) {
   #menu { width: min(330px, 92vw); grid-template-columns: 1fr; }
   #mon { display: none; }
@@ -758,8 +724,8 @@ html:not(.menuacik) #shell {
    Secenekler: kagidi daha da kucultmek, boyayi kirpmak (yine bicak
    kenari) ya da menuyu daraltmak. Menuyu daraltmak uculunun icinde
    hicbir seyi bozmayan tek secenek: tek kolonluk baglanti listesi
-   280 px'te rahat okunuyor, darbeler panelin tamamini kapladigi icin
-   olcum garantisi de degismiyor (boyanin kaplamasi orana bagli). */
+   280 px'te rahat okunuyor. (Yine boyali donemin olcumu: menu+boya
+   427 px yer tutuyordu, simdi 280 px'in tamami menunun kendisi.) */
 @media (max-width: 900px) and (min-width: 761px) {
   #menu { width: min(280px, 92vw); }
 }
@@ -773,16 +739,8 @@ html:not(.menuacik) #shell {
    ayrı: 390 px'te 0.536 gerekiyor, masaüstündeki 0.72 yetmiyordu). */
 @media (max-width: 760px) {
   #menu { height: auto; }
-  /* Kirpma KALKTI. Once dar tutulmustu (tasan boyanin altinda duvar
-     degil dogrudan icerik var diye) ama bedeli agirdi: gercek cihazda
-     kartin sag ve alt kenari cetvel gibi duz cikiyordu ve o duz kenar
-     cerceve gibi okunuyordu -- yani "darbeler panelin kendisi, tirtikli
-     kenar kalici" kararinin tam tersi. Olculdu: sagda x=362'de 111
-     basamaklik dikey kesik, altta y=750'de 50 basamaklik yatay kesik.
-     Cozum kirpmak degil, tasmaya YER ACMAK: kart 306'dan 262 px'e
-     indi, tasma artik ekranin icinde bitiyor. Perde de koyulasti ki
-     tasan boyanin altindaki icerik kirli durmasin. */
-  #boya { clip-path: none; }
+  /* Perde dar ekranda daha koyu: kart kucuk, arkada duran icerik
+     yaninda kirli durmasin. */
   #menu:popover-open::backdrop, #menu.open ~ #perde {
     background: rgba(22,18,13,.52);
   }

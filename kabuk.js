@@ -97,11 +97,12 @@ function hsl(hex) {
   return [h, d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1)), l];
 }
 
-/* Doygunluk ve parlaklık sayıları firca.css'ten geliyor (onu firca.py
-   yazıyor). Sebebi: aynı sayılar panelin okunurluk ölçümünde de
-   kullanılıyor. Burada elle tutulsalardı panelin tonu bir değiştiğinde
-   ölçüm artık gerçeği ölçmez olurdu — nitekim bir kez öyle oldu:
-   ölçüm 0.88 ile geçerken çalışan kod 0.72 kullanıyordu. */
+/* Doygunluk ve parlaklık sayıları kabuk.css'ten (panel paleti) geliyor;
+   menu.py de aynı yerden okuyup kelepçenin bütün köşelerini panele karşı
+   ölçüyor. Burada elle tutulsalardı ölçüm bir sayıyı doğrularken çalışan
+   kod başkasını kullanırdı — bu hata bir kez oldu: ölçüm 0.88 ile
+   geçerken çalışan kod 0.72 kullanıyordu. (Değerler önce firca.css'te
+   duruyordu; panel boyadan düz kreme geçince tek kaynak kabuk.css oldu.) */
 function satirAyari() {
   const cs = getComputedStyle(document.documentElement);
   const say = (ad, yedek) => {
@@ -123,8 +124,8 @@ function paintMenu(pal) {
     const [hRaw, sRaw] = hsl(pal[i % pal.length]);
     /* Ton SICAK PENCEREYE kelepceleniyor. Olculdu: tonlar 29-94 derece
        arasinda geziniyordu ve uc satir zeytin yesiline kaciyordu.
-       Degerler firca.css'ten -- olcum ile calisan kod ayni sayiyi
-       kullanmak zorunda, bu hata uc kez tekrarlandi. */
+       Degerler kabuk.css panel paletinden -- olcum ile calisan kod ayni
+       sayiyi kullanmak zorunda, bu hata uc kez tekrarlandi. */
     const h = Math.max(a.tonMerkez - a.tonPay,
                        Math.min(a.tonMerkez + a.tonPay, hRaw));
     const sat = Math.min(sRaw, a.sat);
@@ -325,7 +326,15 @@ function buildMenu() {
   const lang = K.el('div');
   lang.id = 'lang';
   LANGS.forEach((code, i) => {
-    if (i) lang.appendChild(K.el('span', 'sep2', '·'));
+    if (i) {
+      /* Ayirac SUSLEME: ekran okuyucu "TR nokta EN nokta FR" diye
+         okumasin. Ayrica kontrasti dusuk (opaklik .38, olculdu 1.85:1)
+         ve metin esigi ona uygulanmiyor -- gizlenmesinin ikinci sebebi
+         bu: gorulmeyen bir nokta okunmamali da. */
+      const ay = K.el('span', 'sep2', '·');
+      ay.setAttribute('aria-hidden', 'true');
+      lang.appendChild(ay);
+    }
     const b = K.el('button', null, code.toUpperCase());
     b.type = 'button';
     b.setAttribute('aria-current', String(code === LANG));
@@ -392,19 +401,10 @@ function menuGit(route) {
   });
 }
 
-/* Boya katmani markup'a degil buraya konuyor: iki sayfa da ayni menuyu
-   kullaniyor, markup'a yazilsaydi iki yerde durur ve zamanla ayrisirdi.
-   Kac darbe oldugunu firca.css soyluyor (--darbe), boylece darbe sayisi
-   degisince burayi duzeltmek gerekmiyor. */
-(function boyaKur() {
-  if (!menuEl || document.getElementById('boya')) return;
-  const boya = document.createElement('div');
-  boya.id = 'boya';
-  boya.setAttribute('aria-hidden', 'true');
-  menuEl.insertBefore(boya, menuEl.firstChild);
-  const n = parseInt(getComputedStyle(boya).getPropertyValue('--darbe'), 10);
-  for (let i = 0; i < (n > 0 ? n : 0); i++) boya.appendChild(document.createElement('i'));
-})();
+/* BOYA KATMANI KALDIRILDI (musteri karari: "firca darbeli menu de depoya
+   kalkiyor"). Burada dokuz <i> uretiliyordu ve sayisini firca.css
+   (--darbe) soyluyordu. Panel artik duz krem bir kutu: zemini CSS
+   veriyor, uretilecek bir sey yok. */
 
 /* ── MENÜ AÇILINCA KÂĞIT ÇEVRİLİP KENARA ÇEKİLİR ──────────────────────────
    Menü panelinin kâğıdın üstüne binmemesi için. Kayma miktarı elle
@@ -444,34 +444,18 @@ function kagidiKacir() {
     return;
   }
 
-  /* Kâğıda açılacak boşluk ÖLÇÜLEN taşmadan geliyor. Eskiden burada
-     `bosluk = 56` yazıyordu ("taşma 40 + 16 temiz") ve kabuk.css'te de
-     kırpma ayrıca -40 px yazılıydı: aynı varlığı tarif eden iki ayrı
-     tahmin, ikisi de yanlış. Gerçek taşma panel eninin %29'u
-     (firca.py ölçüyor, firca.css --tasma-oran ile yayınlıyor).
-     Sağ pay ayrı bir şey: o boyayla ilgili değil, yalnız ekrandan
-     taşmayı engelliyor. */
-  /* Temiz pay ve ekran payi TELEFONDA daha kucuk: orada her piksel
-     kagida kaliyor ve musteri donmeyi goremediğini soyluyor. Olculdu:
-     menu + tasan boya ekranin %63'unu aliyordu. */
+  /* Kâğıda açılacak boşluk artık YALNIZ temiz pay. Boya kalkınca
+     panelin dışına taşan bir şey de kalmadı: eskiden darbelerin gerçek
+     kutuları okunuyordu (panel eninin ~%29'u kadar taşıyorlardı) ve
+     boşluk ona göre veriliyordu. Panelin sağ kenarı artık kutunun
+     kenarı, yani ölçülecek bir şey yok -- tek bilinmeyen kâğıdın
+     panele değmemesi için bırakılan aralık.
+     Temiz pay ve ekran payı TELEFONDA daha küçük: orada her piksel
+     kâğıda kalıyor ve müşteri dönmeyi göremediğini söylemişti. */
   const darEkran = window.innerWidth <= 760;
   const TEMIZ = darEkran ? 10 : 16;
-  const boyaEl = document.getElementById('boya');
   const menuSag = menuEl.getBoundingClientRect().right;
-  /* Tasma GERCEK OLCUMLE. Once firca.py'nin yayinladigi sabit bir oran
-     kullaniliyordu; kutular kaynagin oranina baglandiktan sonra tasma
-     panel YUKSEKLIGINE bagli hale geldi ve tek oranla ifade
-     edilemiyor. Olculdu: sabit oranla bosluk yetmiyordu ve boya kagida
-     28.6 px biniyordu. Darbelerin kendi kutulari okunuyor, yani hangi
-     geometri olursa olsun dogru. */
-  let darbeSag = menuSag;
-  if (boyaEl) {
-    for (const d of boyaEl.children) {
-      const r = d.getBoundingClientRect();
-      if (r.right > darbeSag) darbeSag = r.right;
-    }
-  }
-  const bosluk = (darbeSag - menuSag) + TEMIZ;
+  const bosluk = TEMIZ;
   const sagPay = darEkran ? 14 : 26;
   const sol = shell.offsetLeft;
   const en = shell.offsetWidth;
@@ -573,14 +557,11 @@ function kagidiKacir() {
   shell.style.setProperty('--kucul', kucul.toFixed(4));
 }
 
-/* Firca darbeleri hamburgere ILK TEMASTA yukleniyor. Onceden dokuzu
-   da <link rel=preload> ile her sayfada iniyordu (324 KB) ve Chrome
-   "preloaded but not used" uyarisi veriyordu: panel display:none bir
-   popover, ziyaretcilerin cogu hic acmiyor. Temas anindan menunun
-   acilmasina kadar gecen sure (hover -> tik) darbelerin inmesine
-   yetiyor; dokunmatikte pointerdown ile tik arasinda yine bir pay var.
-   Tek kaynak korunuyor: liste derlemede varlik dosyalarindan uretiliyor
-   (window.FIRCA_LISTE). */
+/* FIRCA ON YUKLEMESI KALDIRILDI. Dokuz darbe once <link rel=preload>
+   ile her sayfada iniyordu (324 KB), sonra hamburgere ilk temasta ve
+   bostayken yukleniyordu -- o hali bile LCP penceresine giriyordu
+   (3G'de ~1 s). Panel duz krem olunca indirilecek varlik da kalmadi:
+   361 KB dusuyor ve varlik/firca yayina hic kopyalanmiyor. */
 /* KAYDIRMA KILIDI SAYACLI. Onceden `durdur` sinifi tek boole idi ve
    uc sahibi vardi (menu, isik kutusu, yakinlastirma): en ustteki katman
    kapaninca alttaki hala acikken kilidi biraktiriyordu -- uc yoldan
@@ -598,29 +579,6 @@ window.KABUK_KILIT = {
     }
   },
 };
-
-let fircaYuklendi = false;
-function fircayiYukle() {
-  if (fircaYuklendi) return;
-  fircaYuklendi = true;
-  const liste = (typeof window !== 'undefined' && window.FIRCA_LISTE) || [];
-  for (const yol of liste) { const g = new Image(); g.src = yol; }
-}
-if (btn) {
-  for (const olay of ['pointerenter', 'focus', 'pointerdown']) {
-    btn.addEventListener(olay, fircayiYukle, { once: true, passive: true });
-  }
-}
-/* Temas TEK basina yetmiyor: dokunmatikte pointerdown ile tik arasi
-   ~50-100 ms ve 324 KB o surede inmez. Onyukleme tam bu yuzden
-   eklenmisti ("panel boyasiz acilabiliyordu"). Cozum ikisini birlestirmek:
-   tarayici BOSTA kalinca sessizce yukle -- ilk boyamayi etkilemiyor ama
-   menu acilmadan once hazir oluyor. Destegi yoksa gecikmeli zamanlayici. */
-if (typeof requestIdleCallback === 'function') {
-  requestIdleCallback(fircayiYukle, { timeout: 2500 });
-} else {
-  setTimeout(fircayiYukle, 1800);
-}
 
 addEventListener('resize', kagidiKacir, { passive: true });
 
@@ -653,6 +611,28 @@ function openMenu() {
      örüntü. */
   menuEl.setAttribute('tabindex', '-1');
   menuEl.focus({ preventScroll: true });
+  hamburgerOrtuluMu();
+}
+
+/* Panel ust katmanda oldugu icin GENIS ekranda hamburgeri ortuyor:
+   dugme z-index:40, panel ise popover, yani hicbir z-index onu one
+   getiremez. Telefonda ortmuyor (kart dugmenin ALTINDAN aciliyor).
+   Boyaliyken bu belirsiz bir durumdu: darbelerin nefes delikleri
+   arasindan beyaz disk yarim yarim goruluyordu. Duz panelde durum net --
+   ya ortuyor ya ortmuyor -- ve ortuyorsa dugme artik bir denetim degil:
+   odak siras'ndan cikiyor, yoksa klavye kullanicisi GORUNMEYEN bir
+   dugmeye odaklaniyor (WCAG 2.4.11).
+   Olcut goruntude: elementFromPoint. `matchMedia('(max-width:760px)')`
+   ile de yazilabilirdi ama o panelin genisligini TAHMIN etmek olurdu;
+   isabet denetimi gercegi soyluyor. */
+function hamburgerOrtuluMu() {
+  if (!btn) return;
+  const r = btn.getBoundingClientRect();
+  const ust = document.elementFromPoint(r.left + r.width / 2,
+                                        r.top + r.height / 2);
+  const ortulu = !(ust && (ust === btn || btn.contains(ust)));
+  if (ortulu) btn.setAttribute('tabindex', '-1');
+  else btn.removeAttribute('tabindex');
 }
 /* Menü GÖRSEL OLARAK kipli: perde sahneyi karartıyor ve üst katman
    arkadaki tıklamaları yiyor. Ama popover=auto KİPLİ DEĞİL — odağı
@@ -725,6 +705,7 @@ function toparla() {
   window.KABUK_KILIT.birak('menu');
   document.documentElement.classList.remove('menuacik');
   btn.setAttribute('aria-expanded', 'false');
+  btn.removeAttribute('tabindex');      /* panel kalkti, dugme yine denetim */
   arkaPlanDondur(false);
   kagidiKacir();
   if (trapRelease) { trapRelease(); trapRelease = null; }

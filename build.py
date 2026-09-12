@@ -550,32 +550,10 @@ def render(tpl_path, data, standalone):
     # da ayni kabugu kullaniyor; kopyalanmis olsalardi zamanla ayrisirlardi.
     # Belirteci olmayan sablon da derlenir - her sayfanin kabugu olmasi
     # gerekmiyor.
-    # Firca darbelerinin on yuklemesi: liste varlik dosyalarindan
-    # uretiliyor, elle tutulmuyor. Sayi degisince kendiliginden guncel.
-    if '<!--__FIRCA_ONYUK__-->' in out:
-        fdizin = os.path.join(HERE, 'varlik', 'firca')
-        adlar = sorted((f for f in os.listdir(fdizin)
-                        if f.startswith('panel-') and f.endswith('.webp')),
-                       key=lambda f: int(f.split('-')[1].split('.')[0])) \
-            if os.path.isdir(fdizin) else []
-        if not adlar:
-            sys.exit('HATA: varlik/firca bos, on yukleme uretilemedi.')
-        # ON YUKLEME KALDIRILDI, yerine liste JS'e veriliyor.
-        # Olculdu: dokuz preload 324 KB indiriyor ve Chrome her biri icin
-        # "preloaded but not used within a few seconds" uyarisi veriyor --
-        # panel display:none bir popover, ilk tiklamaya kadar hic
-        # gorunmuyor. O dokuz istek 198-530 ms arasi baglanti havuzunu
-        # tutuyordu ve eserler ancak 466 ms'de basliyordu.
-        # Darbeler artik hamburgere ilk temasta (hover/odak/dokunma)
-        # yukleniyor; menu acilmadan once hazir oluyor.
-        out = out.replace('<!--__FIRCA_ONYUK__-->',
-                          '<script>window.FIRCA_LISTE=%s;</script>'
-                          % json.dumps(['assets/firca/' + a for a in adlar]))
-
-    # Sira onemli: KABUK_CSS once giriyor ve icinde FIRCA_CSS belirteci
-    # var; sonraki tur onu yakaliyor.
+    # FIRCA_ONYUK ve FIRCA_CSS belirtecleri KALKTI: menu paneli artik duz
+    # krem, indirilecek darbe yok (musteri karari). firca.py ve
+    # varlik/firca depoda duruyor, yayina kopyalanmiyor.
     for belirtec, dosya in (('/*__KABUK_CSS__*/', 'kabuk.css'),
-                            ('/*__FIRCA_CSS__*/', 'firca.css'),
                             ('/*__KABUK_JS__*/', 'kabuk.js')):
         if belirtec in out:
             yol = os.path.join(HERE, dosya)

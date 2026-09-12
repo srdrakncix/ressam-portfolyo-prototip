@@ -114,7 +114,10 @@ def main():
     # Kaynakta duruyorlar; yalnizca kopyalanmiyorlar.
     # 'hero' de eklendi: salon kurgusu artik ana sayfada kullanilmiyor
     # (musteri karari), kaynakta duruyor ama yayina kopyalanmiyor.
-    ATLA = {'cerceve', 'duvar', 'hero'}
+    # 'firca' de eklendi: menu paneli duz kreme gecti (musteri karari),
+    # dokuz darbe + taban 361 KB idi ve artik hicbir sayfa referans
+    # vermiyor. Kaynak depoda duruyor, yayinda yok.
+    ATLA = {'cerceve', 'duvar', 'hero', 'firca'}
     for kok, dizinler, dosyalar in os.walk(kaynak_varlik):
         dizinler[:] = [d for d in dizinler if d not in ATLA]
         bagil = os.path.relpath(kok, kaynak_varlik)
