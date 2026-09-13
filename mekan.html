@@ -347,7 +347,7 @@ function workBlock(w, opts = {}) {
     (gloss ? '<div class="gloss">' + gloss + '</div>' : '') +
     (w.year ? '<div>' + w.year + '</div>' : '') +
     '<div>' + t('medium') + '</div>' +
-    (w.size ? '<div>' + w.size + ' | ' + w.sizeIn + '</div>' : '');
+    (w.size ? '<div>' + w.size + '</div>' : '');
   const av = K.el('div', 'avail'); av.textContent = availLine(w.status);
   cap.appendChild(av); d.appendChild(cap);
   return d;
@@ -494,7 +494,7 @@ function viewEser(slug) {
   if (seri) satir.push([t('lbl_series'), seri]);
   if (w.year) satir.push([t('lbl_year'), String(w.year)]);
   satir.push([t('lbl_medium'), t('medium')]);
-  if (w.size) satir.push([t('lbl_size'), w.size + '  |  ' + w.sizeIn]);
+  if (w.size) satir.push([t('lbl_size'), w.size]);
   if (w.collection) satir.push([t('nav_coll'), w.collection + (w.collYear ? ', ' + w.collYear : '')]);
   kunye.appendChild(rowList(satir.map(([a, b]) => ['', a, b])));
   kunye.appendChild(K.el('p', null, '<span style="color:var(--muted)">“' + not + '”</span>'));
@@ -582,7 +582,7 @@ const viewKoleksiyon = () => textPage('koleksiyon', t('nav_coll'), (p) => {
   /* Provenans: hangi eser hangi koleksiyonda. Bos alanlar BASILMIYOR --
      yil 0 ve olcu bos oldugunda "0" ile "|  ·" ekrana cikiyordu. */
   p.appendChild(rowList(kayitli.map(w => {
-    const olcu = [w.size, w.sizeIn].filter(Boolean).join('  |  ');
+    const olcu = w.size || '';
     const yer = w.collection
       ? w.collection + (w.collYear ? ', ' + w.collYear : '')
       : availLine(w.status);

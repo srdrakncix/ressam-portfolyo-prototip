@@ -268,7 +268,8 @@ a { color: inherit; }
 }
 .kunye .satir { font-size: 12.5px; line-height: 1.5; color: var(--soluk); margin-top: 7px; }
 .kunye .olcu { margin-top: 1px; font-variant-numeric: tabular-nums; text-transform: none; }
-.kunye .ayrac { color: rgba(28,33,26,.26); padding: 0 2px; }
+/* .ayrac KALDIRILDI: yalniz cm ile inc arasindaki dikey cizgiyi
+   ciziyordu, inc kalkti. */
 .kunye .durum {
   margin-top: 12px; font-size: 10px; letter-spacing: .15em; text-transform: uppercase;
   color: var(--bronz);
@@ -630,8 +631,7 @@ function kunyeleriYaz() {
       '<div class="ad"><i>' + w.title + '</i>' + (w.year ? ', ' + w.year : '') + '</div>' +
       (gloss ? '<div class="cev">' + gloss + '</div>' : '') +
       '<div class="satir">' + t('medium') + '</div>' +
-      (w.size ? '<div class="satir olcu">' + w.size +
-        ' <span class="ayrac">|</span> ' + w.sizeIn + '</div>' : '') +
+      (w.size ? '<div class="satir olcu">' + w.size + '</div>' : '') +
       (w.status ? '<div class="durum">' + durumMetni(w.status) + '</div>' : '');
     a.setAttribute('aria-label',
       [w.title, w.year || null, w.size || null].filter(Boolean).join(', ') + '.');
@@ -714,8 +714,7 @@ function ac(idx) {
     '<dl>' +
       (w.year ? '<dt>' + t('lbl_year') + '</dt><dd>' + w.year + '</dd>' : '') +
       '<dt>' + t('lbl_medium') + '</dt><dd>' + t('medium') + '</dd>' +
-      (w.size ? '<dt>' + t('lbl_size') + '</dt><dd>' + w.size +
-                '<br>' + w.sizeIn + '</dd>' : '') +
+      (w.size ? '<dt>' + t('lbl_size') + '</dt><dd>' + w.size + '</dd>' : '') +
     '</dl>' +
     (not ? '<div class="not">“' + not + '”</div>' : '') +
     (w.status ? '<div class="durum">' + durumMetni(w.status) + '</div>' : '');

@@ -35,16 +35,9 @@ def cm_pair(dim):
     return round(float(m.group(1))), round(float(m.group(2)))
 
 
-def inches(cm):
-    """Santimi gerçek adi kesirle inç'e çevirir — tombstone geleneği böyle."""
-    v = cm / 2.54
-    whole = int(v)
-    frac = v - whole
-    eighths = round(frac * 8)
-    if eighths == 8:
-        whole, eighths = whole + 1, 0
-    glyph = {0: '', 1: '⅛', 2: '¼', 3: '⅜', 4: '½', 5: '⅝', 6: '¾', 7: '⅞'}[eighths]
-    return f'{whole}{glyph}'
+# inches() KALDIRILDI: santimi adi kesirle inc'e ceviriyordu (muze
+# kunyesi gelenegi) ama musteri inc istemiyor. Tek cagiran yeri de
+# (works[].sizeIn) kalkti.
 
 
 # Seri bazlı, deterministik yıl ataması — çağdaş bir ressamın külliyatı gibi okunsun.
@@ -229,8 +222,10 @@ def build_data():
             'year':   int(k['yil']) if k.get('yil') else 0,
             'medium': C.MEDIUM_TR,
             # Olcu yoksa BOS. Arayuz bos olcuyu hic basmiyor.
+            # INC KARSILIGI KALDIRILDI (musteri karari: "inc ibarelerini
+            # kaldir her yerden"). Alti yerde basiliyordu; uretimi de
+            # kalkti, yoksa okunmayan bir alan uretilmeye devam ederdi.
             'size':   f'{ch}{NB}×{NB}{cw}{NB}cm' if olcu_var else '',
-            'sizeIn': f'{inches(ch)}{NB}×{NB}{inches(cw)}{NB}in' if olcu_var else '',
             'taslak': bool(k.get('taslak')),
             'cw':     cw,
             'ch':     ch,
