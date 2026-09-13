@@ -944,6 +944,13 @@ async function kaydet(olay) {
       bilgiYaz('Eser görseli hazırlanıyor…');
       dosyalar.push({ yol: GORSEL_YOL + '/' + slug + '.webp',
                       base64: await base64le(await kucult(yeniEserDosya)) });
+      /* Eski dosya adı farklıysa (ör. .jpg ile içeri alınmış bir eser)
+         yerine .webp geliyor ve eskisi yetim kalıyor. Aynı commit'te
+         gidiyor — silme yalnızca KAYITTA YAZAN ad için yapılıyor, yani
+         var olduğunu bildiğimiz dosya için. */
+      const eskiGorsel = mevcut && mevcut.veri.gorsel;
+      if (eskiGorsel && eskiGorsel !== slug + '.webp')
+        dosyalar.push({ yol: GORSEL_YOL + '/' + eskiGorsel, sil: true });
     }
     let ortamAd = mevcut ? (mevcut.veri.ortam_gorseli || '') : '';
     if (yeniOrtamDosya) {
@@ -963,7 +970,15 @@ async function kaydet(olay) {
       durum: $('#durumu').value,
       olcu: { yukseklik_cm: Number($('#yukseklik').value), genislik_cm: Number($('#genislik').value) },
       koleksiyon: { ad: $('#kol-ad').value.trim(), yil: Number($('#kol-yil').value) || null },
-      gorsel: slug + '.webp',
+      /* Dosya adı UYDURULMUYOR. Önceden koşulsuz `slug + '.webp'`
+         yazılıyordu; müşterinin sekiz eseri panelden değil bir betikle
+         içeri alındı ve .jpg olarak duruyor. Yani sadece cm'yi değiştirip
+         kaydetmek kaydı var olmayan bir dosyaya bağlıyor ve derleme
+         "gorsel bulunamadi -> eser-1.webp" diye DURUYOR. Yeni fotoğraf
+         yüklendiyse ad gerçekten .webp (kucult öyle üretiyor);
+         yüklenmediyse kayıtta ne yazıyorsa o. */
+      gorsel: yeniEserDosya ? (slug + '.webp')
+                            : ((mevcut && mevcut.veri.gorsel) || (slug + '.webp')),
       ortam_gorseli: ortamAd,
       'not': { tr: $('#not-tr').value.trim(), en: $('#not-en').value.trim(), fr: $('#not-fr').value.trim() },
       kaynak_kredisi: (mevcut && mevcut.veri.kaynak_kredisi) || '',
@@ -1021,8 +1036,12 @@ async function sil() {
   const ad = e.veri.baslik, hedef = acikSlug;
   try {
     /* Künye VE görseller birlikte gidiyor: eskiden görsel depoda kalıyordu. */
+    /* Görsel adı kayıttan okunuyor, `hedef + '.webp'` diye tahmin
+       edilmiyor: .jpg ile içeri alınmış eserlerde o dosya yok ve Git
+       Trees çağrısı var olmayan bir yolu silmeye kalkıyordu. */
     const dosyalar = [{ yol: ESER_YOL + '/' + hedef + '.json', sil: true },
-                      { yol: GORSEL_YOL + '/' + hedef + '.webp', sil: true }];
+                      { yol: GORSEL_YOL + '/' + (e.veri.gorsel || hedef + '.webp'),
+                        sil: true }];
     if (e.veri.ortam_gorseli)
       dosyalar.push({ yol: GORSEL_YOL + '/' + e.veri.ortam_gorseli, sil: true });
     /* Kalanlar 1..N diye yeniden numaralanıyor: silinen eserin numarası
