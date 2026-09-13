@@ -155,8 +155,9 @@ button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; m
 #giris code { background: var(--zemin); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
 .gizli { display: none !important; }
 
-/* Olcu/gorsel oran uyarisi. Sessiz kirpma en pahali hata: musteri eserini
-   duvarda yarim goruyor ve nedenini bilmiyor. */
+/* Olcu/gorsel oran uyarisi. Sessiz YANLIS OLCU en pahali hata: kunyede
+   yazan cm koleksiyonerin okudugu bir iddia. (Once sebebi sessiz kirpmaydi;
+   galeri artik kirpmiyor, uyarinin anlami degisti.) */
 #oran-uyari {
   grid-column: 1 / -1; margin-top: 4px;
   padding: 12px 14px; border-radius: 8px; font-size: 13.5px; line-height: 1.5;
@@ -293,7 +294,8 @@ button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; m
               <span class="yazi">Fotoğrafı buraya sürükleyin<br>ya da tıklayıp seçin</span>
               <input type="file" id="dosya-eser" accept="image/*">
             </label>
-            <div class="ipucu">Düz reprodüksiyon. Duvarda, listede ve künyede bu kullanılır.</div>
+            <div class="ipucu">Düz reprodüksiyon. Galeride, ana sayfada ve künyede bu
+              kullanılır; kırpılmadan, kendi oranında.</div>
           </div>
           <div>
             <label>Ortam görseli</label>
@@ -303,7 +305,9 @@ button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; m
               <input type="file" id="dosya-ortam" accept="image/*">
             </label>
             <div class="ipucu">Eserin ev ortamındaki hâli — Smartist maketi.
-              Sitede kırpılmaz, olduğu gibi görünür; en iyi duran oran <b>yatay ya da kare</b>
+              <b>Artık yalnızca menü önizlemesinde ve "Bütün eserler" kartında</b>
+              görünüyor; galeri ızgarası düz tablo gösteriyor (müşteri kararı).
+              Kırpılmaz, olduğu gibi durur; en iyi duran oran <b>yatay ya da kare</b>
               (16:9, 1:1). Dikey de çalışır, yalnızca küçük kalır.
               <b>Ücretsiz sürüm filigran basıyor</b>, siteye öyle çıkar. Video dışa
               aktarımları yüklenemez.</div>
@@ -324,27 +328,28 @@ button.tehlike { background: #fff; color: var(--uyari); border-color: #e2c3b8; m
             <select id="seri" required></select>
           </div>
           <div>
-            <label for="yil">Yıl <span class="zorunlu">*</span></label>
+            <label for="yil">Yıl</label>
             <input type="number" id="yil" min="1900" max="2100" required>
           </div>
           <div>
-            <label for="yukseklik">Yükseklik (cm) <span class="zorunlu">*</span></label>
+            <label for="yukseklik">Yükseklik (cm)</label>
             <input type="number" id="yukseklik" min="1" max="1000" required>
           </div>
           <div>
-            <label for="genislik">Genişlik (cm) <span class="zorunlu">*</span></label>
+            <label for="genislik">Genişlik (cm)</label>
             <input type="number" id="genislik" min="1" max="1000" required>
           </div>
           <div>
-            <label for="durumu">Durum <span class="zorunlu">*</span></label>
+            <label for="durumu">Durum</label>
             <select id="durumu" required></select>
           </div>
           <div id="oran-uyari" class="gizli"></div>
           <div>
-            <label for="yer">Duvarda yeri</label>
+            <label for="yer">Galeride sırası</label>
             <select id="yer"></select>
-            <div class="ipucu">Sergi duvarında nereye asılacağı. Numaraları panel kendisi
-              veriyor — iki eser aynı sıraya düşemez.</div>
+            <div class="ipucu">Galeri ızgarasında kaçıncı sırada duracağı. Numaraları panel
+              kendisi veriyor — iki eser aynı sıraya düşemez. (Eskiden 3B sergi
+              duvarındaki yeriydi; o sayfa kalktı, sıra galeride geçerli.)</div>
           </div>
         </div>
       </fieldset>
@@ -867,11 +872,15 @@ async function yayiniIzle(onceki, slug, baslik, dugmeGoster) {
 }
 
 /* ── ölçü / görsel oranı denetimi ─────────────────────────────────────────
-   Duvarda tablo, künyeye girilen cm ölçüsünden çizilip fotoğraf onun içine
-   object-fit: cover ile oturuyor. İkisi uyuşmazsa eser SESSİZCE kırpılıyor —
-   1:1 bir fotoğraf 132x82 cm künyeyle girildiğinde tablonun altı ve üstü
-   gidiyor. Doğru fotoğrafta oran zaten tutar; tutmuyorsa bu bir veri hatası
-   ve tek fark edilebileceği yer burası. */
+   ARTIK KIRPMA YOK: galeri kutusunu görselin kendisi belirliyor (sergi.html
+   .tuval), duvar/oda kurgusu da kalktı. Yani uyuşmazlık ekranda bir şey
+   bozmuyor.
+   Uyarı yine de duruyor, çünkü anlamı değişti: uyuşmazlık artık "eser
+   kırpılacak" değil, "SAYILARDAN BİRİ YANLIŞ" demek. Ölçü satırı
+   koleksiyonerin okuduğu bir iddia; yanlış cm sessiz kalmamalı.
+   Gerçek örnek: müşteri sekiz ölçüyü verdi, yedisi fotoğrafla %1 içinde
+   uyuştu, biri %16 saptı — o eserin ya ölçüsü yanlış yazılmış ya fotoğrafı
+   kırpılmış. Bu kutu (ve derlemedeki ikizi) onu yakaladı. */
 let eserOrani = 0;
 
 function oranMetni(r) {
@@ -894,8 +903,10 @@ function oranDenetle() {
   kutu.innerHTML =
     '<b>Ölçü fotoğrafla uyuşmuyor.</b> Fotoğrafın oranı ' + oranMetni(eserOrani) +
     ', girdiğiniz ölçü ' + yuk + ' × ' + gen + ' cm (' + oranMetni(girilen) + '). ' +
-    'Duvarda eserin ' + (girilen > eserOrani ? 'altı ve üstü' : 'sağı ve solu') +
-    ' kırpılır.<div class="dugmeler" style="margin-top:9px">' +
+    'Sitede eser <b>kırpılmaz</b> — kutu fotoğrafın kendi oranında. Ama ' +
+    'sayılardan biri yanlış: ya ölçü, ya kırpılmış bir fotoğraf. Künyede ' +
+    'yazan cm, koleksiyonerin okuduğu bir iddia.' +
+    '<div class="dugmeler" style="margin-top:9px">' +
     '<button type="button" class="eylem ikincil" id="oran-g">Genişlik ' + oGen + ' cm olsun</button>' +
     '<button type="button" class="eylem ikincil" id="oran-y">Yükseklik ' + oYuk + ' cm olsun</button>' +
     '</div>';
@@ -948,7 +959,7 @@ async function kaydet(olay) {
       baslik: baslik,
       gloss: { en: $('#gloss-en').value.trim(), fr: $('#gloss-fr').value.trim() },
       seri: $('#seri').value,
-      yil: Number($('#yil').value),
+      yil: Number($('#yil').value) || null,
       durum: $('#durumu').value,
       olcu: { yukseklik_cm: Number($('#yukseklik').value), genislik_cm: Number($('#genislik').value) },
       koleksiyon: { ad: $('#kol-ad').value.trim(), yil: Number($('#kol-yil').value) || null },
@@ -957,8 +968,18 @@ async function kaydet(olay) {
       'not': { tr: $('#not-tr').value.trim(), en: $('#not-en').value.trim(), fr: $('#not-fr').value.trim() },
       kaynak_kredisi: (mevcut && mevcut.veri.kaynak_kredisi) || '',
     };
-    if (!kayit.yil || !kayit.olcu.yukseklik_cm || !kayit.olcu.genislik_cm)
-      throw new Error('Yıl ve ölçüler zorunlu.');
+    /* ZORUNLULUK KURALI DERLEMEYLE AYNI (build.py eserleri_oku).
+       Önceden yıl da ölçü de şarttı; derleme ikisini de isteğe bağlı
+       sayıyor ("künye bilgileri henüz gelmedi, uydurmak prototipi
+       görene gerçek gibi görünür"). Sonuç: müşterinin sekiz eserinin
+       yılı olmadığı için PANELDEN HİÇBİRİ KAYDEDİLEMİYORDU.
+       Ölçüde tek kural şu: ya ikisi ya hiçbiri. Boşken {0, 0} yazmak
+       derlemeyi "olcu yarim" diye durduruyor, o yüzden null'a
+       çevriliyor — kayıtların ilk hâli de öyleydi. */
+    const _yuk = kayit.olcu.yukseklik_cm, _gen = kayit.olcu.genislik_cm;
+    if (!_yuk !== !_gen)
+      throw new Error('Ölçünün iki değeri de gerekli: ya yükseklik ve genişlik, ya hiçbiri.');
+    if (!_yuk && !_gen) kayit.olcu = null;
 
     dosyalar.push({ yol: ESER_YOL + '/' + slug + '.json',
                     metin: JSON.stringify(kayit, null, 2) + '\n' });
