@@ -24,6 +24,21 @@ jobs:
       - name: lftp kur
         run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp > /dev/null
 
+      # Once KAPILAR: FTP hic cevap vermedi ("max-retries exceeded", 530 degil),
+      # yani sifre degil kapi sorunu. Hangi kapilar acik -- firmaya soylenecek
+      # cumle buradan cikiyor. 21 FTP, 990 ortuk FTPS, 22 SFTP, 80/443 web.
+      - name: Kapılara bak
+        env:
+          SUNUCU: ${{ secrets.FTP_SUNUCU }}
+        run: |
+          for host in "$SUNUCU" saglam.fr; do
+            ip=$(getent hosts "$host" | awk '{print $1}' | head -1)
+            echo "=== $host  (cozumlenen: ${ip:-yok}) ==="
+            for port in 21 990 22 80 443; do
+              if timeout 8 bash -c "</dev/tcp/$host/$port" 2>/dev/null; then echo "  $port  ACIK"; else echo "  $port  kapali/cevapsiz"; fi
+            done
+          done
+
       - name: Sunucuya bak
         env:
           SUNUCU: ${{ secrets.FTP_SUNUCU }}
