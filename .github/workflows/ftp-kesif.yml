@@ -34,20 +34,29 @@ jobs:
           basarili=""
           for host in "$SUNUCU" saglam.fr www.saglam.fr; do
             for tls in auto kapali; do
-              if [ "$tls" = kapali ]; then ayar="set ftp:ssl-allow false;"; else ayar="set ftp:ssl-allow true; set ssl:verify-certificate no;"; fi
+              if [ "$tls" = kapali ]; then ayar="set ftp:ssl-allow false"; else ayar="set ftp:ssl-allow true; set ssl:verify-certificate no"; fi
               echo "================= $host  (TLS: $tls) ================="
-              timeout 90 lftp -u "$KULLANICI" --env-password -e "
-                $ayar
-                set net:timeout 20; set net:max-retries 1; set net:reconnect-interval-base 2;
-                echo '--- kok dizin ---';
-                cls -la /;
-                echo '--- /httpdocs ---';
-                cls -la /httpdocs;
-                echo '--- /httpdocs agaci (ilk 300 satir) ---';
-                find /httpdocs | head -300;
-                echo '--- boyut ---';
-                du -sh /httpdocs;
-                quit" "$host"
+              # Komutlar DOSYADAN: -e ile verilip sonuna site adi eklenince lftp
+              # son satiri "quit <site>" diye tek komut okuyordu (olculdu: hic
+              # baglanmadan "Unknown command" verdi). open komutu betigin icinde.
+              cat > /tmp/kesif.lftp <<EOF
+          $ayar
+          set net:timeout 20
+          set net:max-retries 1
+          set net:reconnect-interval-base 2
+          set cmd:fail-exit true
+          open -u "$KULLANICI" --env-password "$host"
+          echo "--- kok dizin ---"
+          cls -la /
+          echo "--- /httpdocs ---"
+          cls -la /httpdocs
+          echo "--- /httpdocs agaci (ilk 300 satir) ---"
+          find /httpdocs | head -300
+          echo "--- boyut ---"
+          du -sh /httpdocs
+          quit
+          EOF
+              timeout 120 lftp -f /tmp/kesif.lftp
               if [ $? -eq 0 ]; then basarili="$host ($tls)"; break 2; fi
               echo "(bağlanamadı)"
             done
