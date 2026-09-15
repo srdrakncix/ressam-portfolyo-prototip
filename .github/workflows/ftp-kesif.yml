@@ -1,0 +1,61 @@
+# FTP KEŞİF — sunucuya YALNIZCA BAKAR, hiçbir şey yazmaz, silmez, taşımaz.
+#
+# Neden var: müşterinin hostingine (saglam.fr) siteyi GitHub yükleyecek
+# (FTP). Ama yüklemeden önce orada ne olduğunu görmek şart — müşteri
+# karari: "adamın datasında bilgiler kaldıysa silme, depoda kalsın."
+# Bu iş akışı listeyi alıp günlüğe yazıyor; karar o günlüğe bakılarak
+# veriliyor. Yerel makineden denenemedi: dış ağ kapalı, Windows'un kendi
+# FTP'si de "sunucuyla bağlantı kurulamadı" dedi.
+#
+# Kâğıttaki IP ile alan adının çözümlendiği IP farklı (…137.241 / …145.230),
+# yani bilgi eski olabilir. O yüzden üç ada da, TLS'li ve TLS'siz deniyor.
+#
+# Şifre günlüğe düşmez: lftp --env-password ile ortam değişkeninden okuyor,
+# komut satırında görünmüyor; GitHub zaten secret değerlerini maskeliyor.
+name: FTP keşif (yalnızca bakar)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  kesif:
+    runs-on: ubuntu-latest
+    steps:
+      - name: lftp kur
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp > /dev/null
+
+      - name: Sunucuya bak
+        env:
+          SUNUCU: ${{ secrets.FTP_SUNUCU }}
+          KULLANICI: ${{ secrets.FTP_KULLANICI }}
+          LFTP_PASSWORD: ${{ secrets.FTP_SIFRE }}
+        run: |
+          set +e
+          basarili=""
+          for host in "$SUNUCU" saglam.fr www.saglam.fr; do
+            for tls in auto kapali; do
+              if [ "$tls" = kapali ]; then ayar="set ftp:ssl-allow false;"; else ayar="set ftp:ssl-allow true; set ssl:verify-certificate no;"; fi
+              echo "================= $host  (TLS: $tls) ================="
+              timeout 90 lftp -u "$KULLANICI" --env-password -e "
+                $ayar
+                set net:timeout 20; set net:max-retries 1; set net:reconnect-interval-base 2;
+                echo '--- kok dizin ---';
+                cls -la /;
+                echo '--- /httpdocs ---';
+                cls -la /httpdocs;
+                echo '--- /httpdocs agaci (ilk 300 satir) ---';
+                find /httpdocs | head -300;
+                echo '--- boyut ---';
+                du -sh /httpdocs;
+                quit" "$host"
+              if [ $? -eq 0 ]; then basarili="$host ($tls)"; break 2; fi
+              echo "(bağlanamadı)"
+            done
+          done
+          echo
+          if [ -n "$basarili" ]; then
+            echo "SONUC: BAGLANDI -> $basarili"
+          else
+            echo "SONUC: HICBIR ADRESE BAGLANAMADI -- kagittaki bilgiler eski ya da FTP kapali."
+            exit 1
+          fi
