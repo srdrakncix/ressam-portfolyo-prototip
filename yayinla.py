@@ -33,6 +33,16 @@ CIKTI = os.path.join(KOK, 'site')
 #   /galeri/  sergi duvari
 # duz.html (parktaki duz surum) ve salon.html (parktaki 3B salon) yayindan
 # cikarildi; ikisine de hicbir yerden baglanti yoktu. Kaynaklari depoda.
+# YAKINDA ANAHTARI. True iken saglam.fr'de YALNIZCA "site yapım aşamasında"
+# sayfası (yakinda.html) görünür: kök adres o olur, galeri yayından çıkar.
+# Müşteri kararı (1 Ekim 2026): "site tamamen yok, onların göreceği şey
+# inşa halinde grafiksel bir şey olsun."
+# Asıl site derlenmeye devam ediyor (derleme hatası gizlenmesin diye) ama
+# yayına kopyalanmıyor. Açmak için False yap -- hiçbir şey kaybolmadı.
+# Panel (/panel/), görseller (/assets/) ve yayın damgası etkilenmiyor:
+# panel çalışmaya devam ediyor.
+YAKINDA = True
+
 SAYFALAR = [
     ('mekan.html', 'index.html'),
     ('sergi.html', os.path.join('galeri', 'index.html')),
@@ -163,7 +173,9 @@ def main():
     #    degismesi Pages'in dosya zaman damgasina bagli - burada olcut acik.
     io.open(os.path.join(CIKTI, 'yayin.json'), 'w', encoding='utf-8').write(
         _json.dumps({'zaman': datetime.now(timezone.utc).isoformat(timespec='seconds'),
-                     'surum': os.environ.get('GITHUB_SHA', 'yerel')[:12]}) + chr(10))
+                     'surum': os.environ.get('GITHUB_SHA', 'yerel')[:12],
+                     # CI denetimi hangi sayfaları arayacağını buradan okuyor.
+                     'yakinda': YAKINDA}) + chr(10))
     print('yayin.json        ' + damga)
 
     # 5) yayindaki eserlerin parmak izi
@@ -185,6 +197,15 @@ def main():
     io.open(os.path.join(CIKTI, 'eserler.json'), 'w', encoding='utf-8').write(
         _json.dumps(izler, ensure_ascii=False, indent=1) + chr(10))
     print('eserler.json       %d eser parmak izi' % len(izler))
+
+    # 5b) YAKINDA: kök adres "yapım aşamasında" sayfası, galeri yayından çıkar.
+    #     site_ek.py'den ÖNCE: site haritası yalnızca yayında kalan sayfaları
+    #     listeliyor.
+    if YAKINDA:
+        shutil.copy2(os.path.join(KOK, 'yakinda.html'),
+                     os.path.join(CIKTI, 'index.html'))
+        shutil.rmtree(os.path.join(CIKTI, 'galeri'), ignore_errors=True)
+        print('YAKINDA           kök = yakinda.html, galeri yayında değil')
 
     # 6) favicon, robots, sitemap, 404
     print(calistir('site_ek.py'))

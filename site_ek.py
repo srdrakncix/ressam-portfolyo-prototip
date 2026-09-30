@@ -39,6 +39,11 @@ SAYFALAR = [('', '1.0'), ('galeri/', '0.8')]
 sm = ['<?xml version="1.0" encoding="UTF-8"?>',
       '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
 for yol, oncelik in SAYFALAR:
+    # Yalnızca YAYINDA olan ve dizine açık sayfalar. "Yakında" modunda
+    # galeri yok ve kök sayfa noindex; haritada ikisi de listelenmemeli.
+    dosya = os.path.join(SITE, yol, 'index.html')
+    if not os.path.exists(dosya) or 'content="noindex"' in open(dosya, encoding='utf-8').read():
+        continue
     sm += ['  <url>', '    <loc>%s%s</loc>' % (KOK, yol),
            '    <priority>%s</priority>' % oncelik, '  </url>']
 sm.append('</urlset>')

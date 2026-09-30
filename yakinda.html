@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- ═══════════════════════════════════════════════════════════════════════
+     YAKINDA — site yapım aşamasındayken saglam.fr'de görünen TEK sayfa.
+
+     Müşteri kararı (1 Ekim 2026): "site tamamen yok. Onların göreceği şey
+     güzel bir building ya da inşa şeklinde grafiksel şeyler olabilir,
+     binalarda çalışan minik insanlar gibi — site yapılıyor arkada."
+     Açık/kapalı anahtarı yayinla.py'de: YAKINDA = True iken kök adres bu
+     sayfa olur ve galeri yayından çıkar. Asıl site kaynakta duruyor;
+     anahtar kapanınca olduğu gibi geri gelir.
+
+     Sahne konuya bağlı: işçiler bina değil DEV BİR TABLO inşa ediyor.
+     İskelede rulo, merdivende fırça, vinçte çerçeve, el arabasında boya.
+     Tablonun renkleri sitenin kendi zemini (turkuaz + mercan örüntü) —
+     yapılan şeyin site olduğunu söyleyen tek ipucu bu.
+
+     Kendi kendine yeterli: kabuk, menü, derleme belirteci yok. Tek dış
+     kaynak Google Fonts (sitenin de kullandığı Cormorant Garamond) ve
+     zemin görseli (assets/zemin/oruntu.webp).
+     ═══════════════════════════════════════════════════════════════════════ -->
+<title>Cemal Sağlam — Site en construction</title>
+<meta name="description" content="Cemal Sağlam — peinture à l'huile. Le site est en construction.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://saglam.fr/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cemal Sağlam — Site en construction">
+<meta property="og:description" content="Peinture à l'huile. À très bientôt.">
+<meta property="og:url" content="https://saglam.fr/">
+<meta property="og:image" content="https://saglam.fr/assets/eser-2.webp">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&display=swap">
+<style>
+/* Renkler sitenin kendisinden: zemin katı rengi (kabuk.css --zemin-kati),
+   krem panel (menü paneli), mürekkepler (menu.py kapısından geçenler). */
+:root {
+  --zemin-kati: #15252e;
+  --kart-ust: #ece7dc;
+  --kart-alt: #e1dbcd;
+  --murekkep: #2c221d;
+  --soluk: #5c4c42;
+  --bronz: #8a6d2e;
+  --turkuaz: #4a8fb0;
+  --mercan: #e27d68;
+  --pembe: #e3a3b5;
+  --kask: #efb43f;
+  --celik: #6d7d86;
+  --ahsap: #b07d45;
+  --ten: #d9a27b;
+  --serif: "Cormorant Garamond", Garamond, "EB Garamond", Georgia, serif;
+  --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { background: var(--zemin-kati); }
+body {
+  margin: 0; min-height: 100vh; min-height: 100dvh;
+  display: grid; place-items: center;
+  padding: clamp(16px, 4vw, 48px);
+  color: var(--murekkep);
+  font: 400 15px/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased;
+  /* Sitenin zemini: dikey şerit aynalanıp yana tekrar ediyor (zemin.py). */
+  background:
+    linear-gradient(rgba(20,18,22,.18), rgba(20,18,22,.18)),
+    url(assets/zemin/oruntu.webp) 0 0 / auto max(135vh, 620px) repeat-x,
+    var(--zemin-kati);
+}
+.kart {
+  width: min(720px, 100%);
+  background: linear-gradient(180deg, var(--kart-ust), var(--kart-alt));
+  box-shadow: 0 1px 0 rgba(58,46,34,.16), 0 24px 60px rgba(0,0,0,.34);
+  border-radius: 2px;
+  padding: clamp(20px, 4vw, 40px) clamp(18px, 4.5vw, 48px) clamp(22px, 4vw, 36px);
+  text-align: center;
+}
+.sahne { display: block; width: 100%; height: auto; margin: 0 auto 6px; }
+h1 {
+  margin: 10px 0 2px;
+  font: 300 clamp(34px, 6.4vw, 52px)/1.05 var(--serif);
+  letter-spacing: .01em;
+}
+.teknik {
+  margin: 0;
+  font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+  color: var(--soluk);
+}
+.cizgi { width: 44px; height: 1px; background: var(--bronz); opacity: .6; margin: 20px auto 18px; border: 0; }
+.mesaj { margin: 0; font: italic 400 clamp(20px, 3.4vw, 26px)/1.3 var(--serif); }
+.alt { margin: 6px 0 0; color: var(--soluk); font-size: 14px; }
+.diller { display: flex; justify-content: center; gap: 4px; margin-top: 22px; }
+.diller button {
+  font: inherit; font-size: 11px; letter-spacing: .08em;
+  background: none; border: 0; cursor: pointer;
+  min-width: 36px; min-height: 34px; padding: 8px 6px;
+  color: var(--soluk);
+}
+.diller button[aria-current="true"] {
+  color: var(--murekkep);
+  text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px;
+}
+.diller button:focus-visible { outline: 2px solid var(--murekkep); outline-offset: 2px; }
+.diller span { color: var(--soluk); opacity: .45; align-self: center; font-size: 11px; }
+
+/* ── Sahnenin hareketleri ─────────────────────────────────────────────────
+   Hepsi dönüşüm (transform) — kompozitörde çalışıyor, sayfayı yeniden
+   dizmiyor. transform-box: fill-box -> dönme noktası şeklin kendi kutusu. */
+.sahne * { transform-box: fill-box; }
+.rulo-kol  { transform-origin: 100% 50%; animation: rulo 3.4s ease-in-out infinite; }
+.taze      { transform-origin: 50% 0; animation: taze 3.4s ease-in-out infinite; }
+.firca-kol { transform-origin: 100% 100%; animation: firca .9s ease-in-out infinite alternate; }
+.kanca     { transform-origin: 50% 0; animation: salin 3.6s ease-in-out infinite alternate; }
+.araba     { animation: yuru 7s ease-in-out infinite alternate; }
+.bacak-a   { transform-origin: 50% 0; animation: adim .5s ease-in-out infinite alternate; }
+.bacak-b   { transform-origin: 50% 0; animation: adim .5s ease-in-out infinite alternate-reverse; }
+@keyframes rulo  { 0%,100% { transform: rotate(-26deg); } 50% { transform: rotate(14deg); } }
+@keyframes taze  { 0%,100% { transform: scaleY(.18); } 50% { transform: scaleY(1); } }
+@keyframes firca { from { transform: rotate(-14deg); } to { transform: rotate(10deg); } }
+@keyframes salin { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+@keyframes yuru  { from { transform: translateX(0); } to { transform: translateX(62px); } }
+@keyframes adim  { from { transform: rotate(-16deg); } to { transform: rotate(16deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .sahne * { animation: none !important; }
+}
+</style>
+</head>
+<body>
+<main class="kart">
+  <svg class="sahne" viewBox="0 0 600 330" role="img" aria-labelledby="sahne-ad">
+    <title id="sahne-ad">Minik işçiler iskelede dev bir tabloyu inşa edip boyuyor</title>
+
+    <!-- zemin -->
+    <line x1="18" y1="300" x2="582" y2="300" stroke="var(--murekkep)" stroke-width="2" stroke-linecap="round"/>
+    <g stroke="var(--murekkep)" stroke-width="1.2" opacity=".35" stroke-linecap="round">
+      <line x1="40" y1="308" x2="60" y2="308"/><line x1="150" y1="310" x2="178" y2="310"/>
+      <line x1="300" y1="308" x2="318" y2="308"/><line x1="470" y1="311" x2="500" y2="311"/>
+    </g>
+
+    <!-- ═══ VİNÇ ═══ -->
+    <g stroke="var(--celik)" stroke-width="2.4" stroke-linecap="round" fill="none">
+      <line x1="66" y1="300" x2="66" y2="44"/><line x1="82" y1="300" x2="82" y2="44"/>
+      <polyline points="66,300 82,278 66,256 82,234 66,212 82,190 66,168 82,146 66,124 82,102 66,80 82,58"/>
+      <line x1="30" y1="44" x2="238" y2="44"/><line x1="30" y1="52" x2="238" y2="52"/>
+      <polyline points="82,52 96,44 110,52 124,44 138,52 152,44 166,52 180,44 194,52 208,44 222,52 236,44"/>
+      <line x1="74" y1="20" x2="30" y2="44"/><line x1="74" y1="20" x2="236" y2="44"/>
+      <line x1="74" y1="20" x2="74" y2="44"/>
+    </g>
+    <rect x="26" y="52" width="26" height="18" fill="var(--celik)"/>
+    <!-- kabin ve operatör -->
+    <rect x="84" y="56" width="20" height="16" rx="2" fill="var(--kask)"/>
+    <rect x="88" y="59" width="12" height="7" fill="#cfe3ec"/>
+    <circle cx="94" cy="64" r="2.4" fill="var(--murekkep)"/>
+    <!-- kanca + asılı çerçeve (sallanıyor) -->
+    <g class="kanca">
+      <line x1="196" y1="52" x2="196" y2="112" stroke="var(--murekkep)" stroke-width="1.4"/>
+      <path d="M192 112 h8 v4 a4 4 0 1 1 -8 0 z" fill="var(--murekkep)"/>
+      <line x1="196" y1="118" x2="178" y2="130" stroke="var(--murekkep)" stroke-width="1"/>
+      <line x1="196" y1="118" x2="214" y2="130" stroke="var(--murekkep)" stroke-width="1"/>
+      <rect x="174" y="130" width="44" height="34" fill="var(--bronz)"/>
+      <rect x="179" y="135" width="34" height="24" fill="var(--turkuaz)"/>
+      <rect x="179" y="148" width="34" height="11" fill="var(--mercan)"/>
+    </g>
+
+    <!-- ═══ ŞÖVALE + DEV TABLO (inşa edilen şey) ═══ -->
+    <g stroke="var(--ahsap)" stroke-width="7" stroke-linecap="round">
+      <line x1="282" y1="252" x2="262" y2="298"/>
+      <line x1="438" y1="252" x2="458" y2="298"/>
+      <line x1="360" y1="66" x2="360" y2="40"/>
+    </g>
+    <rect x="250" y="248" width="220" height="9" rx="2" fill="var(--ahsap)"/>
+    <!-- çerçeve -->
+    <rect x="252" y="66" width="216" height="182" fill="var(--bronz)"/>
+    <rect x="260" y="74" width="200" height="166" fill="#f7f3ea"/>
+    <!-- boyanmış kısım: sitenin kendi zemini (turkuaz gök, mercan boya) -->
+    <clipPath id="tuval"><rect x="260" y="74" width="200" height="166"/></clipPath>
+    <g clip-path="url(#tuval)">
+      <rect x="260" y="74" width="130" height="80" fill="var(--turkuaz)"/>
+      <path d="M260 148 C290 136 318 158 350 146 C366 140 380 150 390 146 L390 240 L260 240 Z" fill="var(--mercan)"/>
+      <path d="M268 176 C292 168 314 186 340 176 M274 204 C300 196 330 214 372 200 M300 226 C318 220 338 230 360 222"
+            stroke="var(--pembe)" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M270 96 C290 90 300 104 322 96 M300 120 C320 114 340 128 366 118"
+            stroke="#6fa9c4" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <!-- rulonun çektiği taze şerit (büyüyüp küçülüyor) -->
+      <rect class="taze" x="392" y="74" width="26" height="120" fill="var(--turkuaz)" opacity=".9"/>
+    </g>
+
+    <!-- ═══ İSKELE ═══ -->
+    <g stroke="var(--celik)" stroke-width="3" stroke-linecap="round">
+      <line x1="382" y1="300" x2="382" y2="122"/><line x1="486" y1="300" x2="486" y2="122"/>
+      <line x1="382" y1="232" x2="486" y2="162" stroke-width="1.6"/>
+      <line x1="382" y1="162" x2="486" y2="232" stroke-width="1.6"/>
+      <line x1="382" y1="300" x2="486" y2="232" stroke-width="1.6"/>
+    </g>
+    <rect x="374" y="160" width="120" height="6" rx="1" fill="var(--ahsap)"/>
+    <rect x="374" y="230" width="120" height="6" rx="1" fill="var(--ahsap)"/>
+
+    <!-- İşçi 1: üst katta, uzun saplı rulo -->
+    <g>
+      <rect x="452" y="146" width="3.5" height="14" fill="var(--murekkep)"/>
+      <rect x="458" y="146" width="3.5" height="14" fill="var(--murekkep)"/>
+      <rect x="449" y="126" width="15" height="22" rx="4" fill="var(--mercan)"/>
+      <circle cx="456.5" cy="119" r="6" fill="var(--ten)"/>
+      <path d="M449.5 118 a7 7 0 0 1 14 0 z" fill="var(--kask)"/><rect x="448" y="116.5" width="17" height="2.4" rx="1" fill="var(--kask)"/>
+      <!-- kol + sap + rulo birlikte dönüyor (dönme noktası: eller) -->
+      <g class="rulo-kol">
+        <line x1="400" y1="112" x2="452" y2="134" stroke="var(--murekkep)" stroke-width="2.2" stroke-linecap="round"/>
+        <rect x="392" y="104" width="26" height="12" rx="3" fill="var(--turkuaz)" stroke="var(--murekkep)" stroke-width="1.4"/>
+        <line x1="452" y1="134" x2="458" y2="136" stroke="var(--ten)" stroke-width="3.2" stroke-linecap="round"/>
+      </g>
+    </g>
+
+    <!-- İşçi 3: alt katta oturmuş, boya kovası uzatıyor -->
+    <g>
+      <rect x="430" y="214" width="15" height="17" rx="4" fill="var(--mercan)"/>
+      <circle cx="437.5" cy="207" r="6" fill="var(--ten)"/>
+      <path d="M430.5 206 a7 7 0 0 1 14 0 z" fill="var(--kask)"/><rect x="429" y="204.5" width="17" height="2.4" rx="1" fill="var(--kask)"/>
+      <line x1="440" y1="232" x2="452" y2="242" stroke="var(--murekkep)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="435" y1="232" x2="446" y2="244" stroke="var(--murekkep)" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="444" y1="220" x2="460" y2="214" stroke="var(--ten)" stroke-width="3" stroke-linecap="round"/>
+      <path d="M458 206 h14 l-2 16 h-10 z" fill="var(--pembe)" stroke="var(--murekkep)" stroke-width="1.2"/>
+      <path d="M458 206 q7 -8 14 0" fill="none" stroke="var(--murekkep)" stroke-width="1.2"/>
+    </g>
+
+    <!-- ═══ MERDİVEN + İşçi 2 (fırçayla ayrıntı) ═══ -->
+    <g stroke="var(--ahsap)" stroke-width="3" stroke-linecap="round">
+      <line x1="222" y1="300" x2="238" y2="146"/><line x1="240" y1="300" x2="254" y2="150"/>
+      <line x1="220" y1="280" x2="241" y2="280" stroke-width="2"/>
+      <line x1="222" y1="258" x2="243" y2="258" stroke-width="2"/>
+      <line x1="224" y1="236" x2="245" y2="236" stroke-width="2"/>
+      <line x1="226" y1="214" x2="247" y2="214" stroke-width="2"/>
+      <line x1="229" y1="192" x2="249" y2="192" stroke-width="2"/>
+      <line x1="231" y1="170" x2="251" y2="170" stroke-width="2"/>
+    </g>
+    <g>
+      <rect x="231" y="200" width="3.5" height="14" fill="var(--murekkep)" transform="rotate(8 233 207)"/>
+      <rect x="237" y="200" width="3.5" height="14" fill="var(--murekkep)" transform="rotate(8 239 207)"/>
+      <rect x="229" y="180" width="15" height="22" rx="4" fill="var(--mercan)"/>
+      <circle cx="236.5" cy="173" r="6" fill="var(--ten)"/>
+      <path d="M229.5 172 a7 7 0 0 1 14 0 z" fill="var(--kask)"/><rect x="228" y="170.5" width="17" height="2.4" rx="1" fill="var(--kask)"/>
+      <g class="firca-kol">
+        <line x1="243" y1="186" x2="262" y2="176" stroke="var(--ten)" stroke-width="3" stroke-linecap="round"/>
+        <line x1="262" y1="176" x2="272" y2="168" stroke="var(--ahsap)" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M271 166 l6 -4 l2 4 l-5 4 z" fill="var(--pembe)"/>
+      </g>
+    </g>
+
+    <!-- ═══ El arabasıyla boya taşıyan işçi (ileri geri yürüyor) ═══ -->
+    <g class="araba">
+      <g>
+        <line class="bacak-a" x1="106" y1="282" x2="106" y2="299" stroke="var(--murekkep)" stroke-width="3.5" stroke-linecap="round"/>
+        <line class="bacak-b" x1="111" y1="282" x2="111" y2="299" stroke="var(--murekkep)" stroke-width="3.5" stroke-linecap="round"/>
+      </g>
+      <rect x="101" y="261" width="15" height="23" rx="4" fill="var(--mercan)"/>
+      <circle cx="108.5" cy="254" r="6" fill="var(--ten)"/>
+      <path d="M101.5 253 a7 7 0 0 1 14 0 z" fill="var(--kask)"/><rect x="100" y="251.5" width="17" height="2.4" rx="1" fill="var(--kask)"/>
+      <line x1="115" y1="270" x2="130" y2="278" stroke="var(--ten)" stroke-width="3" stroke-linecap="round"/>
+      <!-- el arabası -->
+      <line x1="128" y1="278" x2="140" y2="282" stroke="var(--murekkep)" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M138 272 h38 l-8 16 h-26 z" fill="var(--celik)"/>
+      <circle cx="170" cy="292" r="7" fill="none" stroke="var(--murekkep)" stroke-width="2.4"/>
+      <line x1="150" y1="288" x2="146" y2="299" stroke="var(--murekkep)" stroke-width="2.2" stroke-linecap="round"/>
+      <!-- kovalar -->
+      <path d="M144 262 h12 l-1.5 11 h-9 z" fill="var(--turkuaz)"/>
+      <path d="M158 260 h12 l-1.5 13 h-9 z" fill="var(--mercan)"/>
+      <path d="M161 260 v4 a1.6 1.6 0 0 0 3.2 0 v-4" fill="var(--mercan)"/>
+    </g>
+
+    <!-- dubalar -->
+    <g>
+      <path d="M522 300 l7 -24 h4 l7 24 z" fill="#e8733f"/>
+      <rect x="524" y="286" width="14" height="3.5" fill="#fff"/>
+      <path d="M548 300 l6 -19 h3 l6 19 z" fill="#e8733f"/>
+      <rect x="550" y="290" width="11" height="3" fill="#fff"/>
+    </g>
+  </svg>
+
+  <h1>Cemal Sağlam</h1>
+  <p class="teknik" data-i="teknik">Peinture à l'huile</p>
+  <hr class="cizgi">
+  <p class="mesaj" data-i="mesaj">Le site est en construction.</p>
+  <p class="alt" data-i="alt">À très bientôt.</p>
+
+  <div class="diller" role="group" aria-label="Langue">
+    <button type="button" data-l="tr" lang="tr">TR</button><span aria-hidden="true">·</span>
+    <button type="button" data-l="en" lang="en">EN</button><span aria-hidden="true">·</span>
+    <button type="button" data-l="fr" lang="fr">FR</button>
+  </div>
+</main>
+
+<script>
+/* Dil: ziyaretçinin tarayıcı dili (tr / en / fr), yoksa Fransızca — alan
+   adı .fr ve ressam Paris'te. Seçim sayfa içinde kalır, saklanmaz. */
+(function () {
+  var M = {
+    fr: { teknik: "Peinture à l'huile", mesaj: 'Le site est en construction.', alt: 'À très bientôt.',
+          sahne: 'De petits ouvriers construisent et peignent un immense tableau sur un échafaudage',
+          baslik: 'Cemal Sağlam — Site en construction', dil: 'Langue' },
+    tr: { teknik: 'Yağlı boya', mesaj: 'Site yapım aşamasında.', alt: 'Çok yakında buradayız.',
+          sahne: 'Minik işçiler iskelede dev bir tabloyu inşa edip boyuyor',
+          baslik: 'Cemal Sağlam — Site yapım aşamasında', dil: 'Dil' },
+    en: { teknik: 'Oil painting', mesaj: 'The site is under construction.', alt: 'See you very soon.',
+          sahne: 'Tiny workers on a scaffold building and painting a huge canvas',
+          baslik: 'Cemal Sağlam — Site under construction', dil: 'Language' }
+  };
+  function sec() {
+    var l = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || '']);
+    for (var i = 0; i < l.length; i++) {
+      var k = String(l[i]).slice(0, 2).toLowerCase();
+      if (M[k]) return k;
+    }
+    return 'fr';
+  }
+  function uygula(k) {
+    var t = M[k];
+    document.documentElement.lang = k;
+    document.title = t.baslik;
+    [].forEach.call(document.querySelectorAll('[data-i]'), function (el) { el.textContent = t[el.getAttribute('data-i')]; });
+    document.getElementById('sahne-ad').textContent = t.sahne;
+    document.querySelector('.diller').setAttribute('aria-label', t.dil);
+    [].forEach.call(document.querySelectorAll('.diller button'), function (b) {
+      b.setAttribute('aria-current', String(b.getAttribute('data-l') === k));
+    });
+  }
+  [].forEach.call(document.querySelectorAll('.diller button'), function (b) {
+    b.addEventListener('click', function () { uygula(b.getAttribute('data-l')); });
+  });
+  uygula(sec());
+})();
+</script>
+</body>
+</html>
