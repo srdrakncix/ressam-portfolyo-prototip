@@ -25,7 +25,7 @@ const DEPO = 'srdrakncix/ressam-portfolyo-prototip';
 
 /* Paneli barındıran adres. Yıldız KULLANILMIYOR: oturum jetonu taşıyan
    istekleri herhangi bir sitenin yapabilmesi gerekmiyor. */
-const KOKEN = 'https://srdrakncix.github.io';
+const KOKEN = 'https://saglam.fr';
 
 const OMUR = 8 * 60 * 60;          /* oturum ömrü, saniye */
 const DENEME_SINIRI = 8;           /* aynı IP'den art arda hatalı giriş */

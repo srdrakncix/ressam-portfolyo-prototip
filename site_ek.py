@@ -8,7 +8,7 @@ değil hem 16 px'te okunuyor.
 import os
 from PIL import Image, ImageDraw
 
-KOK = 'https://srdrakncix.github.io/ressam-portfolyo-prototip/'
+KOK = 'https://saglam.fr/'
 SITE = 'site'
 
 FAVICON = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
@@ -53,7 +53,7 @@ open(os.path.join(SITE, '404.html'), 'w', encoding='utf-8').write('''<!doctype h
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sayfa bulunamadı — Cemal Sağlam</title>
 <meta name="robots" content="noindex">
-<link rel="icon" href="/ressam-portfolyo-prototip/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <style>
   :root { color-scheme: light; }
   body {
@@ -80,7 +80,7 @@ open(os.path.join(SITE, '404.html'), 'w', encoding='utf-8').write('''<!doctype h
   <h1>Aradığınız sayfa burada değil.</h1>
   <p lang="en">The page you are looking for is not here.</p>
   <p lang="fr">La page que vous cherchez n’est pas ici.</p>
-  <a href="/ressam-portfolyo-prototip/">Cemal Sağlam — Resim</a>
+  <a href="/">Cemal Sağlam — Resim</a>
 </main>
 </body>
 </html>

@@ -3,7 +3,7 @@
 Tek sanatçı yağlı boya portfolyo sitesi. **edwardpovey.com** tarzı: beyaz zemin,
 Helvetica, solda düz metin menü, devasa resimler, küçük künye. Süs yok.
 
-**Canlı:** https://srdrakncix.github.io/ressam-portfolyo-prototip/
+**Canlı:** https://saglam.fr/
 
 ---
 
