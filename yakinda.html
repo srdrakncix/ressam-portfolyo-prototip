@@ -15,6 +15,9 @@
 
      Sahne konuya bağlı: işçiler bina değil DEV BİR TABLO inşa ediyor.
      İskelede rulo, merdivende fırça, vinçte çerçeve, el arabasında boya.
+     Yanında iki bina yükseliyor (iskelet + cephesi boyanan), yük
+     asansörü, mikser, uzakta ikinci vinç; toplam 11 işçi (müşteri: "bina,
+     insan ve inşaat sayısını arttır").
      Tablonun renkleri sitenin kendi zemini (turkuaz + mercan örüntü) —
      yapılan şeyin site olduğunu söyleyen tek ipucu bu.
 
@@ -74,7 +77,7 @@ body {
     var(--zemin-kati);
 }
 .kart {
-  width: min(720px, 100%);
+  width: min(820px, 100%);
   background: linear-gradient(180deg, var(--kart-ust), var(--kart-alt));
   box-shadow: 0 1px 0 rgba(58,46,34,.16), 0 24px 60px rgba(0,0,0,.34);
   border-radius: 2px;
@@ -82,6 +85,11 @@ body {
   text-align: center;
 }
 .sahne { display: block; width: 100%; height: auto; margin: 0 auto 6px; }
+/* Telefonda sahne kartın yan boşluklarına taşıyor: 11 minik işçi 320 px'e
+   sığınca seçilmez oluyordu. */
+@media (max-width: 560px) {
+  .kart { padding-inline: 8px; }
+}
 h1 {
   margin: 10px 0 2px;
   font: 300 clamp(34px, 6.4vw, 52px)/1.05 var(--serif);
@@ -118,13 +126,25 @@ h1 {
 .firca-kol { transform-origin: 100% 100%; animation: firca .9s ease-in-out infinite alternate; }
 .kanca     { transform-origin: 50% 0; animation: salin 3.6s ease-in-out infinite alternate; }
 .araba     { animation: yuru 7s ease-in-out infinite alternate; }
+.tasiyici  { animation: tasi 5.5s ease-in-out infinite alternate; }
+.cekic     { transform-origin: 0% 100%; animation: cekic .55s ease-in infinite alternate; }
+.kivilcim  { animation: kivilcim 1.3s steps(1) infinite; }
+.asansor   { animation: asansor 8s ease-in-out infinite alternate; }
+.gondol    { animation: gondol 6s ease-in-out infinite alternate; }
+.mikser    { transform-origin: 50% 50%; animation: don 2.2s linear infinite; }
 .bacak-a   { transform-origin: 50% 0; animation: adim .5s ease-in-out infinite alternate; }
 .bacak-b   { transform-origin: 50% 0; animation: adim .5s ease-in-out infinite alternate-reverse; }
 @keyframes rulo  { 0%,100% { transform: rotate(-26deg); } 50% { transform: rotate(14deg); } }
 @keyframes taze  { 0%,100% { transform: scaleY(.18); } 50% { transform: scaleY(1); } }
 @keyframes firca { from { transform: rotate(-14deg); } to { transform: rotate(10deg); } }
 @keyframes salin { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
-@keyframes yuru  { from { transform: translateX(0); } to { transform: translateX(62px); } }
+@keyframes yuru  { from { transform: translateX(0); } to { transform: translateX(40px); } }
+@keyframes tasi  { from { transform: translateX(0); } to { transform: translateX(30px); } }
+@keyframes cekic { from { transform: rotate(-34deg); } to { transform: rotate(16deg); } }
+@keyframes kivilcim { 0% { opacity: 1; } 12% { opacity: .15; } 24% { opacity: 1; } 40% { opacity: 0; } 70% { opacity: 1; } 82% { opacity: 0; } }
+@keyframes asansor { from { transform: translateY(0); } to { transform: translateY(-150px); } }
+@keyframes gondol  { from { transform: translateY(0); } to { transform: translateY(-36px); } }
+@keyframes don   { to { transform: rotate(360deg); } }
 @keyframes adim  { from { transform: rotate(-16deg); } to { transform: rotate(16deg); } }
 @media (prefers-reduced-motion: reduce) {
   .sahne * { animation: none !important; }
@@ -133,18 +153,73 @@ h1 {
 </head>
 <body>
 <main class="kart">
-  <svg class="sahne" viewBox="0 0 600 330" role="img" aria-labelledby="sahne-ad">
-    <title id="sahne-ad">Minik işçiler iskelede dev bir tabloyu inşa edip boyuyor</title>
+  <svg class="sahne" viewBox="0 0 720 330" role="img" aria-labelledby="sahne-ad">
+    <title id="sahne-ad">Minik işçiler iskelede dev bir tabloyu inşa edip boyuyor, yanında binalar yükseliyor</title>
+    <!-- Renkler DÜZ HEX: SVG sunum niteliklerinde var(--x) Firefox'ta
+         çalışmıyor (ressam Firefox kullanıyor). Değerler :root'takilerle aynı. -->
+    <defs>
+      <!-- ayakta işçi; (0,0) ayak ortası. Yelek rengi `color` ile. -->
+      <g id="isci">
+        <rect x="-5" y="-14" width="3.5" height="14" fill="#2c221d"/>
+        <rect x="1.5" y="-14" width="3.5" height="14" fill="#2c221d"/>
+        <rect x="-7.5" y="-34" width="15" height="22" rx="4" fill="currentColor"/>
+        <circle cx="0" cy="-41" r="6" fill="#d9a27b"/>
+        <path d="M-7 -42 a7 7 0 0 1 14 0 z" fill="#efb43f"/>
+        <rect x="-8.5" y="-43.5" width="17" height="2.4" rx="1" fill="#efb43f"/>
+      </g>
+      <!-- bacaksız (asansörde, asılı iskelede); (0,0) gövdenin altı -->
+      <g id="isci-ust">
+        <rect x="-7.5" y="-22" width="15" height="22" rx="4" fill="currentColor"/>
+        <circle cx="0" cy="-29" r="6" fill="#d9a27b"/>
+        <path d="M-7 -30 a7 7 0 0 1 14 0 z" fill="#efb43f"/>
+        <rect x="-8.5" y="-31.5" width="17" height="2.4" rx="1" fill="#efb43f"/>
+      </g>
+      <!-- bacaksız, bacakları ayrıca hareket eden yürüyen işçi için -->
+      <g id="isci-govde">
+        <rect x="-7.5" y="-34" width="15" height="22" rx="4" fill="currentColor"/>
+        <circle cx="0" cy="-41" r="6" fill="#d9a27b"/>
+        <path d="M-7 -42 a7 7 0 0 1 14 0 z" fill="#efb43f"/>
+        <rect x="-8.5" y="-43.5" width="17" height="2.4" rx="1" fill="#efb43f"/>
+      </g>
+    </defs>
+
+    <!-- ═══ UZAK ŞEHİR + UZAK VİNÇ (soluk, derinlik) ═══ -->
+    <g fill="#d8cebb">
+      <rect x="644" y="118" width="30" height="182"/>
+      <rect x="700" y="150" width="18" height="150"/>
+    </g>
+    <g stroke="#bdb19b" stroke-width="2" fill="none" stroke-linecap="round">
+      <line x1="688" y1="300" x2="688" y2="40"/><line x1="697" y1="300" x2="697" y2="40"/>
+      <line x1="604" y1="40" x2="716" y2="40"/>
+      <line x1="692" y1="22" x2="604" y2="40"/><line x1="692" y1="22" x2="716" y2="40"/>
+      <line x1="632" y1="40" x2="632" y2="92"/>
+    </g>
+    <rect x="626" y="92" width="12" height="9" fill="#bdb19b"/>
 
     <!-- zemin -->
-    <line x1="18" y1="300" x2="582" y2="300" stroke="var(--murekkep)" stroke-width="2" stroke-linecap="round"/>
-    <g stroke="var(--murekkep)" stroke-width="1.2" opacity=".35" stroke-linecap="round">
-      <line x1="40" y1="308" x2="60" y2="308"/><line x1="150" y1="310" x2="178" y2="310"/>
+    <line x1="8" y1="300" x2="712" y2="300" stroke="#2c221d" stroke-width="2" stroke-linecap="round"/>
+    <g stroke="#2c221d" stroke-width="1.2" opacity=".35" stroke-linecap="round">
+      <line x1="30" y1="308" x2="50" y2="308"/><line x1="150" y1="310" x2="178" y2="310"/>
       <line x1="300" y1="308" x2="318" y2="308"/><line x1="470" y1="311" x2="500" y2="311"/>
+      <line x1="600" y1="309" x2="630" y2="309"/><line x1="676" y1="308" x2="700" y2="308"/>
+    </g>
+
+    <!-- ═══ BETON MİKSERİ (tamburu dönüyor) ═══ -->
+    <g>
+      <line x1="20" y1="290" x2="15" y2="300" stroke="#2c221d" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="46" y1="290" x2="51" y2="300" stroke="#2c221d" stroke-width="2.2" stroke-linecap="round"/>
+      <rect x="12" y="285" width="42" height="6" rx="1" fill="#6d7d86"/>
+      <ellipse cx="33" cy="270" rx="17" ry="14" fill="#e27d68" stroke="#2c221d" stroke-width="1.4"/>
+      <g class="mikser">
+        <circle cx="33" cy="270" r="10" fill="none"/>
+        <line x1="23" y1="270" x2="43" y2="270" stroke="#f7f3ea" stroke-width="2.2" stroke-linecap="round"/>
+        <line x1="33" y1="260" x2="33" y2="280" stroke="#f7f3ea" stroke-width="2.2" stroke-linecap="round"/>
+      </g>
+      <path d="M48 262 l8 -6" stroke="#2c221d" stroke-width="3" stroke-linecap="round"/>
     </g>
 
     <!-- ═══ VİNÇ ═══ -->
-    <g stroke="var(--celik)" stroke-width="2.4" stroke-linecap="round" fill="none">
+    <g stroke="#6d7d86" stroke-width="2.4" stroke-linecap="round" fill="none">
       <line x1="66" y1="300" x2="66" y2="44"/><line x1="82" y1="300" x2="82" y2="44"/>
       <polyline points="66,300 82,278 66,256 82,234 66,212 82,190 66,168 82,146 66,124 82,102 66,80 82,58"/>
       <line x1="30" y1="44" x2="238" y2="44"/><line x1="30" y1="52" x2="238" y2="52"/>
@@ -152,84 +227,79 @@ h1 {
       <line x1="74" y1="20" x2="30" y2="44"/><line x1="74" y1="20" x2="236" y2="44"/>
       <line x1="74" y1="20" x2="74" y2="44"/>
     </g>
-    <rect x="26" y="52" width="26" height="18" fill="var(--celik)"/>
-    <!-- kabin ve operatör -->
-    <rect x="84" y="56" width="20" height="16" rx="2" fill="var(--kask)"/>
+    <rect x="26" y="52" width="26" height="18" fill="#6d7d86"/>
+    <rect x="84" y="56" width="20" height="16" rx="2" fill="#efb43f"/>
     <rect x="88" y="59" width="12" height="7" fill="#cfe3ec"/>
-    <circle cx="94" cy="64" r="2.4" fill="var(--murekkep)"/>
-    <!-- kanca + asılı çerçeve (sallanıyor) -->
+    <circle cx="94" cy="64" r="2.4" fill="#2c221d"/>
     <g class="kanca">
-      <line x1="196" y1="52" x2="196" y2="112" stroke="var(--murekkep)" stroke-width="1.4"/>
-      <path d="M192 112 h8 v4 a4 4 0 1 1 -8 0 z" fill="var(--murekkep)"/>
-      <line x1="196" y1="118" x2="178" y2="130" stroke="var(--murekkep)" stroke-width="1"/>
-      <line x1="196" y1="118" x2="214" y2="130" stroke="var(--murekkep)" stroke-width="1"/>
-      <rect x="174" y="130" width="44" height="34" fill="var(--bronz)"/>
-      <rect x="179" y="135" width="34" height="24" fill="var(--turkuaz)"/>
-      <rect x="179" y="148" width="34" height="11" fill="var(--mercan)"/>
+      <line x1="196" y1="52" x2="196" y2="112" stroke="#2c221d" stroke-width="1.4"/>
+      <path d="M192 112 h8 v4 a4 4 0 1 1 -8 0 z" fill="#2c221d"/>
+      <line x1="196" y1="118" x2="178" y2="130" stroke="#2c221d" stroke-width="1"/>
+      <line x1="196" y1="118" x2="214" y2="130" stroke="#2c221d" stroke-width="1"/>
+      <rect x="174" y="130" width="44" height="34" fill="#8a6d2e"/>
+      <rect x="179" y="135" width="34" height="24" fill="#4a8fb0"/>
+      <rect x="179" y="148" width="34" height="11" fill="#e27d68"/>
     </g>
 
-    <!-- ═══ ŞÖVALE + DEV TABLO (inşa edilen şey) ═══ -->
-    <g stroke="var(--ahsap)" stroke-width="7" stroke-linecap="round">
+    <!-- ═══ ŞÖVALE + DEV TABLO ═══ -->
+    <g stroke="#b07d45" stroke-width="7" stroke-linecap="round">
       <line x1="282" y1="252" x2="262" y2="298"/>
       <line x1="438" y1="252" x2="458" y2="298"/>
       <line x1="360" y1="66" x2="360" y2="40"/>
     </g>
-    <rect x="250" y="248" width="220" height="9" rx="2" fill="var(--ahsap)"/>
-    <!-- çerçeve -->
-    <rect x="252" y="66" width="216" height="182" fill="var(--bronz)"/>
+    <rect x="250" y="248" width="220" height="9" rx="2" fill="#b07d45"/>
+    <rect x="252" y="66" width="216" height="182" fill="#8a6d2e"/>
     <rect x="260" y="74" width="200" height="166" fill="#f7f3ea"/>
-    <!-- boyanmış kısım: sitenin kendi zemini (turkuaz gök, mercan boya) -->
     <clipPath id="tuval"><rect x="260" y="74" width="200" height="166"/></clipPath>
     <g clip-path="url(#tuval)">
-      <rect x="260" y="74" width="130" height="80" fill="var(--turkuaz)"/>
-      <path d="M260 148 C290 136 318 158 350 146 C366 140 380 150 390 146 L390 240 L260 240 Z" fill="var(--mercan)"/>
+      <rect x="260" y="74" width="130" height="80" fill="#4a8fb0"/>
+      <path d="M260 148 C290 136 318 158 350 146 C366 140 380 150 390 146 L390 240 L260 240 Z" fill="#e27d68"/>
       <path d="M268 176 C292 168 314 186 340 176 M274 204 C300 196 330 214 372 200 M300 226 C318 220 338 230 360 222"
-            stroke="var(--pembe)" stroke-width="5" fill="none" stroke-linecap="round"/>
+            stroke="#e3a3b5" stroke-width="5" fill="none" stroke-linecap="round"/>
       <path d="M270 96 C290 90 300 104 322 96 M300 120 C320 114 340 128 366 118"
             stroke="#6fa9c4" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <!-- rulonun çektiği taze şerit (büyüyüp küçülüyor) -->
-      <rect class="taze" x="392" y="74" width="26" height="120" fill="var(--turkuaz)" opacity=".9"/>
+      <rect class="taze" x="392" y="74" width="26" height="120" fill="#4a8fb0" opacity=".9"/>
     </g>
 
+    <!-- tuğla yığını ve boya kutuları (şövalenin altında) -->
+    <g fill="#c98a6f" stroke="#f7f3ea" stroke-width="1">
+      <rect x="300" y="291" width="12" height="7"/><rect x="312" y="291" width="12" height="7"/><rect x="324" y="291" width="12" height="7"/>
+      <rect x="306" y="284" width="12" height="7"/><rect x="318" y="284" width="12" height="7"/>
+      <rect x="312" y="277" width="12" height="7"/>
+    </g>
+    <path d="M346 286 h10 l-1 13 h-8 z" fill="#4a8fb0"/>
+    <path d="M360 289 h9 l-1 10 h-7 z" fill="#e3a3b5"/>
+
     <!-- ═══ İSKELE ═══ -->
-    <g stroke="var(--celik)" stroke-width="3" stroke-linecap="round">
+    <g stroke="#6d7d86" stroke-width="3" stroke-linecap="round">
       <line x1="382" y1="300" x2="382" y2="122"/><line x1="486" y1="300" x2="486" y2="122"/>
       <line x1="382" y1="232" x2="486" y2="162" stroke-width="1.6"/>
       <line x1="382" y1="162" x2="486" y2="232" stroke-width="1.6"/>
       <line x1="382" y1="300" x2="486" y2="232" stroke-width="1.6"/>
     </g>
-    <rect x="374" y="160" width="120" height="6" rx="1" fill="var(--ahsap)"/>
-    <rect x="374" y="230" width="120" height="6" rx="1" fill="var(--ahsap)"/>
+    <rect x="374" y="160" width="120" height="6" rx="1" fill="#b07d45"/>
+    <rect x="374" y="230" width="120" height="6" rx="1" fill="#b07d45"/>
 
-    <!-- İşçi 1: üst katta, uzun saplı rulo -->
-    <g>
-      <rect x="452" y="146" width="3.5" height="14" fill="var(--murekkep)"/>
-      <rect x="458" y="146" width="3.5" height="14" fill="var(--murekkep)"/>
-      <rect x="449" y="126" width="15" height="22" rx="4" fill="var(--mercan)"/>
-      <circle cx="456.5" cy="119" r="6" fill="var(--ten)"/>
-      <path d="M449.5 118 a7 7 0 0 1 14 0 z" fill="var(--kask)"/><rect x="448" y="116.5" width="17" height="2.4" rx="1" fill="var(--kask)"/>
-      <!-- kol + sap + rulo birlikte dönüyor (dönme noktası: eller) -->
-      <g class="rulo-kol">
-        <line x1="400" y1="112" x2="452" y2="134" stroke="var(--murekkep)" stroke-width="2.2" stroke-linecap="round"/>
-        <rect x="392" y="104" width="26" height="12" rx="3" fill="var(--turkuaz)" stroke="var(--murekkep)" stroke-width="1.4"/>
-        <line x1="452" y1="134" x2="458" y2="136" stroke="var(--ten)" stroke-width="3.2" stroke-linecap="round"/>
-      </g>
+    <!-- İşçi: üst katta rulo -->
+    <use href="#isci" x="456.5" y="160" color="#e27d68"/>
+    <g class="rulo-kol">
+      <line x1="400" y1="112" x2="452" y2="134" stroke="#2c221d" stroke-width="2.2" stroke-linecap="round"/>
+      <rect x="392" y="104" width="26" height="12" rx="3" fill="#4a8fb0" stroke="#2c221d" stroke-width="1.4"/>
+      <line x1="452" y1="134" x2="458" y2="136" stroke="#d9a27b" stroke-width="3.2" stroke-linecap="round"/>
     </g>
 
-    <!-- İşçi 3: alt katta oturmuş, boya kovası uzatıyor -->
+    <!-- İşçi: alt katta oturmuş, kova uzatıyor -->
     <g>
-      <rect x="430" y="214" width="15" height="17" rx="4" fill="var(--mercan)"/>
-      <circle cx="437.5" cy="207" r="6" fill="var(--ten)"/>
-      <path d="M430.5 206 a7 7 0 0 1 14 0 z" fill="var(--kask)"/><rect x="429" y="204.5" width="17" height="2.4" rx="1" fill="var(--kask)"/>
-      <line x1="440" y1="232" x2="452" y2="242" stroke="var(--murekkep)" stroke-width="3.5" stroke-linecap="round"/>
-      <line x1="435" y1="232" x2="446" y2="244" stroke="var(--murekkep)" stroke-width="3.5" stroke-linecap="round"/>
-      <line x1="444" y1="220" x2="460" y2="214" stroke="var(--ten)" stroke-width="3" stroke-linecap="round"/>
-      <path d="M458 206 h14 l-2 16 h-10 z" fill="var(--pembe)" stroke="var(--murekkep)" stroke-width="1.2"/>
-      <path d="M458 206 q7 -8 14 0" fill="none" stroke="var(--murekkep)" stroke-width="1.2"/>
+      <use href="#isci-ust" x="437.5" y="231" color="#4a8fb0"/>
+      <line x1="440" y1="232" x2="452" y2="242" stroke="#2c221d" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="435" y1="232" x2="446" y2="244" stroke="#2c221d" stroke-width="3.5" stroke-linecap="round"/>
+      <line x1="444" y1="220" x2="460" y2="214" stroke="#d9a27b" stroke-width="3" stroke-linecap="round"/>
+      <path d="M458 206 h14 l-2 16 h-10 z" fill="#e3a3b5" stroke="#2c221d" stroke-width="1.2"/>
+      <path d="M458 206 q7 -8 14 0" fill="none" stroke="#2c221d" stroke-width="1.2"/>
     </g>
 
-    <!-- ═══ MERDİVEN + İşçi 2 (fırçayla ayrıntı) ═══ -->
-    <g stroke="var(--ahsap)" stroke-width="3" stroke-linecap="round">
+    <!-- ═══ MERDİVEN + fırçalı işçi ═══ -->
+    <g stroke="#b07d45" stroke-width="3" stroke-linecap="round">
       <line x1="222" y1="300" x2="238" y2="146"/><line x1="240" y1="300" x2="254" y2="150"/>
       <line x1="220" y1="280" x2="241" y2="280" stroke-width="2"/>
       <line x1="222" y1="258" x2="243" y2="258" stroke-width="2"/>
@@ -238,46 +308,123 @@ h1 {
       <line x1="229" y1="192" x2="249" y2="192" stroke-width="2"/>
       <line x1="231" y1="170" x2="251" y2="170" stroke-width="2"/>
     </g>
-    <g>
-      <rect x="231" y="200" width="3.5" height="14" fill="var(--murekkep)" transform="rotate(8 233 207)"/>
-      <rect x="237" y="200" width="3.5" height="14" fill="var(--murekkep)" transform="rotate(8 239 207)"/>
-      <rect x="229" y="180" width="15" height="22" rx="4" fill="var(--mercan)"/>
-      <circle cx="236.5" cy="173" r="6" fill="var(--ten)"/>
-      <path d="M229.5 172 a7 7 0 0 1 14 0 z" fill="var(--kask)"/><rect x="228" y="170.5" width="17" height="2.4" rx="1" fill="var(--kask)"/>
-      <g class="firca-kol">
-        <line x1="243" y1="186" x2="262" y2="176" stroke="var(--ten)" stroke-width="3" stroke-linecap="round"/>
-        <line x1="262" y1="176" x2="272" y2="168" stroke="var(--ahsap)" stroke-width="2.2" stroke-linecap="round"/>
-        <path d="M271 166 l6 -4 l2 4 l-5 4 z" fill="var(--pembe)"/>
-      </g>
+    <use href="#isci" x="236.5" y="214" color="#e8733f"/>
+    <g class="firca-kol">
+      <line x1="243" y1="186" x2="262" y2="176" stroke="#d9a27b" stroke-width="3" stroke-linecap="round"/>
+      <line x1="262" y1="176" x2="272" y2="168" stroke="#b07d45" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M271 166 l6 -4 l2 4 l-5 4 z" fill="#e3a3b5"/>
     </g>
 
-    <!-- ═══ El arabasıyla boya taşıyan işçi (ileri geri yürüyor) ═══ -->
+    <!-- ═══ El arabalı işçi (gidip geliyor) ═══ -->
     <g class="araba">
-      <g>
-        <line class="bacak-a" x1="106" y1="282" x2="106" y2="299" stroke="var(--murekkep)" stroke-width="3.5" stroke-linecap="round"/>
-        <line class="bacak-b" x1="111" y1="282" x2="111" y2="299" stroke="var(--murekkep)" stroke-width="3.5" stroke-linecap="round"/>
-      </g>
-      <rect x="101" y="261" width="15" height="23" rx="4" fill="var(--mercan)"/>
-      <circle cx="108.5" cy="254" r="6" fill="var(--ten)"/>
-      <path d="M101.5 253 a7 7 0 0 1 14 0 z" fill="var(--kask)"/><rect x="100" y="251.5" width="17" height="2.4" rx="1" fill="var(--kask)"/>
-      <line x1="115" y1="270" x2="130" y2="278" stroke="var(--ten)" stroke-width="3" stroke-linecap="round"/>
-      <!-- el arabası -->
-      <line x1="128" y1="278" x2="140" y2="282" stroke="var(--murekkep)" stroke-width="2.2" stroke-linecap="round"/>
-      <path d="M138 272 h38 l-8 16 h-26 z" fill="var(--celik)"/>
-      <circle cx="170" cy="292" r="7" fill="none" stroke="var(--murekkep)" stroke-width="2.4"/>
-      <line x1="150" y1="288" x2="146" y2="299" stroke="var(--murekkep)" stroke-width="2.2" stroke-linecap="round"/>
-      <!-- kovalar -->
-      <path d="M144 262 h12 l-1.5 11 h-9 z" fill="var(--turkuaz)"/>
-      <path d="M158 260 h12 l-1.5 13 h-9 z" fill="var(--mercan)"/>
-      <path d="M161 260 v4 a1.6 1.6 0 0 0 3.2 0 v-4" fill="var(--mercan)"/>
+      <line class="bacak-a" x1="106" y1="282" x2="106" y2="299" stroke="#2c221d" stroke-width="3.5" stroke-linecap="round"/>
+      <line class="bacak-b" x1="111" y1="282" x2="111" y2="299" stroke="#2c221d" stroke-width="3.5" stroke-linecap="round"/>
+      <use href="#isci-govde" x="108.5" y="295" color="#e27d68"/>
+      <line x1="115" y1="270" x2="130" y2="278" stroke="#d9a27b" stroke-width="3" stroke-linecap="round"/>
+      <line x1="128" y1="278" x2="140" y2="282" stroke="#2c221d" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M138 272 h38 l-8 16 h-26 z" fill="#6d7d86"/>
+      <circle cx="170" cy="292" r="7" fill="none" stroke="#2c221d" stroke-width="2.4"/>
+      <line x1="150" y1="288" x2="146" y2="299" stroke="#2c221d" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M144 262 h12 l-1.5 11 h-9 z" fill="#4a8fb0"/>
+      <path d="M158 260 h12 l-1.5 13 h-9 z" fill="#e27d68"/>
     </g>
 
+    <!-- ═══ BİNA 1: kat kat yükselen iskelet ═══ -->
+    <g>
+      <rect x="520" y="224" width="80" height="76" fill="#c98a6f"/>
+      <rect x="520" y="186" width="40" height="38" fill="#c98a6f"/>
+      <g stroke="#b3735c" stroke-width="1" opacity=".7">
+        <line x1="520" y1="236" x2="600" y2="236"/><line x1="520" y1="250" x2="600" y2="250"/>
+        <line x1="520" y1="274" x2="600" y2="274"/><line x1="520" y1="288" x2="600" y2="288"/>
+        <line x1="520" y1="198" x2="560" y2="198"/><line x1="520" y1="212" x2="560" y2="212"/>
+      </g>
+      <g fill="#cfe3ec" stroke="#2c221d" stroke-width=".8">
+        <rect x="532" y="236" width="14" height="14"/><rect x="574" y="236" width="14" height="14"/>
+        <rect x="532" y="270" width="14" height="14"/><rect x="574" y="270" width="14" height="14"/>
+        <rect x="532" y="198" width="14" height="14"/>
+      </g>
+      <g fill="#8c9aa2">
+        <rect x="518" y="104" width="4" height="196"/>
+        <rect x="558" y="104" width="4" height="196"/>
+        <rect x="598" y="104" width="4" height="196"/>
+      </g>
+      <g fill="#9aa7ae">
+        <rect x="514" y="262" width="92" height="4"/><rect x="514" y="224" width="92" height="5"/>
+        <rect x="514" y="186" width="92" height="5"/><rect x="514" y="148" width="92" height="5"/>
+        <rect x="514" y="110" width="92" height="5"/>
+      </g>
+      <g stroke="#6d7d86" stroke-width="1.3" stroke-linecap="round">
+        <line x1="520" y1="104" x2="520" y2="94"/><line x1="560" y1="104" x2="560" y2="94"/><line x1="600" y1="104" x2="600" y2="94"/>
+      </g>
+    </g>
+    <!-- en üst katta çekiç sallayan işçi -->
+    <use href="#isci" x="578" y="110" color="#4a8fb0"/>
+    <g class="cekic">
+      <line x1="584" y1="82" x2="594" y2="74" stroke="#d9a27b" stroke-width="3" stroke-linecap="round"/>
+      <line x1="594" y1="74" x2="598" y2="64" stroke="#b07d45" stroke-width="2" stroke-linecap="round"/>
+      <rect x="593" y="60" width="10" height="5" rx="1" fill="#2c221d"/>
+    </g>
+    <!-- üçüncü katta kaynakçı -->
+    <use href="#isci" x="574" y="186" color="#e8733f"/>
+    <rect x="569" y="143" width="11" height="6" rx="1" fill="#2c221d"/>
+    <line x1="581" y1="160" x2="594" y2="168" stroke="#d9a27b" stroke-width="3" stroke-linecap="round"/>
+    <g class="kivilcim" stroke="#efb43f" stroke-width="1.6" stroke-linecap="round">
+      <line x1="596" y1="168" x2="604" y2="162"/><line x1="596" y1="168" x2="605" y2="170"/>
+      <line x1="596" y1="168" x2="600" y2="176"/><line x1="596" y1="168" x2="592" y2="160"/>
+    </g>
+
+    <!-- ═══ YÜK ASANSÖRÜ (işçiyle inip çıkıyor) ═══ -->
+    <g stroke="#6d7d86" stroke-width="2" fill="none" stroke-linecap="round">
+      <line x1="610" y1="300" x2="610" y2="84"/><line x1="620" y1="300" x2="620" y2="84"/>
+      <polyline points="610,300 620,284 610,268 620,252 610,236 620,220 610,204 620,188 610,172 620,156 610,140 620,124 610,108 620,92"/>
+    </g>
+    <g class="asansor">
+      <use href="#isci-ust" x="615" y="286" color="#e27d68"/>
+      <rect x="605" y="268" width="20" height="20" fill="none" stroke="#2c221d" stroke-width="1.6"/>
+      <rect x="605" y="286" width="20" height="3" fill="#2c221d"/>
+    </g>
+
+    <!-- ═══ BİNA 2: cephesi boyanıyor ═══ -->
+    <g>
+      <rect x="632" y="196" width="80" height="104" fill="#e9dfcc" stroke="#2c221d" stroke-width="1.2"/>
+      <rect x="632.6" y="196.6" width="34" height="102.8" fill="#4a8fb0" opacity=".85"/>
+      <rect x="628" y="190" width="88" height="6" fill="#6d7d86"/>
+      <g fill="#cfe3ec" stroke="#2c221d" stroke-width=".8">
+        <rect x="642" y="208" width="12" height="14"/><rect x="666" y="208" width="12" height="14"/><rect x="690" y="208" width="12" height="14"/>
+        <rect x="642" y="236" width="12" height="14"/><rect x="666" y="236" width="12" height="14"/><rect x="690" y="236" width="12" height="14"/>
+        <rect x="642" y="264" width="12" height="14"/><rect x="666" y="264" width="12" height="14"/><rect x="690" y="264" width="12" height="14"/>
+      </g>
+      <line x1="680" y1="190" x2="680" y2="300" stroke="#2c221d" stroke-width=".8"/>
+      <line x1="706" y1="190" x2="706" y2="300" stroke="#2c221d" stroke-width=".8"/>
+    </g>
+    <g class="gondol">
+      <use href="#isci-ust" x="694" y="262" color="#e8733f"/>
+      <rect x="676" y="262" width="34" height="4" fill="#6d7d86"/>
+      <line x1="676" y1="262" x2="676" y2="250" stroke="#6d7d86" stroke-width="1.4"/>
+      <line x1="710" y1="262" x2="710" y2="250" stroke="#6d7d86" stroke-width="1.4"/>
+      <line x1="676" y1="250" x2="710" y2="250" stroke="#6d7d86" stroke-width="1.4"/>
+      <line x1="688" y1="250" x2="672" y2="244" stroke="#d9a27b" stroke-width="3" stroke-linecap="round"/>
+      <rect x="664" y="236" width="8" height="14" rx="2" fill="#4a8fb0" stroke="#2c221d" stroke-width="1"/>
+    </g>
+
+    <!-- ═══ Zemindeki işçiler ═══ -->
+    <!-- sırtında kalas taşıyan (bina 1'in önünde gidip geliyor) -->
+    <g class="tasiyici">
+      <line class="bacak-a" x1="546" y1="282" x2="546" y2="299" stroke="#2c221d" stroke-width="3.5" stroke-linecap="round"/>
+      <line class="bacak-b" x1="551" y1="282" x2="551" y2="299" stroke="#2c221d" stroke-width="3.5" stroke-linecap="round"/>
+      <use href="#isci-govde" x="548.5" y="295" color="#4a8fb0"/>
+      <rect x="526" y="258" width="50" height="4" rx="1" fill="#b07d45"/>
+      <line x1="555" y1="266" x2="560" y2="262" stroke="#d9a27b" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <!-- elinde planla şef -->
+    <use href="#isci" x="500" y="300" color="#3b4a5a"/>
+    <line x1="506" y1="278" x2="512" y2="274" stroke="#d9a27b" stroke-width="3" stroke-linecap="round"/>
+    <rect x="509" y="264" width="15" height="11" fill="#cfe3ec" stroke="#4a8fb0" stroke-width="1"/>
+    <g stroke="#4a8fb0" stroke-width=".7"><line x1="512" y1="268" x2="521" y2="268"/><line x1="512" y1="271" x2="519" y2="271"/></g>
     <!-- dubalar -->
     <g>
-      <path d="M522 300 l7 -24 h4 l7 24 z" fill="#e8733f"/>
-      <rect x="524" y="286" width="14" height="3.5" fill="#fff"/>
-      <path d="M548 300 l6 -19 h3 l6 19 z" fill="#e8733f"/>
-      <rect x="550" y="290" width="11" height="3" fill="#fff"/>
+      <path d="M646 300 l6 -20 h4 l6 20 z" fill="#e8733f"/><rect x="648" y="289" width="12" height="3" fill="#fff"/>
+      <path d="M668 300 l5 -16 h3 l5 16 z" fill="#e8733f"/><rect x="669.5" y="291" width="10" height="2.6" fill="#fff"/>
     </g>
   </svg>
 
