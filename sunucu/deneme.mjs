@@ -10,7 +10,7 @@ const ORTAM = {
   SIFRE: 'demo1234',
   IMZA_GIZLI: 'cok-uzun-rastgele-dize-DENEME',
 };
-const KOKEN = 'https://srdrakncix.github.io';
+const KOKEN = 'https://saglam.fr';
 
 let gecti = 0, kaldi = 0;
 function ol(ad, kosul, ek) {
