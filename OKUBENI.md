@@ -50,9 +50,9 @@ anlatıyor. Geri dönmek istenirse kaynak elde.
 
 ## Dosyalar
 
-    content.py           Türkçe kaynak içerik: sanatçı, biyografi, CV,
-                         koleksiyonlar, yayınlar, basın, atölye notu, seriler,
-                         eser başlıkları. Gerçek eserler gelince burası değişir.
+    content.py           Türkçe kaynak içerik: sanatçı adı, iletişim, sanatçı
+                         sayfaları (biyografi, CV, basın …), seriler. Boş liste
+                         = o sayfa menüde ve rotada yok (kabuk.js icerikVar).
     ceviri.py            İngilizce ve Fransızca çeviriler. content.py'ye paralel.
     images.json          Gömülü görsel verisi (WebP base64 + renk/oran ölçümleri).
     kendi_eserlerim.py   Kendi tablolarını images.json'a çeviren araç.
@@ -86,8 +86,7 @@ anlatıyor. Geri dönmek istenirse kaynak elde.
 4. **Ölçüler `src_dim` alanında `"76.2 × 115.2 cm"` biçiminde olmalı** — künyedeki
    santimetre ve inç değerleri buradan üretiliyor.
 5. `python build.py duz.html site/index.html --standalone`
-6. `content.py` içindeki `PLACEHOLDER_NOTICE` metnini sil.
-7. `cd site && git add -A && git commit -m "guncelleme" && git push`
+6. `cd site && git add -A && git commit -m "guncelleme" && git push`
 
 ---
 
@@ -103,7 +102,7 @@ Site üç dilli: **TR · EN · FR**. Anahtar menünün altında, düz metin.
 - **Sergi ve yayın adları da isimdir**, özgün hâlleriyle kalır. Yalnızca
   tanımlayıcıları çevrilir: "Kişisel sergi" → "Solo exhibition".
 - **Kurum adları çevrilmez.**
-- **Ölçüler değişmez**: metrik önce, inç parantezde.
+- **Ölçüler değişmez**, yalnız santimetre (inç kaldırıldı).
 - Çevrilen şeyler: arayüz, seri adları ve açıklamaları, biyografi, atölye
   notu, sanatçı notları, teknik satır ("Huile sur toile"), durum satırları.
 
@@ -121,8 +120,10 @@ içindeki `LANGS` dizisine yaz. Başka yere dokunmaya gerek yok.
   aynı sektörde birebir almak müşteriye zarar verirdi. Bizimki `#1B3FCC`.
 - **Eser adı ayrı renkte** (`#7a3418`). Gezinme mavisiyle aynı olunca her eser
   adı tıklanabilir vaat ediyordu.
-- **Kurum adları kurgudur.** Gerçek galeri isimleriyle sahte sergi geçmişi
-  uydurulmadı.
+- **Kurgu sanatçı içeriği kaldırıldı (1 Ekim 2026).** Biyografi, atölye notu,
+  sergiler, koleksiyonlar, yayınlar, basın, İstanbul/Bomonti künyesi ve sahte
+  iletişim bilgisi silindi; prototip notu da. Gerçek bilgi gelene kadar o
+  sayfalar menüde görünmez, eski bağlantıyla gelen ana sayfaya düşer.
 - **`#nav ul` gibi seçici YAZMA.** Özgüllüğü (1,0,1) olur ve mobildeki
   `#navlist { display:none }` kuralını (1,0,0) ezer; menü kapalıyken açık kalır.
   Bu hata bir kez yapıldı, `duz.html` içinde yorumla işaretli.
@@ -298,6 +299,7 @@ kalırdı. Açılış oturumda bir kez çalışır (`sessionStorage`).
 - Detay görünümü tam ekran beyaz zemin olduğu için `full` genişliği **1686 px**
   (kaynağın tavanı). Müşterinin kendi fotoğrafları geldiğinde `secim.py` içindeki
   `FULL_W` yükseltilmeli.
-- Sanatçı kimliği (Cemal Sağlam), biyografi, sergi ve basın listesi **kurgudur**.
+- Sanatçı adı (Cemal Sağlam) müşteri kararıyla kalan bir **takma ad**; sitedeki
+  öteki her bilgi (eserler, ölçüler) gerçek. Kurgu kayıtlar kaldırıldı.
 - Depo public (GitHub Pages'in ücretsiz çalışması için). Kaldırmak:
   `gh repo delete srdrakncix/ressam-portfolyo-prototip`

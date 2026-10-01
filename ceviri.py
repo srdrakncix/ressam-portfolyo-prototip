@@ -9,7 +9,7 @@ KURAL — sanat dünyasında standart olan budur:
   · Sergi ve yayın adları da isimdir; özgün hâlleriyle kalır.
     Yalnızca tanımlayıcıları çevrilir ("Kişisel sergi" → "Solo exhibition").
   · Kurum adları çevrilmez.
-  · Ölçüler değişmez: metrik önce, inç parantezde.
+  · Ölçüler değişmez, yalnız santimetre (inç kaldırıldı).
 """
 
 # ── arayüz dizgeleri ──────────────────────────────────────────────────────
@@ -63,9 +63,8 @@ UI = {
         'bio_lives': '{c}’da yaşıyor ve çalışıyor.',
         'home_now': 'Sürüyor',
         'home_next': 'Sırada',
-        'contact_body': 'Eser talepleri, atölye ziyareti ve sergi önerileri için yazın. '
-                        'Atölye ziyaretleri randevuyla.',
-        'avail_studio': 'Atölyeden temin edilebilir, İstanbul',
+        'contact_body': 'Eser talepleri ve sergi önerileri için yazın.',
+        'avail_studio': 'Atölyeden temin edilebilir',
         'avail_private': 'Özel koleksiyonda',
         'avail_gone': 'Ayrıldı',
         'medium': 'Tuval üzerine yağlı boya',
@@ -75,8 +74,7 @@ UI = {
         # detaydaki iki kare: duz reprodüksiyon / ev ortami maketi
         'kare_eser': 'Eser', 'kare_ortam': 'Sergide',
         'noscript': 'Eserleri görüntülemek için JavaScript gerekiyor.',
-        'meta_desc': 'Cemal Sağlam, İstanbul’da çalışan ressam. Tuval üzerine yağlı boya; '
-                     'alacakaranlık, hava ve manzara üzerine seriler.',
+        'meta_desc': 'Cemal Sağlam’ın resimleri. Tuval üzerine yağlı boya.',
     },
     'en': {
         'lang_name': 'English',
@@ -122,9 +120,9 @@ UI = {
         'bio_lives': 'Lives and works in {c}.',
         'home_now': 'Current',
         'home_next': 'Upcoming',
-        'contact_body': 'For enquiries about available work, studio visits and exhibition '
-                        'proposals, please write. Studio visits by appointment.',
-        'avail_studio': 'Available from the studio, Istanbul',
+        'contact_body': 'For enquiries about the works and exhibition proposals, '
+                        'please write.',
+        'avail_studio': 'Available from the studio',
         'avail_private': 'Private collection',
         'avail_gone': 'No longer available',
         'medium': 'Oil on canvas',
@@ -132,8 +130,7 @@ UI = {
         'lbl_series': 'Series',
         'kare_eser': 'The work', 'kare_ortam': 'Installed',
         'noscript': 'JavaScript is required to view the works.',
-        'meta_desc': 'Cemal Sağlam is a painter working in Istanbul. Oil on canvas; series on '
-                     'twilight, weather and landscape.',
+        'meta_desc': 'Paintings by Cemal Sağlam. Oil on canvas.',
     },
     'fr': {
         'lang_name': 'Français',
@@ -180,10 +177,9 @@ UI = {
         'bio_lives': 'Vit et travaille à {c}.',
         'home_now': 'En cours',
         'home_next': 'À venir',
-        'contact_body': 'Pour toute demande concernant les œuvres disponibles, les visites '
-                        'd’atelier et les propositions d’exposition, écrivez-nous. '
-                        'Visites d’atelier sur rendez-vous.',
-        'avail_studio': 'Disponible à l’atelier, Istanbul',
+        'contact_body': 'Pour toute demande concernant les œuvres ou une proposition '
+                        'd’exposition, n’hésitez pas à écrire.',
+        'avail_studio': 'Disponible à l’atelier',
         'avail_private': 'Collection privée',
         'avail_gone': 'Non disponible',
         'medium': 'Huile sur toile',
@@ -191,8 +187,7 @@ UI = {
         'lbl_series': 'Serie',
         'kare_eser': 'L’œuvre', 'kare_ortam': 'Accrochée',
         'noscript': 'JavaScript est nécessaire pour afficher les œuvres.',
-        'meta_desc': 'Cemal Sağlam est un peintre établi à Istanbul. Huile sur toile ; séries '
-                     'sur le crépuscule, le temps et le paysage.',
+        'meta_desc': 'Peintures de Cemal Sağlam. Huile sur toile.',
     },
 }
 
@@ -237,52 +232,12 @@ WORKS = {
              'fr': ('Le héron', 'Le seul mouvement sur l’eau. Je l’ai mis en dernier.')},
 }
 
-# ── biyografi ─────────────────────────────────────────────────────────────
+# ── sanatçı sayfaları ─────────────────────────────────────────────────────
+# Kurgu metinler kaldırıldı (bkz. content.py). Kaynak boşken çeviri de boş;
+# gerçek metin gelince content.py ile AYNI SIRADA buraya yazılır.
 
-BIO = {
-    'en': [
-        'He completed the painting department at Mimar Sinan Fine Arts University, then spent '
-        'two years in Vienna studying classical oil technique.',
-        'He says he chose oil for its slowness. He works on a single canvas for months, leaves '
-        'the layers to dry and returns to them. Most of the work is waiting.',
-        'Since 2016 he has painted in his studio in Bomonti, Istanbul. His work is held in '
-        'private collections in Turkey, Austria and the Netherlands.',
-    ],
-    'fr': [
-        'Il est diplômé du département de peinture de '
-        'l’université des beaux-arts Mimar Sinan, puis a passé deux ans à Vienne à étudier les '
-        'techniques classiques de la peinture à l’huile.',
-        'Il dit avoir choisi l’huile pour sa lenteur. Il travaille des mois sur une même toile, '
-        'laisse sécher les couches, y revient. L’essentiel du travail consiste à attendre.',
-        'Depuis 2016 il peint dans son atelier de Bomonti, à Istanbul. Ses œuvres figurent dans '
-        'des collections privées en Turquie, en Autriche et aux Pays-Bas.',
-    ],
-}
-
-STATEMENT = {
-    'en': [
-        'When I begin a canvas I do not know what it will look like. I only know which light I '
-        'am after: the half hour when the day has ended and night has not yet come. Until I find '
-        'it, I keep covering the surface over.',
-        'Colour shifts as the layers dry, so it cannot be hurried. I spend about four months on a '
-        'painting, and perhaps a third of that is actually spent applying paint. The rest is '
-        'looking and waiting.',
-        'I do not think I paint landscapes. The landscape is a pretext; what matters is the '
-        'weight of the air. A storm has a colour, and the aftermath of rain has another. '
-        'I am trying to describe those.',
-    ],
-    'fr': [
-        'Quand je commence une toile, je ne sais pas à quoi elle ressemblera. Je sais seulement '
-        'quelle lumière je cherche : la demi-heure où le jour s’achève et où la nuit n’est pas '
-        'encore venue. Jusqu’à la trouver, je recouvre.',
-        'La couleur change à mesure que les couches sèchent : on ne peut donc pas se presser. '
-        'Je passe environ quatre mois sur un tableau, et le tiers peut-être de ce temps à poser '
-        'de la peinture. Le reste, à regarder et à attendre.',
-        'Je ne crois pas peindre des paysages. Le paysage est un prétexte ; ce qui compte est le '
-        'poids de l’air. Un orage a une couleur, l’après-pluie en a une autre. '
-        'J’essaie de les décrire.',
-    ],
-}
+BIO = {'en': [], 'fr': []}
+STATEMENT = {'en': [], 'fr': []}
 
 # ── listeler: yalnızca tanımlayıcılar çevrilir, adlar kalır ───────────────
 
@@ -291,64 +246,8 @@ DESCRIPTORS = {
     'Karma sergi':   {'en': 'Group exhibition', 'fr': 'Exposition collective'},
 }
 
-COLLECTIONS = {
-    'en': [
-        'Ardıç Sanat Collection, Istanbul',
-        'Batı Kanat Contemporary Art Collection, Istanbul',
-        'Liman Cultural Centre, İzmir',
-        'Atelier Nordbahn Collection, Vienna',
-        'Van Doorn Collection, Rotterdam',
-        'Private collections · Turkey, Austria, the Netherlands',
-    ],
-    'fr': [
-        'Collection Ardıç Sanat, Istanbul',
-        'Collection d’art contemporain Batı Kanat, Istanbul',
-        'Centre culturel Liman, İzmir',
-        'Collection Atelier Nordbahn, Vienne',
-        'Collection Van Doorn, Rotterdam',
-        'Collections privées · Turquie, Autriche, Pays-Bas',
-    ],
-}
+COLLECTIONS = {'en': [], 'fr': []}
 
-PUBLICATIONS = {
-    'en': [
-        'Exhibition catalogue, 96 pp. Text: Nihal Erkut. Ardıç Sanat.',
-        'Exhibition catalogue, 64 pp. Payas Galeri.',
-        'Interview · Sanat Dünyamız, issue 189, pp. 44–51.',
-        'Exhibition catalogue, 72 pp. Text: Kaan Bilen. Ardıç Sanat.',
-        'Essay · Kunstraum Yearbook, Vienna. In German and English.',
-    ],
-    'fr': [
-        'Catalogue d’exposition, 96 p. Texte : Nihal Erkut. Ardıç Sanat.',
-        'Catalogue d’exposition, 64 p. Payas Galeri.',
-        'Entretien · Sanat Dünyamız, n° 189, p. 44–51.',
-        'Catalogue d’exposition, 72 p. Texte : Kaan Bilen. Ardıç Sanat.',
-        'Essai · Annuaire du Kunstraum, Vienne. En allemand et en anglais.',
-    ],
-}
-
-# Basın: yazı başlıkları Türkçe yayınlarda çıktı, özgün hâlleriyle kalıyor.
-# Yalnızca ay adları çevriliyor.
-PRESS_BYLINE = {
-    'en': [
-        'Ayşe Tunca · Cumhuriyet Kitap, November 2024',
-        'Deniz Aksoy · Argonotlar, October 2024',
-        'Selim Arer · Sanat Dünyamız, March 2023',
-        'Kaan Bilen · e-skop, December 2021',
-    ],
-    'fr': [
-        'Ayşe Tunca · Cumhuriyet Kitap, novembre 2024',
-        'Deniz Aksoy · Argonotlar, octobre 2024',
-        'Selim Arer · Sanat Dünyamız, mars 2023',
-        'Kaan Bilen · e-skop, décembre 2021',
-    ],
-}
-
-NOTICE = {
-    'en': 'This is a design prototype. The images are the painter’s own works; the artist '
-          'name and all texts are fictional. Titles, years and dimensions have not been '
-          'entered yet.',
-    'fr': 'Ceci est un prototype de conception. Les images sont les œuvres réelles du '
-          'peintre ; le nom de l’artiste et les textes sont fictifs. Les titres, années et '
-          'dimensions ne sont pas encore renseignés.',
-}
+# Yayın ve basın: yalnızca açıklama / künye satırı çevrilir, sırası content.py ile aynı.
+PUBLICATIONS = {'en': [], 'fr': []}
+PRESS_BYLINE = {'en': [], 'fr': []}

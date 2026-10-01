@@ -1,12 +1,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cemal Sağlam — Resim</title>
-<meta name="description" content="Cemal Sağlam, İstanbul'da çalışan ressam. Tuval üzerine yağlı boya; alacakaranlık, hava ve manzara üzerine seriler.">
+<meta name="description" content="Cemal Sağlam’ın resimleri. Tuval üzerine yağlı boya.">
 <meta name="theme-color" content="#111111">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Cemal Sağlam — Resim">
 <meta property="og:image" content="__OG_GORSEL__">
-<meta property="og:description" content="Tuval üzerine yağlı boya. Alacakaranlık, hava ve manzara üzerine seriler.">
+<meta property="og:description" content="Tuval üzerine yağlı boya.">
 <meta property="og:locale" content="tr_TR">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://saglam.fr/">
@@ -289,8 +289,8 @@ html.acilis #panel .k-fig::after {
 <noscript>
   <div style="position:relative;z-index:10;max-width:34em;margin:120px auto;background:#fff;padding:40px;font:400 15px/1.55 Helvetica,Arial,sans-serif">
     <h1 style="font-size:26px;font-weight:400;margin:0 0 18px">Cemal Sağlam — Resim</h1>
-    <p style="margin:0 0 14px">Tuval üzerine yağlı boya. İstanbul Bomonti’deki atölyede üretiliyor.</p>
-    <p style="margin:0">Eserleri görüntülemek için JavaScript gerekiyor. <a href="mailto:atolye@cemalsaglam.com">atolye@cemalsaglam.com</a></p>
+    <p style="margin:0 0 14px">Tuval üzerine yağlı boya.</p>
+    <p style="margin:0">Eserleri görüntülemek için JavaScript gerekiyor.</p>
   </div>
 </noscript>
 
@@ -497,12 +497,19 @@ function viewEser(slug) {
   if (w.size) satir.push([t('lbl_size'), w.size]);
   if (w.collection) satir.push([t('nav_coll'), w.collection + (w.collYear ? ', ' + w.collYear : '')]);
   kunye.appendChild(rowList(satir.map(([a, b]) => ['', a, b])));
-  kunye.appendChild(K.el('p', null, '<span style="color:var(--muted)">“' + not + '”</span>'));
-  kunye.appendChild(K.el('p', null,
-    '<a class="mail" href="mailto:' + SITE.artist.email +
-    '?subject=' + encodeURIComponent(SITE.artist.name + ' — ' + w.title +
-                                    (w.year ? ', ' + w.year : '')) +
-    '">' + availLine(w.status) + ' · ' + SITE.artist.email + '</a>'));
+  /* Not ve e-posta YOKSA satir da yok: bos not ekrana tek basina “”
+     basiyordu; e-posta bosken de " · " artigi kaliyordu. */
+  if (not) kunye.appendChild(K.el('p', null, '<span style="color:var(--muted)">“' + not + '”</span>'));
+  const durum = availLine(w.status);
+  if (SITE.artist.email) {
+    kunye.appendChild(K.el('p', null,
+      '<a class="mail" href="mailto:' + SITE.artist.email +
+      '?subject=' + encodeURIComponent(SITE.artist.name + ' — ' + w.title +
+                                      (w.year ? ', ' + w.year : '')) +
+      '">' + [durum, SITE.artist.email].filter(Boolean).join(' · ') + '</a>'));
+  } else if (durum) {
+    kunye.appendChild(K.el('p', null, durum));
+  }
   panel.appendChild(kunye);
 
   /* Ev ortami maketi: panelden yuklenen ikinci gorsel. Eserin YERINE
@@ -534,9 +541,12 @@ const viewAtolye = () => textPage('atolye', t('nav_studio'), (p) => {
 });
 
 const viewBio = () => textPage('biyografi', t('nav_bio'), (p) => {
-  p.appendChild(K.el('div', 'formula',
-    fill(t('bio_born'), { y: SITE.artist.born, p: SITE.artist.birthplace }) + '<br>' +
-    fill(t('bio_lives'), { c: SITE.artist.based })));
+  /* Dogum ve yasadigi yer yalniz girilmisse basiliyor: eksik alan
+     "undefined’de doğdu" basmasin. */
+  const a = SITE.artist, sat = [];
+  if (a.born && a.birthplace) sat.push(fill(t('bio_born'), { y: a.born, p: a.birthplace }));
+  if (a.based) sat.push(fill(t('bio_lives'), { c: a.based }));
+  if (sat.length) p.appendChild(K.el('div', 'formula', sat.join('<br>')));
   L().bio.forEach(x => p.appendChild(K.el('p', null, x)));
 });
 
@@ -595,15 +605,24 @@ const viewKoleksiyon = () => textPage('koleksiyon', t('nav_coll'), (p) => {
 const viewYayinlar = () => textPage('yayinlar', t('nav_pub'), (p) => p.appendChild(rowList(L().publications)));
 const viewBasin    = () => textPage('basin',    t('nav_press'), (p) => p.appendChild(rowList(L().press)));
 
+/* Alttaki not ve kredi satiri kalkti: gorseller ressamin kendi eserleri. */
 const viewIletisim = () => textPage('iletisim', t('nav_contact'), (p) => {
-  p.appendChild(K.el('p', null, '<a class="mail" href="mailto:' + SITE.artist.email +
-    '">' + SITE.artist.email + '</a>'));
-  p.appendChild(K.el('p', null, '<span style="color:var(--muted)">' + SITE.artist.studio + '</span>'));
+  if (SITE.artist.email)
+    p.appendChild(K.el('p', null, '<a class="mail" href="mailto:' + SITE.artist.email +
+      '">' + SITE.artist.email + '</a>'));
+  if (SITE.artist.studio)
+    p.appendChild(K.el('p', null, '<span style="color:var(--muted)">' + SITE.artist.studio + '</span>'));
   p.appendChild(K.el('p', null, t('contact_body')));
-  /* Kredi artik bos: gorseller ressamin KENDI eserleri, kamu mali degil. */
-  p.appendChild(K.el('div', 'note',
-    [L().notice, SITE.works[0].credit].filter(Boolean).join(' ')));
 });
+
+/* Icerigi olmayan sanatci sayfasi cizilmiyor: eski bir baglantiyla
+   gelen ziyaretci bos sayfa yerine ana sayfaya duser, adres de ona
+   gore duzelir (menu isareti dogru satirda dursun). */
+const icerikliyse = (route, fn) => (...a) => {
+  if (icerikVar(route)) return fn(...a);
+  history.replaceState(null, '', location.pathname + location.search);
+  viewHome();
+};
 
 /* Galeri ayrı bir sayfa: WebGL yalnızca oraya girenlere yükleniyor. */
 const viewGaleri = () => { location.href = 'galeri/'; };
@@ -629,12 +648,12 @@ K.Router
   .on(/^\/son$/,        viewSon)
   .on(/^\/seri\/(.+)$/, viewSeri)
   .on(/^\/eser\/(.+)$/, viewEser)
-  .on(/^\/atolye$/,     viewAtolye)
-  .on(/^\/biyografi$/,  viewBio)
-  .on(/^\/sergiler$/,   viewSergiler)
-  .on(/^\/koleksiyon$/, viewKoleksiyon)
-  .on(/^\/yayinlar$/,   viewYayinlar)
-  .on(/^\/basin$/,      viewBasin)
-  .on(/^\/iletisim$/,   viewIletisim)
+  .on(/^\/atolye$/,     icerikliyse('/atolye',     viewAtolye))
+  .on(/^\/biyografi$/,  icerikliyse('/biyografi',  viewBio))
+  .on(/^\/sergiler$/,   icerikliyse('/sergiler',   viewSergiler))
+  .on(/^\/koleksiyon$/, icerikliyse('/koleksiyon', viewKoleksiyon))
+  .on(/^\/yayinlar$/,   icerikliyse('/yayinlar',   viewYayinlar))
+  .on(/^\/basin$/,      icerikliyse('/basin',      viewBasin))
+  .on(/^\/iletisim$/,   icerikliyse('/iletisim',   viewIletisim))
   .start();
 </script>

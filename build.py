@@ -274,7 +274,6 @@ def build_data():
         'statement':    getattr(C, 'STATEMENT', []),
         'series':       seriler,
         'works':        works,
-        'notice':       C.PLACEHOLDER_NOTICE,
     }
     data['i18n'] = build_i18n(works)
 
@@ -300,8 +299,7 @@ def build_i18n(works):
                   'works': {w['id']: {'gloss': '', 'note': w['_not'].get('tr', '')} for w in works},
                   'cv': [list(r) for r in C.CV],
                   'publications': [list(r) for r in C.PUBLICATIONS],
-                  'press': [list(r) for r in getattr(C, 'PRESS', [])],
-                  'notice': C.PLACEHOLDER_NOTICE}}
+                  'press': [list(r) for r in getattr(C, 'PRESS', [])]}}
 
     for lang in ('en', 'fr'):
         # seriler
@@ -345,7 +343,6 @@ def build_i18n(works):
             'cv':           cv,
             'publications': publications,
             'press':        press_out,
-            'notice':       T.NOTICE[lang],
         }
     return out
 

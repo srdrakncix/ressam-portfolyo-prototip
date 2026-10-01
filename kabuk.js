@@ -276,15 +276,32 @@ function menuModel() {
   items.push({ sep: true });
   items.push({ href: '/son', label: t('nav_recent') });
   SITE.series.forEach(s => items.push({ href: '/seri/' + s.key, label: L().series[s.key].title, indent: true }));
-  items.push({ group: t('nav_about_grp') });
-  items.push({ href: '/atolye', label: t('nav_studio') });
-  items.push({ href: '/biyografi', label: t('nav_bio') });
-  items.push({ href: '/sergiler', label: t('nav_exh') });
-  items.push({ href: '/koleksiyon', label: t('nav_coll') });
-  items.push({ href: '/yayinlar', label: t('nav_pub') });
-  items.push({ href: '/basin', label: t('nav_press') });
-  items.push({ href: '/iletisim', label: t('nav_contact') });
+  const sanatci = [['/atolye', 'nav_studio'], ['/biyografi', 'nav_bio'],
+                   ['/sergiler', 'nav_exh'], ['/koleksiyon', 'nav_coll'],
+                   ['/yayinlar', 'nav_pub'], ['/basin', 'nav_press'],
+                   ['/iletisim', 'nav_contact']].filter(([r]) => icerikVar(r));
+  if (sanatci.length) items.push({ group: t('nav_about_grp') });
+  sanatci.forEach(([href, k]) => items.push({ href, label: t(k) }));
   return items;
+}
+
+/* Sanatci sayfasinin gosterilecek GERCEK icerigi var mi. Kurgu metinler
+   kaldirildi (content.py); bos sayfa menude durmuyor, rotasi da ana
+   sayfaya donuyor (mekan.html). Menu ile rota ayni yerden okusun diye
+   tek fonksiyon -- biri gizleyip oteki bos sayfa cizmesin. */
+function icerikVar(route) {
+  const n = (x) => (x || []).length > 0;
+  switch (route) {
+    case '/atolye':     return n(SITE.statement);
+    case '/biyografi':  return n(SITE.bio);
+    case '/sergiler':   return n(SITE.cv);
+    case '/koleksiyon': return n(SITE.collections) ||
+                               SITE.works.some((w) => w.collection || w.status);
+    case '/yayinlar':   return n(SITE.publications);
+    case '/basin':      return n(SITE.press);
+    case '/iletisim':   return !!(SITE.artist.email || SITE.artist.studio);
+  }
+  return true;
 }
 
 /* Bulunduğumuz rota. Galeri ayrı bir sayfa olduğu için oradaki karşılığı

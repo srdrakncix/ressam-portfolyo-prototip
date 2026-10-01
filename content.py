@@ -6,89 +6,31 @@ Tasarım dosyalarına hiç dokunulmaz.
 """
 
 ARTIST = {
+    # Ad müşteri kararıyla bu (30 Eylül 2026) — gerçek ad değil, kalıyor.
     'name': 'Cemal Sağlam',
     'mark': 'CEMAL SAĞLAM',
     'role': 'Ressam',
-    'based': 'İstanbul',
-    'born': '1987',
-    'birthplace': 'İzmir',
-    'tagline': 'Işığın çekildiği anı boyuyorum.',
-    'lede': 'Tuval üzerine yağlı boya. Katman katman, sabırla — aceleye gelmeyen bir iş.',
-    'email': 'atolye@cemalsaglam.com',
-    'phone': '+90 212 000 00 00',
-    'studio': 'Bomonti, Şişli · İstanbul',
-    'ig': '@cemalsaglam',
+    # İletişim: yalnızca ressamın sitede görünmesini ONAYLADIĞI gerçek bilgi.
+    # Boşken İletişim sayfası menüde yok, eser sayfası e-posta satırı basmıyor.
+    'email': '',
+    'studio': '',
 }
 
-BIO = [
-    # Doğum cümlesi üstteki künyede zaten var; burada tekrarlanmıyor.
-    'Mimar Sinan Güzel Sanatlar Üniversitesi Resim Bölümü’nü bitirdi, ardından Viyana’da '
-    'iki yıl klasik boya teknikleri üzerine çalıştı.',
-
-    'Yağlı boyayı yavaşlığı için seçtiğini söylüyor. Bir tuval üzerinde aylarca çalışıyor, '
-    'katmanları kurumaya bırakıyor, üzerine dönüyor. İşin büyük kısmı beklemekle geçiyor.',
-
-    '2016’dan bu yana İstanbul Bomonti’deki atölyesinde üretiyor. Çalışmaları Türkiye, '
-    'Avusturya ve Hollanda’da özel koleksiyonlarda yer alıyor.',
-]
-
-# Kurum adları KURGUDUR. Gerçek galeri isimleri kasten kullanılmadı —
-# kurgu bir sanatçıya gerçek kurumlarla sergi geçmişi uydurmak yanlış olur.
-CV = [
-    ('2024', 'Alacakaranlık', 'Kişisel sergi · Ardıç Sanat, İstanbul'),
-    ('2023', 'Hava Raporu', 'Kişisel sergi · Payas Galeri, İstanbul'),
-    ('2023', 'Uzun Pozlama', 'Karma sergi · Kule Sanat Alanı, Ankara'),
-    ('2022', 'Yeni Manzara', 'Karma sergi · Liman Kültür Merkezi, İzmir'),
-    ('2021', 'Sessiz Topografya', 'Kişisel sergi · Ardıç Sanat, İstanbul'),
-    ('2020', 'Katman', 'Karma sergi · Batı Kanat, İstanbul'),
-    ('2019', 'Slow Paint', 'Karma sergi · Atelier Nordbahn, Viyana'),
-    ('2018', 'İlk Katman', 'Kişisel sergi · Payas Galeri, İzmir'),
-]
-
-# Eserlerin bulunduğu koleksiyonlar. Povey'in "Selected Collections" bölümü gibi.
-COLLECTIONS = [
-    'Ardıç Sanat Koleksiyonu, İstanbul',
-    'Batı Kanat Çağdaş Sanat Koleksiyonu, İstanbul',
-    'Liman Kültür Merkezi, İzmir',
-    'Atelier Nordbahn Koleksiyonu, Viyana',
-    'Van Doorn Koleksiyonu, Rotterdam',
-    'Özel koleksiyonlar · Türkiye, Avusturya, Hollanda',
-]
-
-# Yayınlar ve katalog. Sadelik ancak arkasında külliyat varsa güven verir.
-PUBLICATIONS = [
-    ('2024', 'Alacakaranlık', 'Sergi kataloğu, 96 sayfa. Metin: Nihal Erkut. Ardıç Sanat.'),
-    ('2023', 'Hava Raporu', 'Sergi kataloğu, 64 sayfa. Payas Galeri.'),
-    ('2022', 'Yavaş Boya', 'Söyleşi · Sanat Dünyamız, sayı 189, s. 44–51.'),
-    ('2021', 'Sessiz Topografya', 'Sergi kataloğu, 72 sayfa. Metin: Kaan Bilen. Ardıç Sanat.'),
-    ('2019', 'Katmanın Sabrı', 'Deneme · Kunstraum Yıllığı, Viyana. Almanca ve İngilizce.'),
-]
-
-PRESS = [
-    ('2024', '“Işığın çekildiği yerde durmak”',
-     'Ayşe Tunca · Cumhuriyet Kitap, Kasım 2024'),
-    ('2024', '“Bir tuval kaç kış bekler?”',
-     'Deniz Aksoy · Argonotlar, Ekim 2024'),
-    ('2023', '“Manzara değil, basınç”',
-     'Selim Arer · Sanat Dünyamız, Mart 2023'),
-    ('2021', '“Sessiz Topografya üzerine”',
-     'Kaan Bilen · e-skop, Aralık 2021'),
-]
-
-# Atölye notu — Povey'deki "Press Release" bölümünün karşılığı.
-STATEMENT = [
-    'Bir tuvale başlarken neye benzeyeceğini bilmiyorum. Yalnızca hangi ışığı '
-    'aradığımı biliyorum: günün bittiği, henüz gece olmadığı o yarım saat. '
-    'Onu bulana kadar üstünü örtüyorum.',
-
-    'Katmanlar kurudukça renk değişiyor. Bu yüzden acele edilemiyor. Bir resmin '
-    'üzerinde ortalama dört ay çalışıyorum ve bu sürenin belki üçte biri fiilen '
-    'boya sürmekle geçiyor. Kalanı bakmak ve beklemek.',
-
-    'Manzara resmi yaptığımı düşünmüyorum. Manzara bahane; asıl mesele havanın '
-    'ağırlığı. Bir fırtınanın rengi vardır, yağmurdan sonranın başka bir rengi. '
-    'Onları tarif etmeye çalışıyorum.',
-]
+# ── sanatçı sayfaları ─────────────────────────────────────────────────────
+# KURGU İÇERİK KALDIRILDI (1 Ekim 2026). Biyografi, atölye notu, sergiler,
+# koleksiyonlar, yayınlar ve basın uydurmaydı: kurum adları, katalog sayfa
+# sayıları, basın künyeleri, doğum yeri — hiçbiri ressama ait değildi.
+# Yayındaki bir sitede bunlar ressam adına yalan söylemek olurdu.
+#
+# Kural: BOŞ LİSTE = O SAYFA YOK. Menü satırı da rota da kendiliğinden
+# kalkıyor (kabuk.js icerikVar). Ressam gerçek bilgiyi verince buraya
+# yazılır, çevirisi ceviri.py'deki aynı adlı sözlüğe; sayfa geri gelir.
+BIO = []            # paragraflar
+STATEMENT = []      # atölye notu, paragraflar
+CV = []             # (yıl, sergi adı, 'Kişisel sergi · Mekân, Şehir' | 'Karma sergi · …')
+COLLECTIONS = []    # kurum adları
+PUBLICATIONS = []   # (yıl, ad, açıklama)
+PRESS = []          # (yıl, yazı başlığı, 'Yazar · Yayın, Ay Yıl')
 
 # Seriler: gerçek bir ressam portfolyosu eserleri seriler halinde düzenler,
 # tek düz bir "galeri" olarak değil. Sitenin omurgası bu.
@@ -131,15 +73,6 @@ WORKS = {
     64724:  ('Balıkçıl',          'alacakaranlik', 'Suyun üstündeki tek hareket. Onu en son koydum.', 'satilik'),
 }
 
-# Hangi eser hangi koleksiyonda. Üstteki COLLECTIONS listesi altı kurum adı
-# sayıyordu ama hiçbiri hiçbir esere bağlı değildi — kayıt tutuluyor ama
-# kontrol edilmiyor izlenimi veriyordu.
-# (eser id) -> (koleksiyon adı, edinme yılı)
-COLLECTION_OF = {
-    64772: ('Ardıç Sanat Koleksiyonu, İstanbul', 2024),
-    69844: ('Van Doorn Koleksiyonu, Rotterdam', 2022),
-}
-
 # Yonetim panelinin giris sunucusu (Cloudflare Worker).
 # BOS ise panel GitHub anahtarini dogrudan kullanicidan ister — teknik
 # olmayan biri icin anlasilmaz. Adres yazilirsa panel kullanici adi + sifre
@@ -153,14 +86,3 @@ STATUS_TR = {
     'koleksiyonda': 'Özel koleksiyonda',
     'ayrildi':      'Ayrıldı',
 }
-
-# Prototiplerde görünecek uyarı — müşteri sunumunda karışıklık olmasın.
-# GÖRSELLER ARTIK GERÇEK: ressamın kendi eserleri. Yer tutucu George Inness
-# cümlesi kaldırıldı, yoksa gerçek eserler kamu malı sanılır. Kurgu olan
-# şeyler hâlâ kurgu: sanatçı adı, metinler, ve eser künyeleri (ad/yıl/ölçü
-# müşteriden gelmedi).
-PLACEHOLDER_NOTICE = (
-    'Bu bir tasarım prototipidir. Görseller ressamın gerçek eserleridir; '
-    'sanatçı adı ve metinler kurgudur. Eser adları, yılları ve ölçüleri '
-    'henüz girilmemiştir.'
-)
