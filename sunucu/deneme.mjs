@@ -6,7 +6,7 @@ import worker from './index.js';
 
 const ORTAM = {
   GITHUB_ANAHTAR: 'gizli-anahtar-DENEME',
-  KULLANICI: 'cemalsaglam',
+  KULLANICI: 'saglam',
   SIFRE: 'demo1234',
   IMZA_GIZLI: 'cok-uzun-rastgele-dize-DENEME',
 };
@@ -50,7 +50,7 @@ globalThis.fetch = async (adres, secim) => {
 {
   const y = await cagir('/giris', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ kullanici: 'cemalsaglam', sifre: 'yanlis' }),
+    body: JSON.stringify({ kullanici: 'saglam', sifre: 'yanlis' }),
   });
   const g = await y.json();
   ol('yanlış şifre 401', y.status === 401);
@@ -72,7 +72,7 @@ let jeton = '';
 {
   const y = await cagir('/giris', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ kullanici: 'cemalsaglam', sifre: 'demo1234' }),
+    body: JSON.stringify({ kullanici: 'saglam', sifre: 'demo1234' }),
   });
   const g = await y.json();
   jeton = g.jeton || '';

@@ -6,9 +6,10 @@ Tasarım dosyalarına hiç dokunulmaz.
 """
 
 ARTIST = {
-    # Ad müşteri kararıyla bu (30 Eylül 2026) — gerçek ad değil, kalıyor.
-    'name': 'Cemal Sağlam',
-    'mark': 'CEMAL SAĞLAM',
+    # Ad YALNIZ SOYADI: ön ad kalktı (müşteri kararı, 8 Ekim 2026).
+    # Ekranda hep büyük harf, ASCII gereken yerde (kullanıcı adı) "saglam".
+    'name': 'SAĞLAM',
+    'mark': 'SAĞLAM',
     'role': 'Ressam',
     # İletişim: yalnızca ressamın sitede görünmesini ONAYLADIĞI gerçek bilgi.
     # Boşken İletişim sayfası menüde yok, eser sayfası e-posta satırı basmıyor.

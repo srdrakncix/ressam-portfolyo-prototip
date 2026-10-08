@@ -14,7 +14,7 @@
 
    Gizli değerler koda GİRMEZ, `wrangler secret` ile konur:
        GITHUB_ANAHTAR   depoya yazma yetkisi olan fine-grained PAT
-       KULLANICI        örn. cemalsaglam
+       KULLANICI        örn. saglam
        SIFRE            giriş şifresi
        IMZA_GIZLI       oturum jetonunu imzalayan rastgele dize
 
@@ -189,7 +189,7 @@ export default {
           Accept: 'application/vnd.github+json',
           'X-GitHub-Api-Version': '2022-11-28',
           'Content-Type': 'application/json',
-          'User-Agent': 'cemal-saglam-panel',
+          'User-Agent': 'saglam-panel',
         },
         body: (istek.method === 'GET' || istek.method === 'HEAD') ? undefined : await istek.text(),
       });

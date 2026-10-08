@@ -49,7 +49,7 @@ dosyaya yazılmayacak.
 `sunucu/` klasöründeyken sırayla:
 
     wrangler secret put GITHUB_ANAHTAR      # github_pat_... yapıştır
-    wrangler secret put KULLANICI           # cemalsaglam
+    wrangler secret put KULLANICI           # saglam
     wrangler secret put SIFRE               # giriş şifresi
     wrangler secret put IMZA_GIZLI          # rastgele uzun bir dize
 
@@ -63,18 +63,18 @@ dosyaya yazılmayacak.
 
 Çıktıda bir adres verir:
 
-    https://cemal-saglam-panel.<hesabin>.workers.dev
+    https://saglam-panel.<hesabin>.workers.dev
 
 Çalıştığını gör:
 
-    curl https://cemal-saglam-panel.<hesabin>.workers.dev/durum
+    curl https://saglam-panel.<hesabin>.workers.dev/durum
     # {"tamam":true,"depo":"srdrakncix/ressam-portfolyo-prototip", ...}
 
 ### 6. Paneli sunucuya bağla
 
 `content.py` içinde:
 
-    PANEL_SUNUCU = 'https://cemal-saglam-panel.<hesabin>.workers.dev'
+    PANEL_SUNUCU = 'https://saglam-panel.<hesabin>.workers.dev'
 
 Sonra `git push`. Derleme bittiğinde panel artık **kullanıcı adı + şifre**
 soruyor.

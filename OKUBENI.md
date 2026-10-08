@@ -1,4 +1,4 @@
-# Cemal Sağlam — Ressam Portfolyosu
+# SAĞLAM — Ressam Portfolyosu
 
 Tek sanatçı yağlı boya portfolyo sitesi. **edwardpovey.com** tarzı: beyaz zemin,
 Helvetica, solda düz metin menü, devasa resimler, küçük künye. Süs yok.
@@ -299,7 +299,7 @@ kalırdı. Açılış oturumda bir kez çalışır (`sessionStorage`).
 - Detay görünümü tam ekran beyaz zemin olduğu için `full` genişliği **1686 px**
   (kaynağın tavanı). Müşterinin kendi fotoğrafları geldiğinde `secim.py` içindeki
   `FULL_W` yükseltilmeli.
-- Sanatçı adı (Cemal Sağlam) müşteri kararıyla kalan bir **takma ad**; sitedeki
-  öteki her bilgi (eserler, ölçüler) gerçek. Kurgu kayıtlar kaldırıldı.
+- Sanatçı adı sitede yalnız soyadı: **SAĞLAM** (müşteri kararı, 8 Ekim 2026;
+  ön ad yok). Eserler ve ölçüler gerçek. Kurgu kayıtlar kaldırıldı.
 - Depo public (GitHub Pages'in ücretsiz çalışması için). Kaldırmak:
   `gh repo delete srdrakncix/ressam-portfolyo-prototip`

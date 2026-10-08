@@ -74,7 +74,7 @@ UI = {
         # detaydaki iki kare: duz reprodüksiyon / ev ortami maketi
         'kare_eser': 'Eser', 'kare_ortam': 'Sergide',
         'noscript': 'Eserleri görüntülemek için JavaScript gerekiyor.',
-        'meta_desc': 'Cemal Sağlam’ın resimleri. Tuval üzerine yağlı boya.',
+        'meta_desc': 'SAĞLAM’ın resimleri. Tuval üzerine yağlı boya.',
     },
     'en': {
         'lang_name': 'English',
@@ -130,7 +130,7 @@ UI = {
         'lbl_series': 'Series',
         'kare_eser': 'The work', 'kare_ortam': 'Installed',
         'noscript': 'JavaScript is required to view the works.',
-        'meta_desc': 'Paintings by Cemal Sağlam. Oil on canvas.',
+        'meta_desc': 'Paintings by SAĞLAM. Oil on canvas.',
     },
     'fr': {
         'lang_name': 'Français',
@@ -187,7 +187,7 @@ UI = {
         'lbl_series': 'Serie',
         'kare_eser': 'L’œuvre', 'kare_ortam': 'Accrochée',
         'noscript': 'JavaScript est nécessaire pour afficher les œuvres.',
-        'meta_desc': 'Peintures de Cemal Sağlam. Huile sur toile.',
+        'meta_desc': 'Peintures de SAĞLAM. Huile sur toile.',
     },
 }
 

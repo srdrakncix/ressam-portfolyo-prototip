@@ -56,7 +56,7 @@ open(os.path.join(SITE, '404.html'), 'w', encoding='utf-8').write('''<!doctype h
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sayfa bulunamadı — Cemal Sağlam</title>
+<title>Sayfa bulunamadı — SAĞLAM</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <style>
@@ -85,7 +85,7 @@ open(os.path.join(SITE, '404.html'), 'w', encoding='utf-8').write('''<!doctype h
   <h1>Aradığınız sayfa burada değil.</h1>
   <p lang="en">The page you are looking for is not here.</p>
   <p lang="fr">La page que vous cherchez n’est pas ici.</p>
-  <a href="/">Cemal Sağlam — Resim</a>
+  <a href="/">SAĞLAM — Resim</a>
 </main>
 </body>
 </html>

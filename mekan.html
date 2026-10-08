@@ -1,10 +1,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cemal Sağlam — Resim</title>
-<meta name="description" content="Cemal Sağlam’ın resimleri. Tuval üzerine yağlı boya.">
+<title>SAĞLAM — Resim</title>
+<meta name="description" content="SAĞLAM’ın resimleri. Tuval üzerine yağlı boya.">
 <meta name="theme-color" content="#111111">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Cemal Sağlam — Resim">
+<meta property="og:title" content="SAĞLAM — Resim">
 <meta property="og:image" content="__OG_GORSEL__">
 <meta property="og:description" content="Tuval üzerine yağlı boya.">
 <meta property="og:locale" content="tr_TR">
@@ -101,9 +101,9 @@ a:hover { color: var(--link); }
      ayrı yazı tipiyle yazılıyordu. */
   font-family: var(--serif);
   font-size: clamp(24px, 1.1rem + 1.5vw, 32px); font-weight: 400;
-  letter-spacing: .005em; color: var(--ink); margin-bottom: 34px; display: inline-block;
+  /* Ad tek kelime ve versal: serifte sikisik durmasin diye aralik. */
+  letter-spacing: .08em; color: var(--ink); margin-bottom: 34px; display: inline-block;
 }
-.wordmark b { font-weight: 400; }
 
 /* ── eser bloğu ──────────────────────────────────────────────────────────── */
 
@@ -288,7 +288,7 @@ html.acilis #panel .k-fig::after {
 
 <noscript>
   <div style="position:relative;z-index:10;max-width:34em;margin:120px auto;background:#fff;padding:40px;font:400 15px/1.55 Helvetica,Arial,sans-serif">
-    <h1 style="font-size:26px;font-weight:400;margin:0 0 18px">Cemal Sağlam — Resim</h1>
+    <h1 style="font-size:26px;font-weight:400;margin:0 0 18px">SAĞLAM — Resim</h1>
     <p style="margin:0 0 14px">Tuval üzerine yağlı boya.</p>
     <p style="margin:0">Eserleri görüntülemek için JavaScript gerekiyor.</p>
   </div>
@@ -354,13 +354,11 @@ function workBlock(w, opts = {}) {
 }
 
 function head() {
-  const parts = SITE.artist.name.split(' ');
+  /* Ad tek kelime: SAĞLAM. On ad kalkti (musteri karari); eskiden ad
+     ikiye bolunup soyad <b> icine konuyordu. */
   const a = K.el('a', 'wordmark');
   a.href = '#/';
-  /* Soyadi BUYUK HARFE cevrilmiyordu artik: ana sayfa "Cemal SAĞLAM",
-     menu ve galeri "Cemal Sağlam" yaziyordu. Serif dizgide versal
-     soyad ayrica agir duruyor. Tek yazim. */
-  a.innerHTML = parts[0] + ' <b>' + parts.slice(1).join(' ') + '</b>';
+  a.textContent = SITE.artist.name;
   return a;
 }
 

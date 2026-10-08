@@ -33,7 +33,7 @@ const SIFRE = 'demo1234';
 ol('döngü sayısı en az 300.000', modul.KILIT_DONGU >= 300000, modul.KILIT_DONGU);
 
 let t0 = Date.now();
-const kilit = await modul.kilitUret('cemalsaglam', SIFRE, ANAHTAR);
+const kilit = await modul.kilitUret('saglam', SIFRE, ANAHTAR);
 const sureUret = Date.now() - t0;
 
 const metin = JSON.stringify(kilit);
@@ -56,7 +56,7 @@ for (const yanlis of ['demo1233', 'Demo1234', 'demo1234 ', '', 'demo12345']) {
 
 /* Tuz her kurulumda farklı olmalı: aynı şifre iki kez aynı şifreli metni
    üretirse aynı şifrenin kullanıldığı dışarıdan anlaşılır. */
-const kilit2 = await modul.kilitUret('cemalsaglam', SIFRE, ANAHTAR);
+const kilit2 = await modul.kilitUret('saglam', SIFRE, ANAHTAR);
 ol('tuz her kurulumda farklı', kilit2.tuz !== kilit.tuz);
 ol('şifreli metin her kurulumda farklı', kilit2.kapali !== kilit.kapali);
 ol('ikinci kilit de çözülüyor', (await modul.kilitCoz(SIFRE, kilit2)) === ANAHTAR);
