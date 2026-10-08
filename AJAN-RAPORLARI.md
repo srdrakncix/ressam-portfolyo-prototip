@@ -89,11 +89,11 @@ E-posta bağlantısında ve odak halkasında kullanılıyor. Sitenin paletine ai
 **6. Telefon ve Instagram veride dolu, hiçbir sayfada basılmıyor.**
 ```
 content.ARTIST.phone      +90 212 000 00 00
-content.ARTIST.ig         @cemalsaglam
+content.ARTIST.ig         (kurgu, kaldırıldı)
 ```
 
 **7. Biyografide tekrar var.** `ARTIST.born = 1987`, `birthplace = İzmir`; `BIO`'nun ilk
-paragrafı da "Cemal Sağlam 1987'de İzmir'de doğdu…" diye başlıyor. Aynı cümle üst üste.
+paragrafı da "SAGLAM 1987'de İzmir'de doğdu…" diye başlıyor. Aynı cümle üst üste.
 
 **8. `statusLabel` veride var ama sergi sayfası kullanmıyor** — ekrandaki metin çeviri
 dosyasından geliyor. İki kaynaklı veri: biri `statusLabel`'ı düzeltirse ekranda hiçbir
@@ -243,7 +243,7 @@ On beş yıldır yağlı boya çalışan, kendi atölyesi olan bir ressamım; bi
 - İSTEK: Bağlantı rengi sitenin toprak/altın paletine çekilsin, kırpılan not düzeltilsin; bir de "eser edinme" için ayrı bir satır konsun — fiyat aralığı, ödeme, nakliye ve sertifika hakkında tek cümle bile yeter. **[YÜKSEK]**
 
 **pc_mekan_15-MENU-ACIK — Menü açık**
-- GÖRDÜĞÜM: Menü açılınca beyaz kart sağa kayıyor ve "Cemal SAĞLAM" yazısının başı menünün altında kalıyor; kartın sağ üst köşesinde de kâğıt kıvrımı gibi tuhaf bir üçgen beliriyor.
+- GÖRDÜĞÜM: Menü açılınca beyaz kart sağa kayıyor ve "SAGLAM" yazısının başı menünün altında kalıyor; kartın sağ üst köşesinde de kâğıt kıvrımı gibi tuhaf bir üçgen beliriyor.
 - İSTEK: Kart menü açıkken kırpılmayacak kadar kaysın ya da kararsın; kâğıt kıvrımı efekti tamamen kalksın — burada kâğıt yok, tuval var, metafor tutmuyor. **[ORTA]**
 
 **pc_duz_01-acilis — Sade sürüm açılış**
@@ -320,7 +320,7 @@ Bir sanat dergisi ve iki gazete için yazan, ayrıca sergi kataloglarına metin 
 
 **pc_sergi_16-DUVAR — Sergi duvarı**
 - GÖRDÜĞÜM: Sol taraftaki eser listesi arkasında panel olmadan doğrudan tablonun üzerine düşüyor; yazılar resmin içinde kayboluyor, resim de yazının altında kalıyor. Ayrıca bu sayfada sanatçının adı hiçbir yerde yazmıyor.
-- İSTEK: Yan listeye kapalı hâldeyken de opak bir zemin verin (18-YAN-LISTE-ACIK'taki gibi) ya da tablonun dışına taşıyın; üst şeride "Cemal Sağlam" adını ekleyin. **[YÜKSEK]**
+- İSTEK: Yan listeye kapalı hâldeyken de opak bir zemin verin (18-YAN-LISTE-ACIK'taki gibi) ya da tablonun dışına taşıyın; üst şeride "SAGLAM" adını ekleyin. **[YÜKSEK]**
 
 **pc_mekan_20-DIL-EN / 20-DIL-FR — İngilizce ve Fransızca**
 - GÖRDÜĞÜM: Eser adı orijinal hâliyle versal ("DAĞ SIRTI"), çevirisi altında italik ("The Ridge" / "La crête") — yani tipografik hiyerarşi ters: müze ve katalog teamülünde italik olan orijinal addır, çeviri köşeli parantez içinde ve düz yazılır.
@@ -421,7 +421,7 @@ Kırk yıldır resim toplayan, gözü iyi ama gözleri artık zayıf, klavyeyle 
 
 **pc_19-404 — Bulunamadı**
 - GÖRDÜĞÜM: Üç dilde tek cümle ve ana sayfaya dönüş bağlantısı. Sade, doğru.
-- İSTEK: "Cemal Sağlam — Resim" bağlantısının yanına bir de "Sergi duvarına git" ekleyin; kaybolmuş insanı boş bir sayfaya değil esere götürün. **[DÜŞÜK]**
+- İSTEK: "SAGLAM — Resim" bağlantısının yanına bir de "Sergi duvarına git" ekleyin; kaybolmuş insanı boş bir sayfaya değil esere götürün. **[DÜŞÜK]**
 
 **pc_mekan_02-son-resimler / seri sayfaları**
 - GÖRDÜĞÜM: "11 eser, 4 seri. Yeniden eskiye." iyi bir özet. Ama seri açıklamaları (`Günün bittiği, gecenin başlamadığı o kısa aralığın resimleri...`) 12px soluk gri — sanatçının söylediği en anlamlı şeyler en küçük puntoda.
@@ -470,7 +470,7 @@ On beş yıldır çağdaş Türk resmi toplayan, koleksiyonunda otuz kadar iş b
 ### SAYFA SAYFA
 
 **pc_mekan_01-acilis — Açılış**
-- GÖRDÜĞÜM: Beyaz bir kartın içinde "Cemal SAĞLAM" ve tek bir tablo; kim olduğunu, ne yaptığını, nerede olduğunu söyleyen tek satır yok.
+- GÖRDÜĞÜM: Beyaz bir kartın içinde "SAGLAM" ve tek bir tablo; kim olduğunu, ne yaptığını, nerede olduğunu söyleyen tek satır yok.
 - İSTEK: Adın altına tek satır konum ve tanım koyun — "Ressam · İstanbul · Tuval üzerine yağlı boya" — ve sağ üste açılışta görünecek şekilde "Sürüyor: Alacakaranlık, Ardıç Sanat, İstanbul" / "Sırada: Hava Raporu, Payas Galeri, 2025" bloğunu ekleyin. Bu bilgi sade sürümde (pc_duz_01) var, seçilen sürümde kaybolmuş; benim için en pahalı kayıp bu, çünkü işi canlı nerede göreceğimi buradan öğreniyorum. **[YÜKSEK]**
 
 **pc_mekan_02-son-resimler — Son Resimler**
@@ -486,7 +486,7 @@ On beş yıldır çağdaş Türk resmi toplayan, koleksiyonunda otuz kadar iş b
 - İSTEK: Bu sayfaya 3–4 atölye kadrajı ekleyin: yarım kalmış bir tuval, palet, kuruyan katman, bir eserin yüzey yakın çekimi. Yağlı boya alan biri için empasto ve vernik görüntüsü, biyografiden daha inandırıcıdır. **[YÜKSEK]**
 
 **pc_mekan_08-biyografi — Biyografi**
-- GÖRDÜĞÜM: Sayfanın başında "1987'de İzmir'de doğdu." yazıyor, hemen altındaki ilk paragraf "Cemal Sağlam 1987'de İzmir'de doğdu..." diye tekrar başlıyor — aynı cümle üst üste iki kez.
+- GÖRDÜĞÜM: Sayfanın başında "1987'de İzmir'de doğdu." yazıyor, hemen altındaki ilk paragraf "SAGLAM 1987'de İzmir'de doğdu..." diye tekrar başlıyor — aynı cümle üst üste iki kez.
 - İSTEK: Tekrarı temizleyin (üstteki iki satır kalsın, paragraf "Mimar Sinan Güzel Sanatlar Üniversitesi Resim Bölümü'nü bitirdi..." diye başlasın) ve sayfanın altına "Tam özgeçmişi indir (PDF)" bağlantısı koyun. Ciddi bir alım öncesi CV'yi dosyalıyorum. **[ORTA]**
 
 **pc_mekan_09-sergiler — Sergiler**
@@ -690,7 +690,7 @@ Kurumsal koleksiyonlara ve ailelere eser alan bir sanat danışmanıyım; bir ta
 
 **pc_sergi_17-ESER-DETAY — Eser detayı (eylem tarafı)**
 - GÖRDÜĞÜM: Panelde tek eylem "KAPAT" ve ileri/geri okları; fiyat sormak, bilgi istemek veya bu eseri paylaşmak için hiçbir düğme yok.
-- İSTEK: Panele "Bu eser hakkında bilgi isteyin" düğmesi koyun; tıklayınca konusu otomatik dolu bir e-posta açılsın ("Cemal Sağlam — Balıkçıl, 2023, 86 × 132 cm — bilgi talebi"). Yanına "Bağlantıyı kopyala" ekleyin. **[YÜKSEK]**
+- İSTEK: Panele "Bu eser hakkında bilgi isteyin" düğmesi koyun; tıklayınca konusu otomatik dolu bir e-posta açılsın ("SAGLAM — Balıkçıl, 2023, 86 × 132 cm — bilgi talebi"). Yanına "Bağlantıyı kopyala" ekleyin. **[YÜKSEK]**
 
 **pc_sergi_16-DUVAR — Sergi duvarı**
 - GÖRDÜĞÜM: Duvar etiketi "Güz Ormanı · 2024 · TUVAL ÜZERİNE YAĞLI BOYA · 85 × 132 CM | 33½ × 52 İN" yazıyor; birim kısaltmaları büyük harfe çevrilmiş ve inç "İN" olmuş.

@@ -7,9 +7,10 @@ Tasarım dosyalarına hiç dokunulmaz.
 
 ARTIST = {
     # Ad YALNIZ SOYADI: ön ad kalktı (müşteri kararı, 8 Ekim 2026).
-    # Ekranda hep büyük harf, ASCII gereken yerde (kullanıcı adı) "saglam".
-    'name': 'SAĞLAM',
-    'mark': 'SAĞLAM',
+    # Her yerde SAGLAM, Türkçe karakter yok (Ğ değil G). Küçük harf
+    # gereken yerde (kullanıcı adı, worker adı) "saglam".
+    'name': 'SAGLAM',
+    'mark': 'SAGLAM',
     'role': 'Ressam',
     # İletişim: yalnızca ressamın sitede görünmesini ONAYLADIĞI gerçek bilgi.
     # Boşken İletişim sayfası menüde yok, eser sayfası e-posta satırı basmıyor.

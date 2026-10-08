@@ -235,7 +235,7 @@ function onizYaz(route, hemen) {
   onizSon = route;
   /* Üst satır ile başlık aynı metne düşebiliyor: varsayılan önizlemede
      ust = sanatçının imzası, ad = sanatçının adı ve ikisi aynı kelimeler.
-     Galeri sayfasında "SAĞLAM / SAĞLAM" diye iki kez
+     Galeri sayfasında "SAGLAM / SAGLAM" diye iki kez
      yazıyordu. Aynıysa üst satır düşüyor. */
   const d = onizlemeIcin(route);
   /* Menu acilirken ilk yazim beklemesin: solma gecikmesi orada bosluk
