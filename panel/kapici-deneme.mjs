@@ -128,5 +128,25 @@ const giris = (sifre, kullanici = 'saglam', ek = {}) => cagir('giris', Object.as
   ol('başka IP etkilenmiyor', (await giris(ORTAM.SIFRE)).status === 200);
 }
 
+/* 6) vekil kipi: anahtar başka projede, istek olduğu gibi oraya */
+{
+  const VEKIL = { KAPICI_ADRESI: 'https://kapici.example/' };
+  let giden = null;
+  globalThis.fetch = async (adres, secim) => {
+    giden = { adres: String(adres), secim: secim };
+    return new Response('{"kullanici":"saglam"}', { status: 200,
+      headers: { 'Content-Type': 'application/json', 'Set-Cookie': 'saglam_oturum=abc; Path=/api; HttpOnly' } });
+  };
+  const y = await cagir('giris?x=1', { method: 'POST', headers: { Cookie: 'a=b', 'Content-Type': 'application/json' },
+                                        body: '{"kullanici":"saglam"}' }, VEKIL);
+  ol('vekil: adres + sorgu korunuyor', giden && giden.adres === 'https://kapici.example/api/giris?x=1', giden && giden.adres);
+  ol('vekil: çerez, panel başlığı ve gövde gidiyor', giden.secim.headers.get('Cookie') === 'a=b' &&
+     giden.secim.headers.get('X-Panel') === '1' && new TextDecoder().decode(giden.secim.body) === '{"kullanici":"saglam"}');
+  ol('vekil: oturum çerezi tarayıcıya dönüyor', (y.headers.get('set-cookie') || '').startsWith('saglam_oturum=abc'));
+  ol('vekil: GitHub anahtarı istemiyor', y.status === 200);
+  const dongu = await cagir('durum', { headers: { 'X-Vekil': '1' } }, VEKIL);
+  ol('vekil: kendine dönen istek durduruluyor', dongu.status === 508);
+}
+
 console.log('\n' + gecti + ' geçti, ' + kaldi + ' kaldı');
 process.exit(kaldi ? 1 : 0);

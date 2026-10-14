@@ -143,9 +143,40 @@ function denemeYaz(ip) {
   else s.n += 1;
 }
 
+/* ── vekil kipi ─────────────────────────────────────────────────────────────
+   panelfrsaglam.pages.dev anahtarı KENDİSİ tutmuyor: GitHub anahtarı ilk
+   kurulan projede (KAPICI_ADRESI) duruyor, bu adres /api isteklerini olduğu
+   gibi oraya iletiyor. Böylece anahtar tek yerde kalıyor, yeni adres için
+   yeniden anahtar üretmek gerekmiyor. Çerez ve gövde aynen geçiyor. */
+async function vekil(istek, taban) {
+  if (istek.headers.get('X-Vekil')) return cevap({ hata: 'Vekil döngüsü.' }, 508);
+  const u = new URL(istek.url);
+  const h = new Headers({ 'X-Vekil': '1' });
+  for (const ad of ['Cookie', 'Content-Type', 'X-Panel']) {
+    const v = istek.headers.get(ad);
+    if (v) h.set(ad, v);
+  }
+  let r;
+  try {
+    r = await fetch(String(taban).replace(/\/+$/, '') + u.pathname + u.search, {
+      method: istek.method, headers: h, redirect: 'manual',
+      body: (istek.method === 'GET' || istek.method === 'HEAD') ? undefined : await istek.arrayBuffer(),
+    });
+  } catch (e) {
+    return cevap({ hata: 'Panelin kapıcısına ulaşılamadı. Biraz sonra tekrar deneyin.' }, 502);
+  }
+  const cikis = new Headers({ 'Cache-Control': 'no-store' });
+  for (const ad of ['Content-Type', 'Set-Cookie']) {
+    const v = r.headers.get(ad);
+    if (v) cikis.set(ad, v);
+  }
+  return new Response(r.body, { status: r.status, headers: cikis });
+}
+
 /* ── istek ──────────────────────────────────────────────────────────────── */
 
 export async function onRequest(baglam) {
+  if ((baglam.env || {}).KAPICI_ADRESI) return vekil(baglam.request, baglam.env.KAPICI_ADRESI);
   const istek = baglam.request;
   /* Panelde elle girilen ad küçük harfle kaydedilebiliyor (github_anahtar):
      ikisi de kabul. */
