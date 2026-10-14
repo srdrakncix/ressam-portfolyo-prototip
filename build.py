@@ -313,8 +313,13 @@ def build_data():
 
     # Sayfa zeminleri: ressamın kendi tablolarından makro kırpıntılar (zemin.py).
     # Yoksa site tek renk zeminle çalışır.
-    zp = os.path.join(HERE, 'zeminler.json')
-    data['backdrops'] = json.load(io.open(zp, encoding='utf-8')) if os.path.exists(zp) else {}
+    # Ressam panelden başka bir zemin seçtiyse yayinla.py onu üretip
+    # ZEMIN_JSON ile gösteriyor; yoksa depodaki hazır desen.
+    zp = os.environ.get('ZEMIN_JSON') or os.path.join(HERE, 'zeminler.json')
+    bd = json.load(io.open(zp, encoding='utf-8')) if os.path.exists(zp) else {}
+    data['_kati'] = bd.pop('_kati', None)
+    bd.pop('_dosya', None)
+    data['backdrops'] = bd
     return data
 
 
@@ -479,6 +484,7 @@ def render(tpl_path, data, standalone):
         data['anaEserler'] = [data['works'][0]['slug']]
 
     belirtec = data.pop('_belirtec', {})
+    kati = data.pop('_kati', None)
     tpl = io.open(tpl_path, encoding='utf-8').read()
     for token in ('/*__SITE_DATA__*/', '/*__KIT__*/'):
         if token not in tpl:
@@ -583,8 +589,12 @@ def render(tpl_path, data, standalone):
             if not os.path.exists(yol):
                 sys.exit(f'HATA: {tpl_path} {belirtec} istiyor ama {dosya} yok.')
             dil = 'css' if dosya.endswith('.css') else 'js'
-            out = out.replace(belirtec, yorumsuz(
-                io.open(yol, encoding='utf-8').read(), dil))
+            metin = io.open(yol, encoding='utf-8').read()
+            # Zeminin düz rengi (görsel yüklenene kadar görünen): panelden
+            # seçilen zeminde ölçülen değer kabuk.css'tekini eziyor.
+            if dosya == 'kabuk.css' and kati:
+                metin = re.sub(r'--zemin-kati:\s*#[0-9a-fA-F]{6}', '--zemin-kati: ' + kati, metin)
+            out = out.replace(belirtec, yorumsuz(metin, dil))
 
     if standalone:
         # Artifact ortamı <html>/<head>/<body> sarmalayıcısını kendi ekliyordu.

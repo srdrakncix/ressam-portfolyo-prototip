@@ -3,6 +3,11 @@
   "yayin": {
     "acik": false
   },
+  "gorunum": {
+    "zemin": {
+      "tur": "hazir"
+    }
+  },
   "sanatci": {
     "ad": "SAGLAM",
     "eposta": "",

@@ -316,6 +316,141 @@ def palet(im, n=9):
     return out
 
 
+# ── panelden seçilen zemin ────────────────────────────────────────────────
+# Ressam panelde (Görünüm) zemini kendisi seçiyor: hazır desen, bir tablosu,
+# kendi fotoğrafı ya da düz renk. Yukarıdaki kapılar elle seçilmiş TEK bir
+# kaynak için yazıldı ve geçmeyince derlemeyi durduruyor; panelden gelen
+# herhangi bir seçimde durmak yerine UYARLANIYOR: okunurluk tutmuyorsa zemin
+# koyulaşıyor, çubuk bulunamıyorsa çubuklar düz koyu renk oluyor. Ressam
+# "yazılar okunmuyor" diye bir siteyle karşılaşmıyor.
+#
+# Panelin önizlemesi (panel/index.html ZEMIN) aynı sayıları kullanıyor;
+# denetim.py ikisinin aynı olduğunu her derlemede doğruluyor.
+SERIT_ORAN = 298 / 1282.0      # şeridin en/boy oranı (kaynak şerit, filigransız)
+KAGIT_ESIK = 2.0               # perdeli zeminin beyaz kâğıda karşı en az kontrastı
+KARART_ADIM = 0.92             # okunurluk tutana kadar aydınlık bu oranla iner
+
+
+def serit_kes(im, x):
+    """Görselden tam boy dikey şerit. x (0..1): şeridin merkezinin yeri."""
+    en, boy = im.size
+    sw = max(8, min(en, int(round(boy * SERIT_ORAN))))
+    x0 = int(round(min(max(x * en - sw / 2.0, 0), en - sw)))
+    return im.crop((x0, 0, x0 + sw, boy))
+
+
+def renk_serit(hex_renk):
+    """Düz renk: ölü düz olmasın diye çok hafif dikey geçiş (üst açık, alt koyu)."""
+    r, g, b = (int(hex_renk[i:i + 2], 16) for i in (1, 3, 5))
+    h, l, s = colorsys.rgb_to_hls(r / 255.0, g / 255.0, b / 255.0)
+    S = Image.new('RGB', (64, 276))
+    p = S.load()
+    for y in range(S.height):
+        ll = max(0.0, min(1.0, l + 0.05 - 0.10 * y / (S.height - 1)))
+        rr, gg, bb = colorsys.hls_to_rgb(h, ll, s)
+        c = (int(rr * 255 + 0.5), int(gg * 255 + 0.5), int(bb * 255 + 0.5))
+        for x in range(S.width):
+            p[x, y] = c
+    return S
+
+
+def _p99_kontrast(K, m):
+    """Aydınlık m ile çarpıldığında perdeli zeminin en parlak yeri (p99)
+    beyaz kâğıda karşı kaç:1. okunurluk_raporu ile aynı ölçüm."""
+    k = K.resize((80, 344), Image.LANCZOS)
+    ys = []
+    for renk in k.convert('RGB').getdata():
+        if m < 1:
+            h, l, s = colorsys.rgb_to_hls(*[v / 255.0 for v in renk])
+            renk = tuple(int(v * 255 + 0.5) for v in colorsys.hls_to_rgb(h, l * m, s))
+        ys.append(parlaklik(*perdele(renk)))
+    ys.sort()
+    return kontrast(parlaklik(255, 255, 255), ys[int(len(ys) * 0.99)])
+
+
+def karart(im, m):
+    o = im.copy()
+    p = o.load()
+    for y in range(o.height):
+        for x in range(o.width):
+            h, l, s = colorsys.rgb_to_hls(*[v / 255.0 for v in p[x, y]])
+            rr, gg, bb = colorsys.hls_to_rgb(h, l * m, s)
+            p[x, y] = (int(rr * 255 + 0.5), int(gg * 255 + 0.5), int(bb * 255 + 0.5))
+    return o
+
+
+def uyarla(K):
+    """Okunurluk tutana kadar karart. Çarpanı döndürür (1 = dokunulmadı)."""
+    m = 1.0
+    for _ in range(40):
+        if _p99_kontrast(K, m) >= KAGIT_ESIK:
+            break
+        m *= KARART_ADIM
+    return (karart(K, m) if m < 1 else K), m
+
+
+def cubuk_rengi(K):
+    """Çubuk bulunamazsa: zeminin ortalama tonu, beyaz diske karşı 4:1
+    olana kadar koyultulmuş düz renk."""
+    k = K.resize((1, 1), Image.LANCZOS).getpixel((0, 0))
+    h, l, s = colorsys.rgb_to_hls(*[v / 255.0 for v in k])
+    disk = parlaklik(255, 255, 255) * DISK_A + 0.0
+    while l > 0.02:
+        r, g, b = colorsys.hls_to_rgb(h, l, s)
+        c = (int(r * 255 + 0.5), int(g * 255 + 0.5), int(b * 255 + 0.5))
+        if kontrast(disk, parlaklik(*c)) >= 4.0:
+            return '#%02x%02x%02x' % c
+        l -= 0.03
+    return '#222222'
+
+
+def panelden(secim, gorsel_dizin, hedef_dizin, eser_gorseli=None):
+    """site.json gorunum.zemin -> hedef_dizin'e örüntü + zemin.json.
+
+    secim: {'tur': 'eser'|'foto'|'renk', 'eser', 'gorsel', 'x', 'renk'}
+    eser_gorseli: eser adı -> görsel dosya adı (icerik/eserler'den).
+    Dönüş: zemin.json yolu; kaynak bulunamazsa None (hazır desen kalır)."""
+    tur = secim.get('tur')
+    if tur == 'renk':
+        S = renk_serit(secim['renk'])
+        ne = 'düz renk ' + secim['renk']
+    else:
+        ad = (secim.get('gorsel') if tur == 'foto'
+              else (eser_gorseli or {}).get(secim.get('eser') or ''))
+        yol = os.path.join(gorsel_dizin, ad) if ad else ''
+        if not ad or not os.path.exists(yol):
+            print('UYARI  zemin kaynagi yok (%s) -- hazir desen kaliyor' % (ad or secim.get('eser')))
+            return None
+        S = serit_kes(Image.open(yol).convert('RGB'), float(secim.get('x', 0.5)))
+        ne = '%s %s, x=%.2f' % (tur, ad, float(secim.get('x', 0.5)))
+    # Şerit ekranda ~1100 px boyda gösteriliyor; daha büyüğü yalnız bayt.
+    if S.height > 1300:
+        S = S.resize((max(8, round(S.width * 1300.0 / S.height)), 1300), Image.LANCZOS)
+    K, m = uyarla(karola(yika(S)))
+    print('zemin           %s -> karo %dx%d%s' % (ne, K.width, K.height,
+          '' if m >= 1 else ' (okunurluk icin %%%d koyultuldu)' % round((1 - m) * 100)))
+    try:
+        cubuk, cubuk_renk = cubuklar(K), None
+    except SystemExit:
+        cubuk, cubuk_renk = None, cubuk_rengi(K)
+        print('hamburger       duz renk %s' % cubuk_renk)
+    b = io.BytesIO()
+    K.save(b, 'WEBP', quality=Q, method=6)
+    import hashlib
+    ad = 'oruntu-%s.webp' % hashlib.sha1(b.getvalue()).hexdigest()[:10]
+    os.makedirs(hedef_dizin, exist_ok=True)
+    open(os.path.join(hedef_dizin, ad), 'wb').write(b.getvalue())
+    p = palet(K)
+    meta = {k: {'src': 'assets/zemin/' + ad, 'pos': '%d%% top' % (i * 9),
+                'cubuk': cubuk, 'cubukRenk': cubuk_renk, 'palette': p}
+            for i, k in enumerate(SAYFALAR)}
+    meta['_kati'] = kati_renk(K)
+    meta['_dosya'] = ad
+    j = os.path.join(hedef_dizin, 'zemin.json')
+    json.dump(meta, io.open(j, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    return j
+
+
 def main():
     if not os.path.exists(KAYNAK):
         raise SystemExit('kaynak yok: ' + KAYNAK)

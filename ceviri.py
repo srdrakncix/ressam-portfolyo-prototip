@@ -19,6 +19,9 @@ KURAL — sanat dünyasında standart olan budur:
 
 UI = {
     'tr': {
+        # yapım aşaması sayfası (yakinda.html)
+        'yakinda_teknik': 'Yağlı boya', 'yakinda_mesaj': 'Site yapım aşamasında.',
+        'yakinda_alt': 'Çok yakında buradayız.',
         'lang_name': 'Türkçe',
         'nav_gallery': 'Galeri',
         'nav_about_grp': 'Sanatçı',
@@ -80,6 +83,9 @@ UI = {
         'meta_desc': 'SAGLAM’ın resimleri. Tuval üzerine yağlı boya.',
     },
     'en': {
+        # yapım aşaması sayfası (yakinda.html)
+        'yakinda_teknik': 'Oil painting', 'yakinda_mesaj': 'The site is under construction.',
+        'yakinda_alt': 'See you very soon.',
         'lang_name': 'English',
         'nav_gallery': 'Gallery',
         'nav_about_grp': 'The artist',
@@ -136,6 +142,9 @@ UI = {
         'meta_desc': 'Paintings by SAGLAM. Oil on canvas.',
     },
     'fr': {
+        # yapım aşaması sayfası (yakinda.html)
+        'yakinda_teknik': 'Peinture à l’huile', 'yakinda_mesaj': 'Le site est en construction.',
+        'yakinda_alt': 'À très bientôt.',
         'lang_name': 'Français',
         'nav_gallery': 'Galerie',
         'nav_about_grp': 'L’artiste',

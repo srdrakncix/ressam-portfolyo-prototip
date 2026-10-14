@@ -76,7 +76,7 @@ function setBackdrop(key) {
     bgSrc = b.src;
   }
   paintMenu(b.palette || []);
-  paintBurger(b.src, b.cubuk);
+  paintBurger(b.src, b.cubuk, b.cubukRenk);
 }
 
 /* Menü satırlarının rengi o sayfanın zemininden geliyor — her satır ayrı ton.
@@ -140,8 +140,11 @@ function paintMenu(pal) {
    kabuk.css'te elle yazılıydı ve yeni örüntüde üçüncü çubuk beyaz diskin
    üzerinde 2.66:1'e düşüyordu -- grafik eşiği 3:1. CSS'teki değerler
    yedek olarak duruyor (veri gelmezse simge yine boyalı). */
-function paintBurger(src, cubuk) {
+function paintBurger(src, cubuk, renk) {
   document.querySelectorAll('#menubtn i').forEach((el, i) => {
+    /* Zeminde beyaz diske karşı okunan bir parça yoksa (düz açık renk
+       zemin) zemin.py düz koyu bir çubuk rengi veriyor. */
+    if (renk) { el.style.backgroundImage = 'none'; el.style.backgroundColor = renk; return; }
     el.style.backgroundImage = 'url(' + src + ')';
     if (cubuk && cubuk[i]) el.style.backgroundPosition = cubuk[i];
   });

@@ -10,6 +10,7 @@ site/ klasoru TAMAMEN URETILMIS ciktidir ve depoya girmez (.gitignore).
 Depoda duran sey kaynaktir: sablonlar, build.py, icerik ve varlik/.
 """
 import io
+import re
 import os
 import shutil
 import subprocess
@@ -96,6 +97,25 @@ def main():
         panel_derle()
         return
 
+    # 0) zemin: ressam panelden başka bir arka plan seçtiyse burada
+    #    üretiliyor; build.py onu ZEMIN_JSON'dan okuyor. Seçim yoksa (hazır
+    #    desen) depodaki varlik/zemin + zeminler.json olduğu gibi kalıyor.
+    zemin_dizin, zemin = None, None
+    os.environ.pop('ZEMIN_JSON', None)
+    if S['zemin']['tur'] != 'hazir':
+        import glob
+        import json as _j
+        import tempfile
+        import zemin as _Z
+        eg = {}
+        for f in glob.glob(os.path.join(KOK, 'icerik', 'eserler', '*.json')):
+            eg[os.path.basename(f)[:-5]] = _j.load(io.open(f, encoding='utf-8')).get('gorsel')
+        zemin_dizin = tempfile.mkdtemp(prefix='zemin-')
+        zj = _Z.panelden(S['zemin'], os.path.join(KOK, 'icerik', 'gorseller'), zemin_dizin, eg)
+        if zj:
+            os.environ['ZEMIN_JSON'] = zj
+            zemin = _j.load(io.open(zj, encoding='utf-8'))
+
     # 1) sayfalar (build.py assets/ icine eser gorsellerini de yaziyor)
     for sablon, hedef in SAYFALAR:
         cikis = os.path.join('site', hedef)
@@ -159,6 +179,12 @@ def main():
             shutil.copy2(os.path.join(kok, d), os.path.join(hedef_dizin, d))
             n += 1
     print(f'varlik/            {n} dosya kopyalandi')
+    if zemin:
+        # Panelden seçilen zemin: içerik adlı dosya (önbellek eskiyi
+        # göstermesin). Hazır desen de yerinde kalıyor; zarar yok.
+        shutil.copy2(os.path.join(zemin_dizin, zemin['_dosya']),
+                     os.path.join(hedef_varlik, 'zemin', zemin['_dosya']))
+        print('zemin             assets/zemin/' + zemin['_dosya'])
 
     # 3) panel — yalnız yerelde, sitenin yanında. saglam.fr'de panel yok.
     import json as _json
@@ -213,12 +239,8 @@ def main():
         # Hicbir yerden baglanti yok, arama motorlarina kapali (noindex +
         # robots.txt). Kok sayfa yakinda.html'e donmeden ONCE kopyalaniyor.
         onizleme_yaz()
-        # Ad panelden (site.json); HTML'e kaçırılarak yazılıyor.
-        ad = (S['sanatci']['ad'].replace('&', '&amp;').replace('<', '&lt;')
-              .replace('>', '&gt;').replace('"', '&quot;'))
         io.open(os.path.join(CIKTI, 'index.html'), 'w', encoding='utf-8').write(
-            io.open(os.path.join(KOK, 'yakinda.html'), encoding='utf-8').read()
-            .replace('__AD__', ad))
+            yakinda_sayfasi(S, zemin))
         shutil.rmtree(os.path.join(CIKTI, 'galeri'), ignore_errors=True)
         print('YAKINDA           kök = yakinda.html, galeri yayında değil')
 
@@ -228,6 +250,34 @@ def main():
     toplam = sum(os.path.getsize(os.path.join(r, f))
                  for r, _, fs in os.walk(CIKTI) for f in fs)
     print(f'\nsite/              {toplam / 1048576:.2f} MB')
+
+
+def _html(s):
+    return (str(s).replace('&', '&amp;').replace('<', '&lt;')
+            .replace('>', '&gt;').replace('"', '&quot;'))
+
+
+def yakinda_sayfasi(S, zemin):
+    """yakinda.html + panelden gelenler: ad, üç yazı (üç dilde), zemin."""
+    import json as _j
+    import ceviri as _T
+    import site_veri as V
+    UI = V.arayuz(S, _T.UI)
+    s = io.open(os.path.join(KOK, 'yakinda.html'), encoding='utf-8').read()
+    s = s.replace('__AD__', _html(S['sanatci']['ad']))
+    for alan in ('teknik', 'mesaj', 'alt'):
+        # HTML'deki ilk hâl Fransızca (alan adı .fr); betik dili değiştiriyor.
+        s = s.replace('__YK_%s__' % alan.upper(), _html(UI['fr']['yakinda_' + alan]))
+        for d in V.DILLER:
+            js = _j.dumps(UI[d]['yakinda_' + alan], ensure_ascii=False).replace('</', '<\\/')
+            s = s.replace('__YK_%s_%s__' % (alan, d), js)
+    if zemin:
+        s = s.replace('assets/zemin/oruntu.webp', 'assets/zemin/' + zemin['_dosya'])
+        s = re.sub(r'--zemin-kati:\s*#[0-9a-fA-F]{6}', '--zemin-kati: ' + zemin['_kati'], s)
+    kalan = re.findall(r'__[A-Z][A-Za-z_]*__', s)
+    if kalan:
+        raise SystemExit('HATA: yakinda.html icinde doldurulmamis belirtec: ' + ', '.join(sorted(set(kalan))))
+    return s
 
 
 def panel_yaz(hedef_dizin, site):

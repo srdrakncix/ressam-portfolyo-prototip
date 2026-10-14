@@ -151,7 +151,7 @@ h1 {
 }
 </style>
 </head>
-<body>
+<body data-sayfa="yakinda">
 <main class="kart">
   <svg class="sahne" viewBox="0 0 720 330" role="img" aria-labelledby="sahne-ad">
     <title id="sahne-ad">Minik işçiler iskelede dev bir tabloyu inşa edip boyuyor, yanında binalar yükseliyor</title>
@@ -429,10 +429,10 @@ h1 {
   </svg>
 
   <h1>__AD__</h1>
-  <p class="teknik" data-i="teknik">Peinture à l'huile</p>
+  <p class="teknik" data-i="teknik">__YK_TEKNIK__</p>
   <hr class="cizgi">
-  <p class="mesaj" data-i="mesaj">Le site est en construction.</p>
-  <p class="alt" data-i="alt">À très bientôt.</p>
+  <p class="mesaj" data-i="mesaj">__YK_MESAJ__</p>
+  <p class="alt" data-i="alt">__YK_ALT__</p>
 
   <div class="diller" role="group" aria-label="Langue">
     <button type="button" data-l="tr" lang="tr">TR</button><span aria-hidden="true">·</span>
@@ -448,13 +448,14 @@ h1 {
   /* Ad panelden geliyor (site.json); derleme <h1>'e yaziyor. */
   var AD = document.querySelector('h1').textContent;
   var M = {
-    fr: { teknik: "Peinture à l'huile", mesaj: 'Le site est en construction.', alt: 'À très bientôt.',
+    /* teknik / mesaj / alt panelden (Menü ve yazılar → Yapım aşaması sayfası). */
+    fr: { teknik: __YK_teknik_fr__, mesaj: __YK_mesaj_fr__, alt: __YK_alt_fr__,
           sahne: 'De petits ouvriers construisent et peignent un immense tableau sur un échafaudage',
           baslik: 'Site en construction', dil: 'Langue' },
-    tr: { teknik: 'Yağlı boya', mesaj: 'Site yapım aşamasında.', alt: 'Çok yakında buradayız.',
+    tr: { teknik: __YK_teknik_tr__, mesaj: __YK_mesaj_tr__, alt: __YK_alt_tr__,
           sahne: 'Minik işçiler iskelede dev bir tabloyu inşa edip boyuyor',
           baslik: 'Site yapım aşamasında', dil: 'Dil' },
-    en: { teknik: 'Oil painting', mesaj: 'The site is under construction.', alt: 'See you very soon.',
+    en: { teknik: __YK_teknik_en__, mesaj: __YK_mesaj_en__, alt: __YK_alt_en__,
           sahne: 'Tiny workers on a scaffold building and painting a huge canvas',
           baslik: 'Site under construction', dil: 'Language' }
   };

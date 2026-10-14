@@ -401,6 +401,57 @@ dialog ul li { display: flex; gap: 10px; align-items: center; justify-content: s
 .sonuc.iyi { color: var(--iyi); } .sonuc.kotu { color: var(--uyari); }
 .sifre-goster { font-family: ui-monospace, Consolas, monospace; background: var(--zemin); padding: 8px 10px; border-radius: 8px; word-break: break-all; margin-top: 8px; font-size: 14px; }
 
+/* ── görünüm ── */
+.zemin-onizleme {
+  position: relative; aspect-ratio: 16 / 9; max-height: 420px; width: 100%;
+  border-radius: 12px; overflow: hidden; background: #15252e; border: 1px solid var(--cizgi);
+}
+.zemin-onizleme .zb {
+  position: absolute; inset: 0; background-repeat: repeat-x;
+  background-size: auto 135%; background-position: 0 top; transition: opacity .25s;
+}
+.zemin-onizleme .zb::after { content: ""; position: absolute; inset: 0; background: rgba(20, 18, 22, .18); }
+.zemin-onizleme.hesaplaniyor .zb { opacity: .55; }
+.zemin-onizleme .zk {
+  position: absolute; left: 16%; right: 16%; top: 10%; bottom: -8%; background: #fff;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, .32); padding: 5% 6%; overflow: hidden;
+}
+.zemin-onizleme .zk b {
+  display: block; font: 400 clamp(13px, 2.2vw, 24px) Georgia, "Times New Roman", serif; letter-spacing: .08em;
+}
+.zemin-onizleme .zk img { display: block; margin-top: 5%; max-width: 78%; max-height: 64%; object-fit: contain; }
+.zemin-onizleme .zh {
+  position: absolute; left: 3%; top: 5%; width: clamp(28px, 4.6vw, 44px); height: clamp(28px, 4.6vw, 44px);
+  border-radius: 50%; background: rgba(255, 255, 255, .92); box-shadow: 0 2px 10px rgba(0, 0, 0, .28);
+  display: flex; flex-direction: column; justify-content: center; gap: 4px; padding: 0 8px; box-sizing: border-box;
+}
+.zemin-onizleme .zh i { display: block; height: 3px; border-radius: 1px; background: #333; }
+.zemin-onizleme .bekle {
+  position: absolute; right: 10px; bottom: 10px; background: rgba(0, 0, 0, .6); color: #fff;
+  font-size: 12px; padding: 3px 10px; border-radius: 999px;
+}
+/* overflow ŞART: bandın dışını karartan gölge 9999 px; kutuya hapsedilmezse
+   bütün sayfayı karartıyordu. */
+.serit-secici { position: relative; display: inline-block; max-width: 100%; cursor: crosshair; user-select: none;
+                overflow: hidden; border-radius: 6px; line-height: 0; }
+.serit-secici img { display: block; max-width: 100%; max-height: 260px; border-radius: 6px; }
+.serit-secici .bant {
+  position: absolute; top: 0; bottom: 0; border: 2px solid #fff; outline: 2px solid var(--vurgu);
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, .38); pointer-events: none; border-radius: 3px;
+}
+.serit-kutu { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; margin-top: 14px; }
+.serit-kutu .ayar { flex: 1; min-width: 220px; }
+.serit-kutu input[type=range] { width: 100%; }
+.renkler { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.renk {
+  width: 46px; height: 46px; border-radius: 10px; border: 2px solid var(--cizgi); cursor: pointer;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .5);
+}
+.renk[aria-pressed="true"] { outline: 3px solid var(--vurgu); outline-offset: 2px; }
+.renk-ozel { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--soluk); }
+.renk-ozel input { width: 46px; height: 46px; border: 0; padding: 0; background: none; cursor: pointer; }
+.mini[aria-pressed="true"] { outline: 3px solid var(--vurgu); outline-offset: 1px; border-color: var(--vurgu); }
+
 .bildirim {
   position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 16px); opacity: 0;
   background: var(--murekkep); color: #fff; padding: 11px 18px; border-radius: 10px; z-index: 70;
@@ -549,6 +600,7 @@ const YAPIM = '__YAPIM__';
 const BOLUMLER = [
   ['eserler', '🖼', 'Eserler'],
   ['ana', '⌂', 'Ana sayfa'],
+  ['gorunum', '◐', 'Görünüm'],
   ['sanatci', '✎', 'Sanatçı'],
   ['iletisim', '✉', 'İletişim'],
   ['yazilar', '☰', 'Menü ve yazılar'],
@@ -576,6 +628,16 @@ const YAZI_ETIKET = {
   avail_studio: ['Durum: müsait', 'eserin altında'],
   avail_private: ['Durum: koleksiyonda', 'eserin altında'],
   avail_gone: ['Durum: ayrıldı', 'eserin altında'],
+  yakinda_teknik: ['Adın altındaki küçük yazı', 'yapım aşaması sayfası'],
+  yakinda_mesaj: ['Ana mesaj', 'yapım aşaması sayfası'],
+  yakinda_alt: ['Alt satır', 'yapım aşaması sayfası'],
+  lbl_year: ['“Yıl” etiketi', 'eser bilgisinde'], lbl_medium: ['“Teknik” etiketi', 'eser bilgisinde'],
+  lbl_size: ['“Ölçü” etiketi', 'eser bilgisinde'], lbl_series: ['“Seri” etiketi', 'eser bilgisinde'],
+  kare_ortam: ['İkinci görselin başlığı', 'eserin “sergide” görseli'],
+  gal_exit: ['Ana sayfaya dönüş', 'galerideki menü'], gal_all: ['“Tümü” düğmesi', 'galeri'],
+  gal_close: ['“Kapat” düğmesi', 'galeri'], gal_empty: ['Boş seri yazısı', 'galeri'],
+  coll_soon: ['Koleksiyon sayfası boşken', ''],
+  zoom_ipucu: ['Yakınlaştırma ipucu', 'telefonda'], zoom_ipucu_fare: ['Yakınlaştırma ipucu', 'bilgisayarda'],
 };
 const YAZI_GRUP = [
   ['Menü başlıkları', ['nav_gallery', 'nav_recent', 'nav_about_grp', 'nav_studio', 'nav_bio',
@@ -584,12 +646,16 @@ const YAZI_GRUP = [
   ['Galeri', ['gal_label', 'gal_title', 'gal_sub', 'gal_works']],
   ['Sanatçı sayfaları', ['exh_solo', 'exh_group']],
   ['Eser durumları', ['avail_studio', 'avail_private', 'avail_gone']],
+  ['Yapım aşaması sayfası (site kapalıyken)', ['yakinda_teknik', 'yakinda_mesaj', 'yakinda_alt']],
+  ['Eser bilgisi ve galeri', ['lbl_year', 'lbl_medium', 'lbl_size', 'lbl_series', 'kare_ortam',
+                              'gal_exit', 'gal_all', 'gal_close', 'gal_empty', 'coll_soon',
+                              'zoom_ipucu', 'zoom_ipucu_fare']],
 ];
 /* İletişim bölümünde ayrıca gösteriliyor. */
 const ILETISIM_YAZI = 'contact_body';
 
 const SITE_ETIKET = {
-  yayin: 'Site durumu', sanatci: 'Sanatçı ve iletişim', ana_sayfa: 'Ana sayfa',
+  yayin: 'Site durumu', gorunum: 'Görünüm (arka plan)', sanatci: 'Sanatçı ve iletişim', ana_sayfa: 'Ana sayfa',
   seriler: 'Seriler', biyografi: 'Biyografi', atolye_notu: 'Atölye notu',
   sergiler: 'Sergiler', koleksiyonlar: 'Koleksiyonlar', yayinlar: 'Yayınlar',
   basin: 'Basın', yazilar: 'Menü ve yazılar',
@@ -816,6 +882,8 @@ async function tekCommit(dosyalar, mesaj, tabanBas, tabanAgac) {
 function siteDuzelt(s) {
   s = s || {};
   s.yayin = Object.assign({ acik: false }, s.yayin);
+  s.gorunum = Object.assign({}, s.gorunum);
+  s.gorunum.zemin = Object.assign({ tur: 'hazir' }, s.gorunum.zemin);
   s.sanatci = Object.assign({ ad: '', eposta: '', telefon: '', adres: '', instagram: '' }, s.sanatci);
   s.ana_sayfa = Array.isArray(s.ana_sayfa) ? s.ana_sayfa : [];
   s.seriler = Array.isArray(s.seriler) ? s.seriler : [];
@@ -1124,7 +1192,8 @@ function listeAc() {
   $('#degisiklik-liste').showModal();
 }
 function alanBolumu(alan) {
-  return { yayin: 'ayarlar', sanatci: 'sanatci', ana_sayfa: 'ana', seriler: 'eserler', yazilar: 'yazilar' }[alan] || 'sanatci';
+  return { yayin: 'ayarlar', gorunum: 'gorunum', sanatci: 'sanatci', ana_sayfa: 'ana', seriler: 'eserler',
+           yazilar: 'yazilar' }[alan] || 'sanatci';
 }
 
 async function hepsiniAt() {
@@ -1151,6 +1220,11 @@ function denetle() {
     if (!DILLER.some((d) => (s.ad[d] || '').trim()))
       l.push({ m: 'Bir serinin adı boş.', git: () => bolumAc('eserler') });
   });
+  const zg = T.site.gorunum.zemin;
+  if (zg.tur === 'eser' && !T.eser[zg.eser])
+    l.push({ m: 'Arka plan için seçilen eser artık yok. Başka bir arka plan seçin.', git: () => bolumAc('gorunum') });
+  if (zg.tur === 'foto' && !(T.gorsel[GORSEL + zg.gorsel] || K.dosya[GORSEL + zg.gorsel]))
+    l.push({ m: 'Arka plan fotoğrafı yüklenemedi. Yeniden seçin.', git: () => bolumAc('gorunum') });
   for (const r of sirali()) {
     const git = () => { bolumAc('eserler'); cekmeceAc(r.slug); };
     const ad = (r.baslik || '').trim() || 'Adı olmayan eser';
@@ -1188,6 +1262,12 @@ function yazilacaklar(t = T) {
       if (a && a[alan] && a[alan] !== ad && K.dosya[GORSEL + a[alan]])
         d.push({ yol: GORSEL + a[alan], sil: true });
     }
+  }
+  /* Arka plan için yüklenen fotoğraf (Görünüm). */
+  const zg = t.site.gorunum && t.site.gorunum.zemin;
+  if (zg && zg.tur === 'foto' && zg.gorsel) {
+    const p = GORSEL + zg.gorsel;
+    if (t.gorsel[p] && t.gorsel[p] !== K.dosya[p]) d.push({ yol: p, sha: t.gorsel[p] });
   }
   /* Aynı yol hem yazılıp hem silinmesin: yazma kazanır. */
   const yazilan = new Set(d.filter((x) => !x.sil).map((x) => x.yol));
@@ -1339,7 +1419,7 @@ function ciz() {
   if (!sunucu && !kilit && jeton) m.append(h('div', { class: 'ust-not' },
     h('span', {}, 'Ressamın giriş yapabilmesi için kullanıcı adı ve şifre kurulmadı.'),
     h('button', { class: 'dugme kucuk ana', type: 'button', onclick: sifrePenceresi }, 'Şimdi kur')));
-  ({ eserler: cizEserler, ana: cizAna, sanatci: cizSanatci, iletisim: cizIletisim,
+  ({ eserler: cizEserler, ana: cizAna, gorunum: cizGorunum, sanatci: cizSanatci, iletisim: cizIletisim,
      yazilar: cizYazilar, ayarlar: cizAyarlar }[bolum] || cizEserler)(m);
 }
 
@@ -1763,6 +1843,9 @@ async function eserSil(slug) {
       'Sil', true)) return;
   delete T.eser[slug];
   T.site.ana_sayfa = T.site.ana_sayfa.filter((s) => s !== slug);
+  /* Arka plan bu tablodan yapılıyorsa hazır desene dön (site boş kalmasın). */
+  if (T.site.gorunum.zemin.tur === 'eser' && T.site.gorunum.zemin.eser === slug)
+    T.site.gorunum.zemin = { tur: 'hazir' };
   siralariYaz(sirali().map((x) => x.slug));
   cekmeceKapat();
   bildir('Eser silindi. Vazgeçerseniz üstteki listeden geri alabilirsiniz.', 4000);
@@ -1796,6 +1879,318 @@ function cizAna(m) {
       h('div', { class: 'resim' }, resim(r.slug, 'gorsel', 540)), h('span', { text: r.baslik || 'Adsız' }))))
       : h('p', { class: 'ipucu', style: 'margin:0' }, 'Bütün eserler ana sayfada.')));
   m.append(h('p', { class: 'ipucu' }, 'Ana sayfanın altındaki galeri kartının yazıları “Menü ve yazılar” bölümünde.'));
+}
+
+/* ── GÖRÜNÜM: arka plan ─────────────────────────────────────────────────────
+   Ressam zemini seçiyor: hazır desen, bir tablosu, kendi fotoğrafı ya da
+   düz renk. Önizleme sitenin derlemesiyle (zemin.py) AYNI işlemi tarayıcıda
+   yapıyor: tablodan dikey şerit, yıkama, aynalı karo, yazılar okunmuyorsa
+   kendiliğinden koyultma. Sayılar zemin.py'dekilerle aynı olmak zorunda;
+   denetim.py her derlemede karşılaştırıyor. */
+const ZEMIN = { seritOran: 298 / 1282, doy: 0.86, ayd: 0.72, aydEsik: 0.46,
+                perdeA: 0.18, perdeC: [20, 18, 22], kagitEsik: 2.0, karartAdim: 0.92 };
+const KLASIK_RENKLER = ['#1f2a36', '#2b2b2b', '#4a1f24', '#3a3f2a', '#5b4636', '#e9e4da'];
+
+function rgb2hls(r, g, b) {            /* Python colorsys ile aynı */
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mn + mx) / 2;
+  if (mn === mx) return [0, l, 0];
+  const s = l <= 0.5 ? (mx - mn) / (mx + mn) : (mx - mn) / (2 - mx - mn);
+  const rc = (mx - r) / (mx - mn), gc = (mx - g) / (mx - mn), bc = (mx - b) / (mx - mn);
+  const hh = r === mx ? bc - gc : g === mx ? 2 + rc - bc : 4 + gc - rc;
+  return [(((hh / 6) % 1) + 1) % 1, l, s];
+}
+function _hv(m1, m2, h) {
+  h = ((h % 1) + 1) % 1;
+  if (h < 1 / 6) return m1 + (m2 - m1) * h * 6;
+  if (h < 0.5) return m2;
+  if (h < 2 / 3) return m1 + (m2 - m1) * (2 / 3 - h) * 6;
+  return m1;
+}
+function hls2rgb(h, l, s) {
+  if (s === 0) return [l, l, l];
+  const m2 = l <= 0.5 ? l * (1 + s) : l + s - l * s, m1 = 2 * l - m2;
+  return [_hv(m1, m2, h + 1 / 3), _hv(m1, m2, h), _hv(m1, m2, h - 1 / 3)];
+}
+function _lin(c) { return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+function parlak(r, g, b) { return 0.2126 * _lin(r) + 0.7152 * _lin(g) + 0.0722 * _lin(b); }
+function kontrast(a, b) { return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); }
+function hex(r, g, b) {
+  return '#' + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v * 255))).toString(16).padStart(2, '0')).join('');
+}
+function tuval(w, hgt) { const c = document.createElement('canvas'); c.width = w; c.height = hgt; return c; }
+function pikseller(c, f) {
+  const x = c.getContext('2d', { willReadFrequently: true });
+  const d = x.getImageData(0, 0, c.width, c.height), a = d.data;
+  for (let i = 0; i < a.length; i += 4) {
+    const o = f(a[i] / 255, a[i + 1] / 255, a[i + 2] / 255);
+    a[i] = Math.round(o[0] * 255); a[i + 1] = Math.round(o[1] * 255); a[i + 2] = Math.round(o[2] * 255);
+  }
+  x.putImageData(d, 0, 0);
+}
+function yikaZ(c) {
+  pikseller(c, (r, g, b) => {
+    const [hh, l0, s] = rgb2hls(r, g, b);
+    const l = l0 > ZEMIN.aydEsik ? ZEMIN.aydEsik + (l0 - ZEMIN.aydEsik) * ZEMIN.ayd : l0;
+    return hls2rgb(hh, l, s * ZEMIN.doy);
+  });
+}
+function karolaZ(S) {                   /* S + aynası, uç sütunlar ikilenmeden */
+  const en = S.width, boy = S.height, K = tuval(2 * en - 2, boy), x = K.getContext('2d');
+  x.drawImage(S, 0, 0);
+  x.translate(2 * en - 2, 0); x.scale(-1, 1);
+  x.drawImage(S, 1, 0, en - 2, boy, 0, 0, en - 2, boy);
+  return K;
+}
+function p99Kontrast(K, m) {
+  const k = tuval(80, 344);
+  k.getContext('2d').drawImage(K, 0, 0, 80, 344);
+  const a = k.getContext('2d').getImageData(0, 0, 80, 344).data, ys = [];
+  for (let i = 0; i < a.length; i += 4) {
+    let r = a[i] / 255, g = a[i + 1] / 255, b = a[i + 2] / 255;
+    if (m < 1) { const [hh, l, s] = rgb2hls(r, g, b); [r, g, b] = hls2rgb(hh, l * m, s); }
+    const P = ZEMIN.perdeA, C = ZEMIN.perdeC;
+    ys.push(parlak((1 - P) * r + P * C[0] / 255, (1 - P) * g + P * C[1] / 255, (1 - P) * b + P * C[2] / 255));
+  }
+  ys.sort((u, v) => u - v);
+  return kontrast(parlak(1, 1, 1), ys[Math.floor(ys.length * 0.99)]);
+}
+function uyarlaZ(K) {
+  let m = 1;
+  for (let i = 0; i < 40 && p99Kontrast(K, m) < ZEMIN.kagitEsik; i++) m *= ZEMIN.karartAdim;
+  if (m < 1) pikseller(K, (r, g, b) => { const [hh, l, s] = rgb2hls(r, g, b); return hls2rgb(hh, l * m, s); });
+  return m;
+}
+function seritAl(img, x) {
+  const en = img.naturalWidth, boy = img.naturalHeight;
+  const sw = Math.max(8, Math.min(en, Math.round(boy * ZEMIN.seritOran)));
+  const x0 = Math.round(Math.min(Math.max(x * en - sw / 2, 0), en - sw));
+  const k = Math.min(1, 700 / boy);
+  const c = tuval(Math.max(8, Math.round(sw * k)), Math.round(boy * k));
+  c.getContext('2d').drawImage(img, x0, 0, sw, boy, 0, 0, c.width, c.height);
+  return c;
+}
+function renkSerit(hx) {
+  const n = parseInt(hx.slice(1), 16);
+  const [hh, l, s] = rgb2hls(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
+  const c = tuval(64, 276), x = c.getContext('2d');
+  for (let y = 0; y < 276; y++) {
+    const [r, g, b] = hls2rgb(hh, Math.max(0, Math.min(1, l + 0.05 - 0.10 * y / 275)), s);
+    x.fillStyle = hex(r, g, b); x.fillRect(0, y, 64, 1);
+  }
+  return c;
+}
+function corsResim(u) {
+  return new Promise((ok, red) => {
+    const i = new Image();
+    if (!/^(data|blob):/.test(u)) i.crossOrigin = 'anonymous';
+    i.onload = () => ok(i); i.onerror = () => red(new Error('görsel yüklenemedi'));
+    i.src = u;
+  });
+}
+/* Tablonun en renkli, en canlı dikey bandı: varsayılan şerit yeri. */
+function otomatikX(img) {
+  const en = 120, boy = Math.max(20, Math.round(img.naturalHeight * 120 / img.naturalWidth));
+  const c = tuval(en, boy); c.getContext('2d').drawImage(img, 0, 0, en, boy);
+  const a = c.getContext('2d').getImageData(0, 0, en, boy).data;
+  const sw = Math.max(2, Math.min(en, Math.round(boy * ZEMIN.seritOran)));
+  let iyi = 0.5, en_iyi = -1;
+  for (let x = 0.08; x <= 0.921; x += 0.04) {
+    const x0 = Math.round(Math.min(Math.max(x * en - sw / 2, 0), en - sw)), ls = [];
+    let ss = 0, n = 0;
+    for (let yy = 0; yy < boy; yy += 2) for (let xx = x0; xx < x0 + sw; xx += 2) {
+      const i = (yy * en + xx) * 4, [, l, s] = rgb2hls(a[i] / 255, a[i + 1] / 255, a[i + 2] / 255);
+      ss += s; ls.push(l); n++;
+    }
+    ls.sort((u, v) => u - v);
+    const puan = ss / n + (ls[Math.floor(n * 0.9)] - ls[Math.floor(n * 0.1)]);
+    if (puan > en_iyi) { en_iyi = puan; iyi = x; }
+  }
+  return Math.round(iyi * 100) / 100;
+}
+async function zeminKaynagi(z) {
+  if (z.tur === 'eser') return resimKaynagi(z.eser, 'gorsel', 810);
+  if (z.tur === 'foto') {
+    const sha = T.gorsel[GORSEL + z.gorsel] || K.dosya[GORSEL + z.gorsel];
+    if (!sha) throw new Error('fotoğraf yok');
+    if (yerel[sha]) return yerel[sha];
+    const tip = /\.png$/i.test(z.gorsel) ? 'image/png' : /\.jpe?g$/i.test(z.gorsel) ? 'image/jpeg' : 'image/webp';
+    return (yerel[sha] = 'data:' + tip + ';base64,' + (await blobAl(sha)).replace(/\s/g, ''));
+  }
+  return '';
+}
+/* Hamburger çubuklarının yaklaşık rengi: zeminin üç yerinden, beyaz diske
+   karşı okunmuyorsa koyultulmuş. (Derlemedeki ölçüm daha ayrıntılı.) */
+function cubukRenkleri(K) {
+  const x = K.getContext('2d'), out = [];
+  for (const [fx, fy] of [[0.35, 0.25], [0.7, 0.5], [0.15, 0.8]]) {
+    const d = x.getImageData(Math.floor(K.width * fx), Math.floor(K.height * fy), 4, 4).data;
+    let r = 0, g = 0, b = 0;
+    for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+    let [hh, l, s] = rgb2hls(r / 16 / 255, g / 16 / 255, b / 16 / 255);
+    while (l > 0.03 && kontrast(parlak(1, 1, 1) * 0.92, parlak(...hls2rgb(hh, l, s))) < 3.5) l -= 0.03;
+    out.push(hex(...hls2rgb(hh, l, s)));
+  }
+  return out;
+}
+const zeminOnbellek = new Map();
+async function zeminHesapla(z) {
+  const anahtar = JSON.stringify([z.tur, z.eser, z.gorsel, z.x, z.renk,
+                                  z.tur === 'foto' ? T.gorsel[GORSEL + z.gorsel] : '']);
+  if (zeminOnbellek.has(anahtar)) return zeminOnbellek.get(anahtar);
+  const is = (async () => {
+    if (z.tur === 'hazir') {
+      const img = await corsResim(SITE_KOK + '/assets/zemin/oruntu.webp');
+      const K = tuval(img.naturalWidth, img.naturalHeight); K.getContext('2d').drawImage(img, 0, 0);
+      return { url: img.src, m: 1, cubuk: cubukRenkleri(K) };
+    }
+    const S = z.tur === 'renk' ? renkSerit(z.renk) : seritAl(await corsResim(await zeminKaynagi(z)), z.x == null ? 0.5 : z.x);
+    yikaZ(S);
+    const K = karolaZ(S), m = uyarlaZ(K);
+    return { url: K.toDataURL('image/webp', 0.85), m: m, cubuk: cubukRenkleri(K) };
+  })();
+  zeminOnbellek.set(anahtar, is);
+  is.catch(() => zeminOnbellek.delete(anahtar));
+  return is;
+}
+/* Eserlerden renk önerileri: her tablonun orta bölgesinin ortalama rengi. */
+const eserRenkOnbellek = new Map();
+async function eserRengi(slug) {
+  if (!eserRenkOnbellek.has(slug)) eserRenkOnbellek.set(slug, (async () => {
+    const img = await corsResim(await resimKaynagi(slug, 'gorsel', 540));
+    const c = tuval(24, 24); c.getContext('2d').drawImage(img, img.naturalWidth * 0.2, img.naturalHeight * 0.2,
+      img.naturalWidth * 0.6, img.naturalHeight * 0.6, 0, 0, 24, 24);
+    const d = c.getContext('2d').getImageData(0, 0, 24, 24).data;
+    let r = 0, g = 0, b = 0;
+    for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+    const n = d.length / 4, [hh, l, s] = rgb2hls(r / n / 255, g / n / 255, b / n / 255);
+    return hex(...hls2rgb(hh, Math.min(l, 0.42), Math.min(1, s * 1.15)));
+  })());
+  return eserRenkOnbellek.get(slug);
+}
+
+function cizGorunum(m) {
+  const z = T.site.gorunum.zemin;
+  m.append(bolumBasi('Görünüm', 'Sitenin arka planı. Bir seçeneğe basın; önizlemede hemen görürsünüz. ' +
+    'Seçim yazıların okunmasını zorlaştıracak kadar açıksa site arka planı kendiliğinden biraz koyulaştırır.'));
+
+  /* önizleme */
+  const zb = h('div', { class: 'zb' });
+  const bars = [h('i'), h('i'), h('i')];
+  const ilk = sirali().filter((r) => !r.gizli)[0];
+  const kagit = h('div', { class: 'zk' }, h('b', { text: T.site.sanatci.ad || 'SAGLAM' }),
+    ilk ? resim(ilk.slug, 'gorsel', 540) : '');
+  const bekle = h('span', { class: 'bekle' }, 'Hazırlanıyor…');
+  const onz = h('div', { class: 'zemin-onizleme hesaplaniyor', 'aria-label': 'Arka plan önizlemesi' },
+    zb, h('div', { class: 'zh' }, bars), kagit, bekle);
+  const not = h('p', { class: 'ipucu' });
+  m.append(kart('Önizleme', '', '', onz, not));
+  zeminHesapla(z).then((s) => {
+    if (T.site.gorunum.zemin !== z) return;
+    zb.style.backgroundImage = 'url(' + s.url + ')';
+    s.cubuk.forEach((c, i) => { bars[i].style.background = c; });
+    onz.classList.remove('hesaplaniyor'); bekle.remove();
+    not.textContent = s.m < 1 ? 'Yazılar okunsun diye arka plan %' + Math.round((1 - s.m) * 100) +
+      ' koyulaştırıldı. Sitede de böyle görünecek.' : '';
+  }).catch((e) => { bekle.textContent = 'Önizleme hazırlanamadı (' + e.message + ')'; });
+
+  /* seçenekler */
+  const sec = (yeni) => { T.site.gorunum.zemin = yeni; degisti(); ciz(); };
+  const secenekKart = (tur, baslik, alt, tikla) => h('button', {
+    class: 'secenek-kart', type: 'button', role: 'radio', 'aria-checked': String(z.tur === tur), onclick: tikla,
+  }, h('b', { text: baslik }), h('span', { text: alt }));
+  const fotoSec = h('input', { type: 'file', accept: 'image/*,.heic,.heif', hidden: true,
+                               onchange: (e) => { fotoYukle(e.target.files[0]); e.target.value = ''; } });
+  const ilkEser = sirali()[0];
+  m.append(kart('Arka plan', '', '', h('div', { class: 'secenek-kartlar', role: 'radiogroup', 'aria-label': 'Arka plan' },
+    secenekKart('hazir', 'Şu anki desen', 'Turkuaz-mercan tablodan yapılan desen.', () => sec({ tur: 'hazir' })),
+    secenekKart('eser', 'Tablolarımdan biri', 'Seçtiğiniz tablonun bir şeridinden desen yapılır.', () => {
+      if (z.tur !== 'eser' && ilkEser) eserSec(ilkEser.slug);
+    }),
+    secenekKart('foto', 'Kendi fotoğrafım', 'Bir fotoğraf yükleyin, ondan desen yapılır.', () => fotoSec.click()),
+    secenekKart('renk', 'Düz renk', 'Tek bir renk.', () => { if (z.tur !== 'renk') sec({ tur: 'renk', renk: KLASIK_RENKLER[0] }); })),
+    fotoSec));
+
+  async function eserSec(slug) {
+    let x = 0.5;
+    try { x = otomatikX(await corsResim(await resimKaynagi(slug, 'gorsel', 540))); } catch (e) { /* ortada kalsın */ }
+    sec({ tur: 'eser', eser: slug, x: x });
+  }
+  async function fotoYukle(d) {
+    if (!d) return;
+    bildir('Fotoğraf hazırlanıyor…', 8000);
+    try {
+      const g = await gorselHazirla(d);
+      const b = await gh('git/blobs', { method: 'POST',
+        body: JSON.stringify({ content: await base64le(g.blob), encoding: 'base64' }) });
+      const ad = 'zemin-kaynak.' + g.uz;
+      T.gorsel[GORSEL + ad] = b.sha;
+      yerel[b.sha] = URL.createObjectURL(g.blob);
+      let x = 0.5;
+      try { x = otomatikX(await corsResim(yerel[b.sha])); } catch (e) { /* ortada */ }
+      bildir('Fotoğraf hazır.');
+      sec({ tur: 'foto', gorsel: ad, x: x, surum: Date.now() });
+    } catch (e) { bildir(e.message, 7000); }
+  }
+
+  /* seçime göre ayrıntı */
+  if (z.tur === 'eser') {
+    m.append(kart('Hangi tablo?', 'Bir tabloya basın.', '', h('div', { class: 'mini-izgara' },
+      sirali().map((r) => h('button', { class: 'mini', type: 'button', 'aria-pressed': String(r.slug === z.eser),
+        onclick: () => { if (r.slug !== z.eser) eserSec(r.slug); } },
+        h('div', { class: 'resim' }, resim(r.slug, 'gorsel', 540)), h('span', { text: r.baslik || 'Adsız' }))))));
+    if (T.eser[z.eser]) m.append(seritKarti(z, () => resimKaynagi(z.eser, 'gorsel', 810)));
+  }
+  if (z.tur === 'foto') {
+    m.append(kart('Fotoğraf', '', '', h('button', { class: 'dugme kucuk', type: 'button', onclick: () => fotoSec.click() },
+      'Başka fotoğraf seç')));
+    m.append(seritKarti(z, () => zeminKaynagi(z)));
+  }
+  if (z.tur === 'renk') {
+    const kutu = h('div', { class: 'renkler' });
+    const ozel = h('input', { type: 'color', value: z.renk, 'aria-label': 'Kendi rengim',
+      onchange: (e) => sec({ tur: 'renk', renk: e.target.value }) });
+    const sw = (c, ad) => h('button', { class: 'renk', type: 'button', title: ad || c, 'aria-label': ad || c,
+      'aria-pressed': String(c.toLowerCase() === String(z.renk).toLowerCase()),
+      style: 'background:' + c, onclick: () => sec({ tur: 'renk', renk: c }) });
+    KLASIK_RENKLER.forEach((c) => kutu.append(sw(c)));
+    const tablolar = h('div', { class: 'renkler' });
+    sirali().forEach((r) => eserRengi(r.slug).then((c) => tablolar.append(sw(c, (r.baslik || 'Adsız') + ' tablosundan')))
+      .catch(() => {}));
+    m.append(kart('Renk', '', '', h('div', { class: 'etiket', style: 'margin-bottom:8px' }, 'Klasik'), kutu,
+      h('div', { class: 'etiket', style: 'margin:16px 0 8px' }, 'Tablolarınızdan'), tablolar,
+      h('div', { style: 'margin-top:16px' }, h('label', { class: 'renk-ozel' }, ozel, 'Kendi rengim'))));
+  }
+}
+
+/* Tablonun hangi dikey bandından desen yapılacağı: fotoğrafa tıklayın ya da kaydırın. */
+function seritKarti(z, kaynak) {
+  const img = h('img', { alt: '', draggable: 'false' });
+  const bant = h('div', { class: 'bant' });
+  const kutu = h('div', { class: 'serit-secici' }, img, bant);
+  const kaydir = h('input', { type: 'range', min: '0', max: '100', value: String(Math.round((z.x == null ? 0.5 : z.x) * 100)),
+                              'aria-label': 'Şeridin yeri' });
+  const yerlestir = () => {
+    if (!img.naturalWidth) return;
+    const g = Math.min(1, img.naturalHeight * ZEMIN.seritOran / img.naturalWidth);
+    const x = Number(kaydir.value) / 100, sol = Math.min(Math.max(x - g / 2, 0), 1 - g);
+    bant.style.left = (sol * 100) + '%'; bant.style.width = (g * 100) + '%';
+  };
+  let zaman = 0;
+  const degistir = (v) => {
+    kaydir.value = String(Math.round(v * 100));
+    yerlestir();
+    clearTimeout(zaman);
+    zaman = setTimeout(() => { z.x = Number(kaydir.value) / 100; degisti(); ciz(); }, 350);
+  };
+  kaydir.addEventListener('input', () => degistir(Number(kaydir.value) / 100));
+  kutu.addEventListener('click', (e) => { const b = img.getBoundingClientRect(); degistir((e.clientX - b.left) / b.width); });
+  img.addEventListener('load', yerlestir);
+  kaynak().then((u) => { img.src = u; }).catch(() => {});
+  return kart('Desenin alındığı yer', 'Tablonun parlak çerçeveli bölümü desene dönüşür. Fotoğrafa tıklayın ya da kaydırın.', '',
+    h('div', { class: 'serit-kutu' }, kutu, h('div', { class: 'ayar' }, kaydir,
+      h('button', { class: 'dugme kucuk', type: 'button', style: 'margin-top:10px', onclick: async () => {
+        try { degistir(otomatikX(await corsResim(await kaynak()))); } catch (e) { /* yoksay */ }
+      } }, 'En canlı yeri seç'))));
 }
 
 /* ── SANATÇI ───────────────────────────────────────────────────────────── */
@@ -1940,6 +2335,12 @@ function cizAyarlar(m) {
         h('b', {}, '🚧 Yapım aşamasında'), h('span', {}, 'Ziyaretçi yalnız “site hazırlanıyor” sayfasını görür. Siz önizleme adresinden asıl siteyi görebilirsiniz.')),
       h('button', { class: 'secenek-kart', type: 'button', role: 'radio', 'aria-checked': String(acik), onclick: () => sec(true) },
         h('b', {}, '🌐 Yayında'), h('span', {}, 'Asıl site herkese açık.'))),
+    !acik ? h('div', { style: 'margin-top:18px' },
+      h('div', { class: 'etiket', style: 'margin-bottom:8px' }, 'Ziyaretçinin gördüğü yazılar'),
+      dilAlani({ etiket: 'Ana mesaj', nesne: yaziNesnesi('yakinda_mesaj'), varsayilan: varsayilanlar('yakinda_mesaj') }),
+      dilAlani({ etiket: 'Alt satır', nesne: yaziNesnesi('yakinda_alt'), varsayilan: varsayilanlar('yakinda_alt') }),
+      dilAlani({ etiket: 'Adın altındaki küçük yazı', nesne: yaziNesnesi('yakinda_teknik'),
+                 varsayilan: varsayilanlar('yakinda_teknik') })) : '',
     !K.site.yayin.acik ? h('div', { class: 'bilgi-kutu' }, 'Önizleme adresi: ',
       h('a', { href: SITE_KOK + '/onizleme/', target: '_blank', rel: 'noopener' },
         new URL(SITE_KOK + '/onizleme/', location.href).href),

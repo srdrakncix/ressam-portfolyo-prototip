@@ -17,6 +17,7 @@ yayını sunmaya devam eder, yani panelde yapılan bir hata siteyi bozamaz.
 import io
 import json
 import os
+import re
 import sys
 
 KOK = os.path.dirname(os.path.abspath(__file__))
@@ -40,6 +41,12 @@ YAZILAR = (
     'exh_solo', 'exh_group', 'contact_body',
     # eser durum satırları
     'avail_studio', 'avail_private', 'avail_gone',
+    # yapım aşaması sayfası (site kapalıyken ziyaretçinin gördüğü)
+    'yakinda_teknik', 'yakinda_mesaj', 'yakinda_alt',
+    # eser künyesi ve galeri
+    'lbl_year', 'lbl_medium', 'lbl_size', 'lbl_series', 'kare_ortam',
+    'gal_exit', 'gal_all', 'gal_close', 'gal_empty', 'coll_soon',
+    'zoom_ipucu', 'zoom_ipucu_fare',
 )
 
 
@@ -99,6 +106,27 @@ def oku(yol=DOSYA):
 
     s = {}
     s['acik'] = bool((ham.get('yayin') or {}).get('acik'))
+
+    # Görünüm: sitenin zemini. Bozuk ya da eksik bir seçim derlemeyi
+    # DURDURMUYOR, hazır desene düşüyor -- ressam arka plan seçerken siteyi
+    # yayınlanamaz hâle getiremesin.
+    z = ((ham.get('gorunum') or {}).get('zemin') or {})
+    tur = z.get('tur') or 'hazir'
+    zemin = {'tur': 'hazir'}
+    try:
+        x = min(1.0, max(0.0, float(z.get('x', 0.5))))
+    except (TypeError, ValueError):
+        x = 0.5
+    if tur == 'eser' and isinstance(z.get('eser'), str) and z['eser']:
+        zemin = {'tur': 'eser', 'eser': z['eser'], 'x': x}
+    elif tur == 'foto' and isinstance(z.get('gorsel'), str) and z['gorsel'] \
+            and '/' not in z['gorsel'] and '\\' not in z['gorsel'] and '..' not in z['gorsel']:
+        zemin = {'tur': 'foto', 'gorsel': z['gorsel'], 'x': x}
+    elif tur == 'renk' and re.fullmatch(r'#[0-9a-fA-F]{6}', str(z.get('renk') or '')):
+        zemin = {'tur': 'renk', 'renk': z['renk'].lower()}
+    elif tur != 'hazir':
+        print('UYARI  site.json gorunum.zemin anlasilmadi -- hazir desen')
+    s['zemin'] = zemin
 
     sn = ham.get('sanatci') or {}
     s['sanatci'] = {k: temizle(sn.get(k) or '')

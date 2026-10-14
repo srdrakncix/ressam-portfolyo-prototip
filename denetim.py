@@ -91,7 +91,7 @@ if hedef != 'panel':
             hata('görseli üretilmeyen eser: ' + k['slug'])
 
     if yakinda:
-        if 'Le site est en construction' not in io.open(os.path.join(SITE, 'index.html'), encoding='utf-8').read():
+        if 'data-sayfa="yakinda"' not in io.open(os.path.join(SITE, 'index.html'), encoding='utf-8').read():
             hata('site kapalı ama kök sayfa "yapım aşamasında" sayfası değil')
         sayfa = os.path.join(SITE, 'onizleme', 'galeri', 'index.html')
     else:
@@ -103,6 +103,36 @@ if hedef != 'panel':
                 hata('galeride eser yok: ' + k['baslik'])
     mb = sum(os.path.getsize(os.path.join(r, f)) for r, _, fs in os.walk(SITE) for f in fs) / 1048576
     print('  %d eser, %s, site/ %.2f MB' % (len(kayitlar), 'site kapalı (önizleme var)' if yakinda else 'site açık', mb))
+
+# ── 1b) panel önizlemesi = derleme ──────────────────────────────────────────
+# Paneldeki arka plan önizlemesi zemin.py'nin işlemini tarayıcıda yapıyor.
+# Sayılar ayrışırsa ressam önizlemede gördüğünden farklı bir site alır.
+adim('arka plan sayıları (panel = zemin.py)')
+sys.path.insert(0, KOK)
+import zemin as _Z
+_p = io.open(os.path.join(KOK, 'panel', 'index.html'), encoding='utf-8').read()
+_m = re.search(r'const ZEMIN = \{(.*?)\};', _p, re.S)
+if not _m:
+    hata('panelde ZEMIN sayıları yok')
+else:
+    _js = _m.group(1)
+    def _sayi(ad):
+        # "298 / 1282" gibi bölme de olabiliyor; yalnız rakam, nokta, bölü.
+        x = re.search(ad + r':\s*([0-9./ ]+?)\s*[,}\n]', _js + '\n')
+        if not x:
+            return None
+        parca = [float(v) for v in x.group(1).split('/')]
+        return parca[0] / parca[1] if len(parca) == 2 else parca[0]
+    _cift = {'seritOran': _Z.SERIT_ORAN, 'doy': _Z.DOY, 'ayd': _Z.AYD, 'aydEsik': _Z.AYD_ESIK,
+             'perdeA': _Z.PERDE_A, 'kagitEsik': _Z.KAGIT_ESIK, 'karartAdim': _Z.KARART_ADIM}
+    _ayri = [k for k, v in _cift.items() if _sayi(k) is None or abs(_sayi(k) - v) > 1e-9]
+    _pc = re.search(r'perdeC:\s*\[([0-9, ]+)\]', _js)
+    if not _pc or tuple(int(v) for v in _pc.group(1).split(',')) != tuple(_Z.PERDE_C):
+        _ayri.append('perdeC')
+    if _ayri:
+        hata('panel önizlemesi ile zemin.py farklı sayı kullanıyor: ' + ', '.join(_ayri))
+    else:
+        print('  %d sayı aynı' % (len(_cift) + 1))
 
 # ── 2) menü okunurluğu ──────────────────────────────────────────────────────
 adim('menü okunurluğu')
