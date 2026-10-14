@@ -45,6 +45,8 @@ const giris = (sifre, kullanici = 'saglam', ek = {}) => cagir('giris', Object.as
   const y = await cagir('durum', {}, { KULLANICI: 'saglam' });
   const g2 = await y.json();
   ol('eksik gizli değer bildiriliyor', g2.kurulu === false && g2.eksik.includes('GITHUB_ANAHTAR'), JSON.stringify(g2));
+  const kucuk = Object.fromEntries(Object.entries(ORTAM).map(([k, v]) => [k === 'GITHUB_ANAHTAR' ? 'github_anahtar' : k, v]));
+  ol('küçük harfle kaydedilmiş gizli değer de tanınıyor', (await (await cagir('durum', {}, kucuk)).json()).kurulu === true);
   ol('kurulmamışken giriş 503', (await cagir('giris', { method: 'POST', body: '{}' }, { KULLANICI: 'saglam' })).status === 503);
 }
 

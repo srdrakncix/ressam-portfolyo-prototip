@@ -145,7 +145,12 @@ function denemeYaz(ip) {
 
 export async function onRequest(baglam) {
   const istek = baglam.request;
-  const ortam = baglam.env || {};
+  /* Panelde elle girilen ad küçük harfle kaydedilebiliyor (github_anahtar):
+     ikisi de kabul. */
+  const ham = baglam.env || {};
+  const ortam = {};
+  for (const ad of ['GITHUB_ANAHTAR', 'KULLANICI', 'SIFRE', 'IMZA_GIZLI', 'GITHUB_API'])
+    ortam[ad] = ham[ad] || ham[ad.toLowerCase()] || '';
   const parca = baglam.params && baglam.params.yol;
   const yol = Array.isArray(parca) ? parca.join('/') : (parca || '');
   const eksik = ['GITHUB_ANAHTAR', 'KULLANICI', 'SIFRE', 'IMZA_GIZLI'].filter((a) => !ortam[a]);
