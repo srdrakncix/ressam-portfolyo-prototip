@@ -16,3 +16,6 @@ YEDEK-*.bundle
 
 # gecici sozdizimi denetimi
 .tmpjs/
+
+# wrangler pages dev yerel durumu
+.wrangler/
