@@ -25,12 +25,12 @@
      kaynak Google Fonts (sitenin de kullandığı Cormorant Garamond) ve
      zemin görseli (assets/zemin/oruntu.webp).
      ═══════════════════════════════════════════════════════════════════════ -->
-<title>SAGLAM — Site en construction</title>
-<meta name="description" content="SAGLAM — peinture à l'huile. Le site est en construction.">
+<title>__AD__ — Site en construction</title>
+<meta name="description" content="__AD__ — peinture à l'huile. Le site est en construction.">
 <meta name="robots" content="noindex">
 <link rel="canonical" href="https://saglam.fr/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="SAGLAM — Site en construction">
+<meta property="og:title" content="__AD__ — Site en construction">
 <meta property="og:description" content="Peinture à l'huile. À très bientôt.">
 <meta property="og:url" content="https://saglam.fr/">
 <meta property="og:image" content="https://saglam.fr/assets/eser-2.webp">
@@ -428,7 +428,7 @@ h1 {
     </g>
   </svg>
 
-  <h1>SAGLAM</h1>
+  <h1>__AD__</h1>
   <p class="teknik" data-i="teknik">Peinture à l'huile</p>
   <hr class="cizgi">
   <p class="mesaj" data-i="mesaj">Le site est en construction.</p>
@@ -445,16 +445,18 @@ h1 {
 /* Dil: ziyaretçinin tarayıcı dili (tr / en / fr), yoksa Fransızca — alan
    adı .fr ve ressam Paris'te. Seçim sayfa içinde kalır, saklanmaz. */
 (function () {
+  /* Ad panelden geliyor (site.json); derleme <h1>'e yaziyor. */
+  var AD = document.querySelector('h1').textContent;
   var M = {
     fr: { teknik: "Peinture à l'huile", mesaj: 'Le site est en construction.', alt: 'À très bientôt.',
           sahne: 'De petits ouvriers construisent et peignent un immense tableau sur un échafaudage',
-          baslik: 'SAGLAM — Site en construction', dil: 'Langue' },
+          baslik: 'Site en construction', dil: 'Langue' },
     tr: { teknik: 'Yağlı boya', mesaj: 'Site yapım aşamasında.', alt: 'Çok yakında buradayız.',
           sahne: 'Minik işçiler iskelede dev bir tabloyu inşa edip boyuyor',
-          baslik: 'SAGLAM — Site yapım aşamasında', dil: 'Dil' },
+          baslik: 'Site yapım aşamasında', dil: 'Dil' },
     en: { teknik: 'Oil painting', mesaj: 'The site is under construction.', alt: 'See you very soon.',
           sahne: 'Tiny workers on a scaffold building and painting a huge canvas',
-          baslik: 'SAGLAM — Site under construction', dil: 'Language' }
+          baslik: 'Site under construction', dil: 'Language' }
   };
   function sec() {
     var l = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || '']);
@@ -467,7 +469,7 @@ h1 {
   function uygula(k) {
     var t = M[k];
     document.documentElement.lang = k;
-    document.title = t.baslik;
+    document.title = AD + ' — ' + t.baslik;
     [].forEach.call(document.querySelectorAll('[data-i]'), function (el) { el.textContent = t[el.getAttribute('data-i')]; });
     document.getElementById('sahne-ad').textContent = t.sahne;
     document.querySelector('.diller').setAttribute('aria-label', t.dil);

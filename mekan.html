@@ -1,12 +1,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SAGLAM — Resim</title>
-<meta name="description" content="SAGLAM’ın resimleri. Tuval üzerine yağlı boya.">
+<title>__AD__ — __ALT__</title>
+<meta name="description" content="__META__">
 <meta name="theme-color" content="#111111">
 <meta property="og:type" content="website">
-<meta property="og:title" content="SAGLAM — Resim">
+<meta property="og:title" content="__AD__ — __ALT__">
 <meta property="og:image" content="__OG_GORSEL__">
-<meta property="og:description" content="Tuval üzerine yağlı boya.">
+<meta property="og:description" content="__META__">
 <meta property="og:locale" content="tr_TR">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://saglam.fr/">
@@ -288,8 +288,8 @@ html.acilis #panel .k-fig::after {
 
 <noscript>
   <div style="position:relative;z-index:10;max-width:34em;margin:120px auto;background:#fff;padding:40px;font:400 15px/1.55 Helvetica,Arial,sans-serif">
-    <h1 style="font-size:26px;font-weight:400;margin:0 0 18px">SAGLAM — Resim</h1>
-    <p style="margin:0 0 14px">Tuval üzerine yağlı boya.</p>
+    <h1 style="font-size:26px;font-weight:400;margin:0 0 18px">__AD__ — __ALT__</h1>
+    <p style="margin:0 0 14px">__TEKNIK__.</p>
     <p style="margin:0">Eserleri görüntülemek için JavaScript gerekiyor.</p>
   </div>
 </noscript>
@@ -380,7 +380,9 @@ function rowList(items) {
   });
   return dl;
 }
-const venueOf = (s) => s.split(' · ').slice(1).join(' · ') || s;
+/* Mekân yazilmamis sergide tanimlayici ("Kişisel sergi") mekân yerine
+   basilmasin: bos doner, satir yalniz adi gosterir. */
+const venueOf = (s) => s.split(' · ').slice(1).join(' · ');
 
 /* ── görünümler ──────────────────────────────────────────────────────────── */
 
@@ -608,6 +610,15 @@ const viewIletisim = () => textPage('iletisim', t('nav_contact'), (p) => {
   if (SITE.artist.email)
     p.appendChild(K.el('p', null, '<a class="mail" href="mailto:' + SITE.artist.email +
       '">' + SITE.artist.email + '</a>'));
+  /* Telefon ve Instagram panelden geliyor (site.json). tel: adresinde
+     bosluk ve ayrac olmamali; ekranda yazildigi gibi kalir. */
+  if (SITE.artist.phone)
+    p.appendChild(K.el('p', null, '<a class="mail" href="tel:' +
+      SITE.artist.phone.replace(/[^\d+]/g, '') + '">' + SITE.artist.phone + '</a>'));
+  if (SITE.artist.instagram)
+    p.appendChild(K.el('p', null, '<a class="mail" href="https://instagram.com/' +
+      encodeURIComponent(SITE.artist.instagram) + '" target="_blank" rel="noopener">@' +
+      SITE.artist.instagram + '</a>'));
   if (SITE.artist.studio)
     p.appendChild(K.el('p', null, '<span style="color:var(--muted)">' + SITE.artist.studio + '</span>'));
   p.appendChild(K.el('p', null, t('contact_body')));

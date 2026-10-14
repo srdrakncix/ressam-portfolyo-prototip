@@ -33,15 +33,17 @@ CIKTI = os.path.join(KOK, 'site')
 #   /galeri/  sergi duvari
 # duz.html (parktaki duz surum) ve salon.html (parktaki 3B salon) yayindan
 # cikarildi; ikisine de hicbir yerden baglanti yoktu. Kaynaklari depoda.
-# YAKINDA ANAHTARI. True iken saglam.fr'de YALNIZCA "site yapım aşamasında"
-# sayfası (yakinda.html) görünür: kök adres o olur, galeri yayından çıkar.
+# YAKINDA. Açıkken saglam.fr'de YALNIZCA "site yapım aşamasında" sayfası
+# (yakinda.html) görünür: kök adres o olur, galeri yayından çıkar.
 # Müşteri kararı (1 Ekim 2026): "site tamamen yok, onların göreceği şey
 # inşa halinde grafiksel bir şey olsun."
+# Anahtar artık icerik/site.json'da (yayin.acik): ressam panelden "Siteyi
+# yayına aç" diyebiliyor. Buradaki değer yalnız yerel denemede zorlamak
+# için: None = site.json ne diyorsa o; True/False = onu ez.
 # Asıl site derlenmeye devam ediyor (derleme hatası gizlenmesin diye) ama
-# yayına kopyalanmıyor. Açmak için False yap -- hiçbir şey kaybolmadı.
-# Panel (/panel/), görseller (/assets/) ve yayın damgası etkilenmiyor:
-# panel çalışmaya devam ediyor.
-YAKINDA = True
+# yayına kopyalanmıyor. Panel (/panel/), görseller (/assets/) ve yayın
+# damgası etkilenmiyor: panel çalışmaya devam ediyor.
+YAKINDA = None
 
 SAYFALAR = [
     ('mekan.html', 'index.html'),
@@ -59,6 +61,9 @@ def calistir(*args):
 
 
 def main():
+    import site_veri as V
+    S = V.oku()           # bozuksa derleme burada, acik bir mesajla durur
+    yakinda = (not S['acik']) if YAKINDA is None else YAKINDA
     # Ciktiyi SIFIRDAN uret: eski derlemelerden kalan olu dosyalar birikmesin.
     # (Eser gorsellerinin adi degistiginde eskiler sessizce kaliyordu.)
     # Windows klasorun kendisini kilitleyebiliyor; ICERIGI siliyoruz.
@@ -151,12 +156,16 @@ def main():
                         encoding='utf-8').read().replace('__YAPIM__', damga)
     io.open(os.path.join(panel_hedef, 'index.html'), 'w',
             encoding='utf-8').write(panel_kod)
+    import ceviri as _T
     io.open(os.path.join(panel_hedef, 'secenekler.json'), 'w', encoding='utf-8').write(
         _json.dumps({
-            'seriler': [{'anahtar': x['key'], 'ad': x['title']} for x in _C.SERIES],
             'durumlar': [{'anahtar': k, 'ad': v} for k, v in _C.STATUS_TR.items()],
-            'teknik': _C.MEDIUM_TR,
             'sunucu': getattr(_C, 'PANEL_SUNUCU', ''),
+            # Panelin "Menü ve yazılar" bölümü: hangi alanlar, hangi sırayla,
+            # boş bırakılırsa ne yazacağı. Tek kaynak site_veri.YAZILAR.
+            'yazilar': list(V.YAZILAR),
+            'yazi_varsayilan': {d: {k: _T.UI[d][k] for k in V.YAZILAR}
+                                for d in V.DILLER},
         }, ensure_ascii=False, indent=2))
     # Sifreli girisin kilidi. Panelden kurulunca depoya yaziliyor;
     # icinde GitHub anahtarinin SIFRELENMIS hali var, duz hali degil.
@@ -175,7 +184,12 @@ def main():
         _json.dumps({'zaman': datetime.now(timezone.utc).isoformat(timespec='seconds'),
                      'surum': os.environ.get('GITHUB_SHA', 'yerel')[:12],
                      # CI denetimi hangi sayfaları arayacağını buradan okuyor.
-                     'yakinda': YAKINDA}) + chr(10))
+                     'yakinda': yakinda,
+                     # Panel "sitede duran sürüm hangisi" sorusunu buradan
+                     # cevaplıyor: icerik/ altındaki her dosyanın GIT BLOB
+                     # SHA'sı. Panel aynı değeri depo ağacından alıyor, yani
+                     # "yayında / yayınlanıyor" ayrımı tahminsiz.
+                     'izler': icerik_izleri()}) + chr(10))
     print('yayin.json        ' + damga)
 
     # 5) yayindaki eserlerin parmak izi
@@ -201,9 +215,18 @@ def main():
     # 5b) YAKINDA: kök adres "yapım aşamasında" sayfası, galeri yayından çıkar.
     #     site_ek.py'den ÖNCE: site haritası yalnızca yayında kalan sayfaları
     #     listeliyor.
-    if YAKINDA:
-        shutil.copy2(os.path.join(KOK, 'yakinda.html'),
-                     os.path.join(CIKTI, 'index.html'))
+    if yakinda:
+        # Asil site kapaliyken ressam panelden yaptigi degisikligi
+        # gorebilsin: ayni sayfalar /onizleme/ altina da yaziliyor.
+        # Hicbir yerden baglanti yok, arama motorlarina kapali (noindex +
+        # robots.txt). Kok sayfa yakinda.html'e donmeden ONCE kopyalaniyor.
+        onizleme_yaz()
+        # Ad panelden (site.json); HTML'e kaçırılarak yazılıyor.
+        ad = (S['sanatci']['ad'].replace('&', '&amp;').replace('<', '&lt;')
+              .replace('>', '&gt;').replace('"', '&quot;'))
+        io.open(os.path.join(CIKTI, 'index.html'), 'w', encoding='utf-8').write(
+            io.open(os.path.join(KOK, 'yakinda.html'), encoding='utf-8').read()
+            .replace('__AD__', ad))
         shutil.rmtree(os.path.join(CIKTI, 'galeri'), ignore_errors=True)
         print('YAKINDA           kök = yakinda.html, galeri yayında değil')
 
@@ -213,6 +236,59 @@ def main():
     toplam = sum(os.path.getsize(os.path.join(r, f))
                  for r, _, fs in os.walk(CIKTI) for f in fs)
     print(f'\nsite/              {toplam / 1048576:.2f} MB')
+
+
+ONIZLEME = 'onizleme'
+GORELI = ('assets/', 'favicon.svg', 'apple-touch-icon.png')
+
+
+def onizleme_yaz():
+    """Derlenmis ana sayfa ve galeriyi site/onizleme/ altina kopyalar.
+
+    Sayfalar bir dizin derine iniyor: varlik yollari bir ust dizine daha
+    bakmali. Ana sayfanin yollari 'assets/..' (her sinirla: " ' ( , bosluk
+    -- srcset dersi), galerininki zaten '../assets/..'. Galeriden ana
+    sayfaya donus ('../') onizleme icinde kaliyor, dokunulmuyor."""
+    gizle = '<meta name="robots" content="noindex, nofollow">'
+    hedef = os.path.join(CIKTI, ONIZLEME)
+    os.makedirs(os.path.join(hedef, 'galeri'), exist_ok=True)
+
+    s = io.open(os.path.join(CIKTI, 'index.html'), encoding='utf-8').read()
+    for ham in GORELI:
+        for on in ('"', "'", '(', ', ', ',', ' '):
+            s = s.replace(on + ham, on + '../' + ham)
+        s = s.replace('../../' + ham, '../' + ham)
+    io.open(os.path.join(hedef, 'index.html'), 'w', encoding='utf-8').write(
+        s.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n' + gizle, 1))
+
+    s = io.open(os.path.join(CIKTI, 'galeri', 'index.html'), encoding='utf-8').read()
+    for ham in GORELI:
+        s = s.replace('../' + ham, '../../' + ham)
+    io.open(os.path.join(hedef, 'galeri', 'index.html'), 'w', encoding='utf-8').write(
+        s.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n' + gizle, 1))
+    print('onizleme/         ana sayfa + galeri (noindex)')
+
+
+def git_blob_sha(yol):
+    """Dosyanın git blob SHA'sı -- depodaki baytlara göre (LF)."""
+    import hashlib
+    ham = open(yol, 'rb').read()
+    # Depo LF sakliyor; Windows'ta yerel dosya CRLF olabilir. Yalniz
+    # metin dosyalarinda: gorselin baytlarina dokunulmaz.
+    if yol.endswith(('.json', '.txt', '.md')):
+        ham = ham.replace(bytes([13, 10]), bytes([10]))
+    h = hashlib.sha1()
+    h.update(b'blob ' + str(len(ham)).encode() + bytes([0]) + ham)
+    return h.hexdigest()
+
+
+def icerik_izleri():
+    izler = {}
+    for kok, _, dosyalar in os.walk(os.path.join(KOK, 'icerik')):
+        for d in dosyalar:
+            yol = os.path.join(kok, d)
+            izler[os.path.relpath(yol, KOK).replace(chr(92), '/')] = git_blob_sha(yol)
+    return dict(sorted(izler.items()))
 
 
 if __name__ == '__main__':

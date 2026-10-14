@@ -1,0 +1,123 @@
+{
+  "surum": 1,
+  "yayin": {
+    "acik": false
+  },
+  "sanatci": {
+    "ad": "SAGLAM",
+    "eposta": "",
+    "telefon": "",
+    "adres": "",
+    "instagram": ""
+  },
+  "ana_sayfa": [
+    "eser-2",
+    "eser-7"
+  ],
+  "seriler": [
+    {
+      "anahtar": "eserler",
+      "ad": {
+        "tr": "Eserler",
+        "en": "Works",
+        "fr": "Œuvres"
+      },
+      "aciklama": {
+        "tr": "",
+        "en": "",
+        "fr": ""
+      }
+    }
+  ],
+  "biyografi": {
+    "tr": "",
+    "en": "",
+    "fr": ""
+  },
+  "atolye_notu": {
+    "tr": "",
+    "en": "",
+    "fr": ""
+  },
+  "sergiler": [],
+  "koleksiyonlar": [],
+  "yayinlar": [],
+  "basin": [],
+  "yazilar": {
+    "tr": {
+      "nav_gallery": "Galeri",
+      "nav_recent": "Son Resimler",
+      "nav_about_grp": "Sanatçı",
+      "nav_studio": "Atölye Notu",
+      "nav_bio": "Biyografi",
+      "nav_exh": "Sergiler",
+      "nav_coll": "Koleksiyonlar",
+      "nav_pub": "Yayınlar",
+      "nav_press": "Basın",
+      "nav_contact": "İletişim",
+      "site_sub": "Resim",
+      "medium": "Tuval üzerine yağlı boya",
+      "meta_desc": "SAGLAM’ın resimleri. Tuval üzerine yağlı boya.",
+      "gal_label": "Katalog",
+      "gal_title": "Bütün eserler",
+      "gal_sub": "Bir esere tıklayınca tam ekran açılır.",
+      "gal_works": "Eserler",
+      "exh_solo": "Kişisel Sergiler",
+      "exh_group": "Karma Sergiler",
+      "contact_body": "Eser talepleri ve sergi önerileri için yazın.",
+      "avail_studio": "Atölyeden temin edilebilir",
+      "avail_private": "Özel koleksiyonda",
+      "avail_gone": "Ayrıldı"
+    },
+    "en": {
+      "nav_gallery": "Gallery",
+      "nav_recent": "Recent Paintings",
+      "nav_about_grp": "The artist",
+      "nav_studio": "Studio Note",
+      "nav_bio": "Biography",
+      "nav_exh": "Exhibitions",
+      "nav_coll": "Collections",
+      "nav_pub": "Publications",
+      "nav_press": "Press",
+      "nav_contact": "Contact",
+      "site_sub": "Painting",
+      "medium": "Oil on canvas",
+      "meta_desc": "Paintings by SAGLAM. Oil on canvas.",
+      "gal_label": "Catalogue",
+      "gal_title": "All works",
+      "gal_sub": "Click a work to open it full screen.",
+      "gal_works": "Works",
+      "exh_solo": "Solo Exhibitions",
+      "exh_group": "Group Exhibitions",
+      "contact_body": "For enquiries about the works and exhibition proposals, please write.",
+      "avail_studio": "Available from the studio",
+      "avail_private": "Private collection",
+      "avail_gone": "No longer available"
+    },
+    "fr": {
+      "nav_gallery": "Galerie",
+      "nav_recent": "Peintures récentes",
+      "nav_about_grp": "L’artiste",
+      "nav_studio": "Note d’atelier",
+      "nav_bio": "Biographie",
+      "nav_exh": "Expositions",
+      "nav_coll": "Collections",
+      "nav_pub": "Publications",
+      "nav_press": "Presse",
+      "nav_contact": "Contact",
+      "site_sub": "Peinture",
+      "medium": "Huile sur toile",
+      "meta_desc": "Peintures de SAGLAM. Huile sur toile.",
+      "gal_label": "Catalogue",
+      "gal_title": "Toutes les œuvres",
+      "gal_sub": "Cliquez sur une œuvre pour l’ouvrir en plein écran.",
+      "gal_works": "Œuvres",
+      "exh_solo": "Expositions personnelles",
+      "exh_group": "Expositions collectives",
+      "contact_body": "Pour toute demande concernant les œuvres ou une proposition d’exposition, n’hésitez pas à écrire.",
+      "avail_studio": "Disponible à l’atelier",
+      "avail_private": "Collection privée",
+      "avail_gone": "Non disponible"
+    }
+  }
+}

@@ -7,9 +7,23 @@ değil hem 16 px'te okunuyor.
 """
 import os
 from PIL import Image, ImageDraw
+import ceviri as T
+import site_veri as V
 
 KOK = 'https://saglam.fr/'
 SITE = 'site'
+
+# Ad ve alt baslik panelden (site.json).
+_S = V.oku()
+_UI = V.arayuz(_S, T.UI)
+
+
+def _k(x):
+    return (str(x).replace('&', '&amp;').replace('<', '&lt;')
+            .replace('>', '&gt;').replace('"', '&quot;'))
+
+
+AD, ALT = _k(_S['sanatci']['ad']), _k(_UI['tr']['site_sub'])
 
 FAVICON = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <rect width="32" height="32" rx="6" fill="#161c14"/>
@@ -33,7 +47,8 @@ d.rectangle([5.5*k, 7*k, 26.5*k, 25*k], outline=(201, 168, 106), width=max(1, in
 im.save(os.path.join(SITE, 'apple-touch-icon.png'))
 
 open(os.path.join(SITE, 'robots.txt'), 'w', encoding='utf-8').write(
-    'User-agent: *\nAllow: /\nDisallow: /panel/\n\nSitemap: %ssitemap.xml\n' % KOK)
+    'User-agent: *\nAllow: /\nDisallow: /panel/\nDisallow: /onizleme/\n\n'
+    'Sitemap: %ssitemap.xml\n' % KOK)
 
 SAYFALAR = [('', '1.0'), ('galeri/', '0.8')]
 sm = ['<?xml version="1.0" encoding="UTF-8"?>',
@@ -51,12 +66,12 @@ open(os.path.join(SITE, 'sitemap.xml'), 'w', encoding='utf-8').write('\n'.join(s
 
 
 # 404 — sitenin sade sayfasının diliyle, üç dilde tek satır
-open(os.path.join(SITE, '404.html'), 'w', encoding='utf-8').write('''<!doctype html>
+open(os.path.join(SITE, '404.html'), 'w', encoding='utf-8').write(('''<!doctype html>
 <html lang="tr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sayfa bulunamadı — SAGLAM</title>
+<title>Sayfa bulunamadı — __AD__</title>
 <meta name="robots" content="noindex">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <style>
@@ -85,11 +100,11 @@ open(os.path.join(SITE, '404.html'), 'w', encoding='utf-8').write('''<!doctype h
   <h1>Aradığınız sayfa burada değil.</h1>
   <p lang="en">The page you are looking for is not here.</p>
   <p lang="fr">La page que vous cherchez n’est pas ici.</p>
-  <a href="/">SAGLAM — Resim</a>
+  <a href="/">__AD__ — __ALT__</a>
 </main>
 </body>
 </html>
-''')
+''').replace('__AD__', AD).replace('__ALT__', ALT))
 
 # terk edilmiş Three.js prototipi yayından kalksın
 olu = os.path.join(SITE, 'galeri.html')

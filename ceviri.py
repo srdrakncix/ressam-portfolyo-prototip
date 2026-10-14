@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """İngilizce ve Fransızca çeviriler.
 
-Türkçe kaynak content.py'de; burası yalnızca çeviri katmanı.
+Burası ARAYÜZÜN VARSAYILAN dizgeleri. Ressamın panelden değiştirdiği
+yazılar (menü başlıkları, site yazıları; listesi site_veri.YAZILAR)
+icerik/site.json'da duruyor ve buradakini eziyor; orada boş bırakılan alan
+buradaki değere düşer. Sanatçı sayfalarının metinleri de site.json'da.
 
 KURAL — sanat dünyasında standart olan budur:
   · Eser adları ÇEVRİLMEZ. Tablo adı bir isimdir. Türkçe kalır, altına
@@ -191,18 +194,7 @@ UI = {
     },
 }
 
-# ── seriler ───────────────────────────────────────────────────────────────
-
-SERIES = {
-    # Tek gecici grup. Seri adlari ressamdan gelecek.
-    'eserler': {
-        'en': ('Works', ''),
-        'fr': ('Œuvres', ''),
-    },
-}
-
-# ── eserler: (başlık çevirisi, sanatçı notu çevirisi) ─────────────────────
-# Başlık ÇEVİRİSİ gösterilir ama başlığın YERİNE geçmez — altına küçük düşer.
+# ── ESKİ: yer tutucu eserlerin çevirileri. Yalnız tasima.py okuyor. ─────
 
 WORKS = {
     68784:  {'en': ('Summer Morning', 'I opened the green with yellow, not with more green.'),
@@ -232,22 +224,9 @@ WORKS = {
              'fr': ('Le héron', 'Le seul mouvement sur l’eau. Je l’ai mis en dernier.')},
 }
 
-# ── sanatçı sayfaları ─────────────────────────────────────────────────────
-# Kurgu metinler kaldırıldı (bkz. content.py). Kaynak boşken çeviri de boş;
-# gerçek metin gelince content.py ile AYNI SIRADA buraya yazılır.
-
-BIO = {'en': [], 'fr': []}
-STATEMENT = {'en': [], 'fr': []}
-
-# ── listeler: yalnızca tanımlayıcılar çevrilir, adlar kalır ───────────────
+# ── sergi tanımlayıcıları: sergi adı çevrilmez, türü çevrilir ──────────
 
 DESCRIPTORS = {
     'Kişisel sergi': {'en': 'Solo exhibition', 'fr': 'Exposition personnelle'},
     'Karma sergi':   {'en': 'Group exhibition', 'fr': 'Exposition collective'},
 }
-
-COLLECTIONS = {'en': [], 'fr': []}
-
-# Yayın ve basın: yalnızca açıklama / künye satırı çevrilir, sırası content.py ile aynı.
-PUBLICATIONS = {'en': [], 'fr': []}
-PRESS_BYLINE = {'en': [], 'fr': []}

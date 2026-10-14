@@ -1,53 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Türkçe içerik katmanı.
+"""Sabit ayarlar.
 
-Gerçek eserler geldiğinde SADECE bu dosya ve cache/ klasörü değişir.
-Tasarım dosyalarına hiç dokunulmaz.
+SİTE İÇERİĞİ ARTIK BURADA DEĞİL: sanatçının adı, iletişimi, sanatçı
+sayfaları, seriler, ana sayfa eserleri, menü başlıkları ve yazılar
+icerik/site.json'da; eserler icerik/eserler/*.json'da. İkisini de ressam
+panelden (saglam.fr/panel/) düzenliyor. Okuyan tek yer site_veri.py.
 """
 
-ARTIST = {
-    # Ad YALNIZ SOYADI: ön ad kalktı (müşteri kararı, 8 Ekim 2026).
-    # Her yerde SAGLAM, Türkçe karakter yok (Ğ değil G). Küçük harf
-    # gereken yerde (kullanıcı adı, worker adı) "saglam".
-    'name': 'SAGLAM',
-    'mark': 'SAGLAM',
-    'role': 'Ressam',
-    # İletişim: yalnızca ressamın sitede görünmesini ONAYLADIĞI gerçek bilgi.
-    # Boşken İletişim sayfası menüde yok, eser sayfası e-posta satırı basmıyor.
-    'email': '',
-    'studio': '',
-}
-
-# ── sanatçı sayfaları ─────────────────────────────────────────────────────
-# KURGU İÇERİK KALDIRILDI (1 Ekim 2026). Biyografi, atölye notu, sergiler,
-# koleksiyonlar, yayınlar ve basın uydurmaydı: kurum adları, katalog sayfa
-# sayıları, basın künyeleri, doğum yeri — hiçbiri ressama ait değildi.
-# Yayındaki bir sitede bunlar ressam adına yalan söylemek olurdu.
-#
-# Kural: BOŞ LİSTE = O SAYFA YOK. Menü satırı da rota da kendiliğinden
-# kalkıyor (kabuk.js icerikVar). Ressam gerçek bilgiyi verince buraya
-# yazılır, çevirisi ceviri.py'deki aynı adlı sözlüğe; sayfa geri gelir.
-BIO = []            # paragraflar
-STATEMENT = []      # atölye notu, paragraflar
-CV = []             # (yıl, sergi adı, 'Kişisel sergi · Mekân, Şehir' | 'Karma sergi · …')
-COLLECTIONS = []    # kurum adları
-PUBLICATIONS = []   # (yıl, ad, açıklama)
-PRESS = []          # (yıl, yazı başlığı, 'Yazar · Yayın, Ay Yıl')
-
-# Seriler: gerçek bir ressam portfolyosu eserleri seriler halinde düzenler,
-# tek düz bir "galeri" olarak değil. Sitenin omurgası bu.
-# Eski dört seri manzara temalıydı (Alacakaranlık, Hava, Sessiz Topografya,
-# Sabah) ve yer tutucu George Inness manzaralarına göre yazılmıştı. Gelen
-# gerçek eserler figüratif: iç mekânlar, kalabalıklar, portreler. O seri
-# adları artık hiçbir şeyi tarif etmiyor.
-#
-# Serileri ben ADLANDIRMIYORUM — hangi resmin hangi seriye girdiğini ve o
-# serinin ne olduğunu ressam bilir. Şimdilik tek geçici grup var; müşteri
-# seri isimlerini verince buraya yazılacak.
-SERIES = [
-    {'key': 'eserler', 'title': 'Eserler', 'years': '', 'blurb': ''},
-]
-
+# ESKİ (yer tutucu George Inness dönemi). Yalnız tasima.py okuyor; site
+# derlemesi kullanmıyor.
 # id -> (başlık, seri, sanatçı notu, durum)
 # durum: 'satilik' | 'koleksiyonda' | 'ayrildi'
 WORKS = {
@@ -81,8 +42,7 @@ WORKS = {
 # soruyor, anahtar sunucuda kaliyor. Kurulum: sunucu/OKUBENI.md
 PANEL_SUNUCU = ''
 
-MEDIUM_TR = 'Tuval üzerine yağlı boya'
-
+# Panelde eser durumu seçenekleri (secenekler.json).
 STATUS_TR = {
     'satilik':      'Müsait',
     'koleksiyonda': 'Özel koleksiyonda',

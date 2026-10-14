@@ -78,7 +78,9 @@ jobs:
           if eksik:
               sys.exit('EKSIK DOSYA: ' + ', '.join(eksik))
 
-          kayitlar = [f for f in os.listdir('icerik/eserler') if f.endswith('.json')]
+          # Panelde "Gizle" denmis eserler sitede yok; denetim onlari aramaz.
+          kayitlar = [f for f in sorted(os.listdir('icerik/eserler')) if f.endswith('.json')
+                      and not json.load(open(os.path.join('icerik/eserler', f), encoding='utf-8')).get('gizli')]
           if not kayitlar:
               sys.exit('HIC ESER KAYDI YOK')
 

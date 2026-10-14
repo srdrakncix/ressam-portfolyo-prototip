@@ -220,7 +220,10 @@ function onizlemeIcin(route) {
   if (route === '/basin' && bas[0])
     return { ust: t('nav_press') + ' · ' + bas[0][0], ad: bas[0][1], alt: bas[0][2] };
   if (route === '/iletisim')
-    return { ust: t('nav_contact'), ad: SITE.artist.email, alt: SITE.artist.studio };
+    return { ust: t('nav_contact'),
+             ad: SITE.artist.email || SITE.artist.phone ||
+                 (SITE.artist.instagram ? '@' + SITE.artist.instagram : ''),
+             alt: SITE.artist.studio };
   return { ust: SITE.artist.mark, ad: SITE.artist.name, alt: '', img: yeniEser() };
 }
 
@@ -299,7 +302,8 @@ function icerikVar(route) {
                                SITE.works.some((w) => w.collection || w.status);
     case '/yayinlar':   return n(SITE.publications);
     case '/basin':      return n(SITE.press);
-    case '/iletisim':   return !!(SITE.artist.email || SITE.artist.studio);
+    case '/iletisim':   return !!(SITE.artist.email || SITE.artist.phone ||
+                                  SITE.artist.instagram || SITE.artist.studio);
   }
   return true;
 }

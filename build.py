@@ -8,11 +8,8 @@ Base64 görseller asla şablonda durmaz — böylece tasarım dosyası okunabili
 """
 import json, re, sys, io, os, base64
 from PIL import Image, ImageFilter
-import content as C
-try:
-    import ceviri as T
-except ImportError:            # çeviri dosyası yoksa site tek dilli çalışır
-    T = None
+import ceviri as T
+import site_veri as V
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -63,11 +60,10 @@ TAM_EN, TAM_KALITE, LQIP_EN, LQIP_KALITE = 1686, 78, 20, 40
 # yazilinca site/ 2.54 MB'dan 3.69 MB'a cikmisti -- ayni gorsel iki kez.
 DUYARLI_BOYLAR = (540, 810)
 
-# Ana sayfada gosterilen eserler, sirasiyla. Musteri karari: iki eser,
-# cercevesiz, hero gibi. Hem sayfa hem paylasim gorseli buradan okuyor --
+# Ana sayfada gosterilen eserler artik icerik/site.json'da (ana_sayfa):
+# ressam panelden seciyor. Hem sayfa hem paylasim gorseli oradan okuyor --
 # og:image bir kez elle yazilmisti ve silinmis bir esere bakip 404
 # vermisti.
-ANA_ESERLER = ('eser-2', 'eser-7')
 
 
 def yorumsuz(metin, dil):
@@ -119,6 +115,12 @@ def yorumsuz(metin, dil):
     return '\n'.join(cikti)
 
 
+def html_kacir(s):
+    """HTML metni ve nitelik degeri icin."""
+    return (str(s).replace('&', '&amp;').replace('<', '&lt;')
+            .replace('>', '&gt;').replace('"', '&quot;'))
+
+
 def _kodla(im, en, kalite, bulanik=0):
     """Gorseli webp'e cevirip base64 dondurur."""
     k = im.copy()
@@ -166,14 +168,28 @@ def eserleri_oku():
             sys.exit(f'{ad}: olcu yarim (yukseklik_cm / genislik_cm)')
         if not os.path.exists(os.path.join(GORSEL_DIZIN, k['gorsel'])):
             sys.exit(f'{ad}: gorsel bulunamadi -> icerik/gorseller/{k["gorsel"]}')
+        # Panelde "Gizle" denmis eser: kayit ve gorsel depoda duruyor,
+        # sitede hicbir yerde yok. Silmeden kaldirmanin yolu.
+        if k.get('gizli'):
+            continue
         kayitlar.append(k)
     kayitlar.sort(key=lambda k: (k.get('sira') or 999, k['slug']))
     return kayitlar
 
 
 def build_data():
+    S = V.oku()
+    UI = V.arayuz(S, T.UI)
+    seri_anahtarlari = [x['anahtar'] for x in S['seriler']]
     works = []
     for idx, k in enumerate(eserleri_oku()):
+        # Silinmis bir seriye bakan eser derlemeyi durdurmuyor: ilk seriye
+        # dusuyor. Panel seriyi silerken eserlerini zaten tasiyor; bu
+        # yalniz elle duzenlenmis kayitlar icin emniyet.
+        if k['seri'] not in seri_anahtarlari:
+            print(f'UYARI  {k["slug"]}: seri yok ({k["seri"]}), '
+                  f'"{seri_anahtarlari[0]}" serisine kondu.')
+            k['seri'] = seri_anahtarlari[0]
         im = Image.open(os.path.join(GORSEL_DIZIN, k['gorsel'])).convert('RGB')
         o0 = k.get('olcu') or {}
         olcu_var = bool(o0.get('yukseklik_cm') and o0.get('genislik_cm'))
@@ -220,7 +236,7 @@ def build_data():
             'collection': kol.get('ad') or '',
             'collYear':   kol.get('yil') or 0,
             'year':   int(k['yil']) if k.get('yil') else 0,
-            'medium': C.MEDIUM_TR,
+            'medium': UI['tr']['medium'],
             # Olcu yoksa BOS. Arayuz bos olcuyu hic basmiyor.
             # INC KARSILIGI KALDIRILDI (musteri karari: "inc ibarelerini
             # kaldir her yerden"). Alti yerde basiliyordu; uretimi de
@@ -257,25 +273,43 @@ def build_data():
     # Elle yazılıydı ve eser kümesi değişince bayatlıyordu: content.SERIES
     # "2018 — 2024" diyordu, seride en eski eser 2022'ydi; dört serinin dördü
     # de yanlıştı. Artık kaynak tek — eserlerin kendi yılları.
-    seriler = [dict(x) for x in C.SERIES]
+    seriler = [{'key': x['anahtar'], 'title': V.dilde(x['ad'], 'tr'),
+                'years': '', 'blurb': V.dilde(x['aciklama'], 'tr')}
+               for x in S['seriler']]
     for sr in seriler:
-        yillar = sorted({w['year'] for w in works if w['series'] == sr['key']})
+        yillar = sorted({w['year'] for w in works if w['series'] == sr['key'] and w['year']})
         if yillar:
             sr['years'] = (str(yillar[0]) if len(yillar) == 1
                            else f'{yillar[0]} — {yillar[-1]}')
+    # Eseri olmayan seri menude bos bir satir olurdu (panelden yeni acilmis
+    # ya da eserleri gizlenmis seri). En az bir seri her zaman kalir.
+    seriler = [sr for sr in seriler if any(w['series'] == sr['key'] for w in works)] or seriler[:1]
 
+    sn = S['sanatci']
+    i18n = build_i18n(S, UI, works)
+    tr = i18n['tr']
     data = {
-        'artist':       C.ARTIST,
-        'bio':          C.BIO,
-        'cv':           C.CV,
-        'collections':  getattr(C, 'COLLECTIONS', []),
-        'publications': getattr(C, 'PUBLICATIONS', []),
-        'press':        getattr(C, 'PRESS', []),
-        'statement':    getattr(C, 'STATEMENT', []),
+        # Arayuzun okudugu adlar (name/email/studio) korunuyor; kaynak
+        # site.json'daki Turkce alan adlari.
+        'artist':       {'name': sn['ad'], 'mark': sn['ad'], 'email': sn['eposta'],
+                         'phone': sn['telefon'], 'studio': sn['adres'],
+                         'instagram': sn['instagram']},
+        'bio':          tr['bio'],
+        'cv':           tr['cv'],
+        'collections':  tr['collections'],
+        'publications': tr['publications'],
+        'press':        tr['press'],
+        'statement':    tr['statement'],
         'series':       seriler,
         'works':        works,
+        'i18n':         i18n,
+        # render() bunlari sayfa verisine yazmadan once cekip aliyor.
+        '_ana':         S['ana_sayfa'],
+        '_belirtec':    {'__AD__': sn['ad'], '__ALT__': UI['tr']['site_sub'],
+                         '__META__': UI['tr']['meta_desc'],
+                         '__TEKNIK__': UI['tr']['medium'],
+                         '__ESERLER__': UI['tr']['gal_works']},
     }
-    data['i18n'] = build_i18n(works)
 
     # Sayfa zeminleri: ressamın kendi tablolarından makro kırpıntılar (zemin.py).
     # Yoksa site tek renk zeminle çalışır.
@@ -284,65 +318,44 @@ def build_data():
     return data
 
 
-def build_i18n(works):
-    """Her dil için yalnızca DEĞİŞEN alanları üretir.
+# Sergi satirinin tanimlayicisi. Arayuz kisisel/karma ayrimini Turkce
+# satirin basindan okuyor (mekan.html viewSergiler); yabanci dillerde
+# ceviri.DESCRIPTORS karsiligi yaziliyor.
+SERGI_TR = {'kisisel': 'Kişisel sergi', 'karma': 'Karma sergi'}
 
+
+def build_i18n(S, UI, works):
+    """Her dil için sayfa metinleri. Kaynak icerik/site.json.
+
+    Bir metin o dilde boşsa ilk dolu dile düşer (site_veri.dilde): ressam
+    yalnız Fransızca yazdıysa Türkçe sayfa boş kalmıyor.
     Eser adı ve ölçüler her dilde aynı kalır — ad bir isimdir, ölçü bir olgudur.
-    Çeviri yalnızca arayüz, açıklama ve teknik satırlar için.
     """
-    if T is None:
-        return {'tr': {'ui': {}}}
-
-    out = {'tr': {'ui': T.UI['tr'], 'bio': C.BIO, 'statement': C.STATEMENT,
-                  'collections': getattr(C, 'COLLECTIONS', []),
-                  'series': {s['key']: {'title': s['title'], 'blurb': s['blurb']} for s in C.SERIES},
-                  'works': {w['id']: {'gloss': '', 'note': w['_not'].get('tr', '')} for w in works},
-                  'cv': [list(r) for r in C.CV],
-                  'publications': [list(r) for r in C.PUBLICATIONS],
-                  'press': [list(r) for r in getattr(C, 'PRESS', [])]}}
-
-    for lang in ('en', 'fr'):
-        # seriler
-        series = {}
-        for s in C.SERIES:
-            tr = T.SERIES.get(s['key'], {}).get(lang)
-            series[s['key']] = {'title': tr[0], 'blurb': tr[1]} if tr else \
-                               {'title': s['title'], 'blurb': s['blurb']}
-        # eserler: ad çevrilmez, altına gloss düşer; not çevrilir
-        # Eser adi CEVRILMEZ: kaydin icinde dile gore baslik alani YOK.
-        # gloss = adin altinda gosterilen aciklayici karsilik.
-        wmap = {}
-        for w in works:
-            wmap[w['id']] = {'gloss': w['_gloss'].get(lang, ''),
-                             'note': w['_not'].get(lang) or w['_not'].get('tr', '')}
-        # CV: ad korunur, tanımlayıcı çevrilir
+    out = {}
+    for lang in V.DILLER:
         cv = []
-        for year, title, venue in C.CV:
-            v = venue
-            for src, tgt in T.DESCRIPTORS.items():
-                if v.startswith(src):
-                    v = tgt[lang] + v[len(src):]
-                    break
-            cv.append([year, title, v])
-        # yayınlar: ad korunur, açıklama çevrilir
-        pubs = getattr(C, 'PUBLICATIONS', [])
-        pl = T.PUBLICATIONS.get(lang, [])
-        publications = [[r[0], r[1], pl[i] if i < len(pl) else r[2]] for i, r in enumerate(pubs)]
-        # basın: başlık korunur, künye satırı çevrilir
-        press = getattr(C, 'PRESS', [])
-        bl = T.PRESS_BYLINE.get(lang, [])
-        press_out = [[r[0], r[1], bl[i] if i < len(bl) else r[2]] for i, r in enumerate(press)]
-
+        for x in S['sergiler']:
+            tanim = SERGI_TR[x['tur']]
+            if lang != 'tr':
+                tanim = T.DESCRIPTORS[tanim][lang]
+            cv.append([x['yil'], x['ad'], tanim + (' · ' + x['yer'] if x['yer'] else '')])
         out[lang] = {
-            'ui':           T.UI[lang],
-            'bio':          T.BIO[lang],
-            'statement':    T.STATEMENT[lang],
-            'collections':  T.COLLECTIONS[lang],
-            'series':       series,
-            'works':        wmap,
+            'ui':           UI[lang],
+            'bio':          V.paragraflar(V.dilde(S['biyografi'], lang)),
+            'statement':    V.paragraflar(V.dilde(S['atolye_notu'], lang)),
+            'collections':  list(S['koleksiyonlar']),
+            'series':       {x['anahtar']: {'title': V.dilde(x['ad'], lang),
+                                            'blurb': V.dilde(x['aciklama'], lang)}
+                             for x in S['seriler']},
+            # Eser adi CEVRILMEZ; gloss adin altinda duran aciklayici karsilik.
+            'works':        {w['id']: {'gloss': '' if lang == 'tr' else w['_gloss'].get(lang, ''),
+                                       'note': w['_not'].get(lang) or w['_not'].get('tr', '')}
+                             for w in works},
             'cv':           cv,
-            'publications': publications,
-            'press':        press_out,
+            'publications': [[x['yil'], x['ad'], V.dilde(x['aciklama'], lang)]
+                             for x in S['yayinlar']],
+            'press':        [[x['yil'], x['baslik'], V.dilde(x['kunye'], lang)]
+                             for x in S['basin']],
         }
     return out
 
@@ -452,17 +465,29 @@ def render(tpl_path, data, standalone):
     # Salon kurgusu ARTIK HERO DEGIL (musteri karari: ana sayfada
     # eserin kendisi duruyor). Kaynak varlik/hero altinda kaliyor ama
     # yayina kopyalanmiyor (bkz. yayinla.py ATLA).
-    # Ana sayfa eserleri: sirasi ANA_ESERLER'den, verisi works'ten.
+    # Ana sayfa eserleri: sirasi site.json'dan (panel), verisi works'ten.
+    # Silinmis ya da gizlenmis bir eser listede kaldiysa derleme DURMUYOR,
+    # o eser atlaniyor: ressam bir eseri silince site yayinlanamaz hale
+    # gelmemeli. Hic kalmazsa ilk eser ana sayfaya cikar.
     _hepsi = {w['slug']: w for w in (data.get('works') or [])}
-    data['anaEserler'] = [s for s in ANA_ESERLER if s in _hepsi]
-    if len(data['anaEserler']) != len(ANA_ESERLER):
-        eksik = [s for s in ANA_ESERLER if s not in _hepsi]
-        sys.exit('HATA: ana sayfa eseri yok -> %s' % ', '.join(eksik))
+    ana = data.pop('_ana', [])
+    data['anaEserler'] = [s for s in ana if s in _hepsi]
+    for s in ana:
+        if s not in _hepsi:
+            print('UYARI  ana sayfa eseri sitede yok (silinmis/gizli) -> ' + s)
+    if not data['anaEserler'] and data.get('works'):
+        data['anaEserler'] = [data['works'][0]['slug']]
 
+    belirtec = data.pop('_belirtec', {})
     tpl = io.open(tpl_path, encoding='utf-8').read()
     for token in ('/*__SITE_DATA__*/', '/*__KIT__*/'):
         if token not in tpl:
             sys.exit(f'HATA: {tpl_path} içinde {token} yok.')
+    # Ad ve site yazilari sablonun basliginda / meta'sinda (panelden
+    # degisiyor). Sayfa verisinden ONCE yerlestiriliyor: kullanici metni
+    # icinde tesadufen bir belirtec gecse bile ikinci kez degismesin.
+    for k, v in belirtec.items():
+        tpl = tpl.replace(k, html_kacir(v))
 
     payload = 'const SITE = ' + json.dumps(data, ensure_ascii=False, separators=(',', ':')) + ';'
     # Yorumlar KAYNAKTA kaliyor, derlemede dusuyor. Olculdu: kit.js

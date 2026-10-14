@@ -3,7 +3,35 @@
 Tek sanatçı yağlı boya portfolyo sitesi. **edwardpovey.com** tarzı: beyaz zemin,
 Helvetica, solda düz metin menü, devasa resimler, küçük künye. Süs yok.
 
-**Canlı:** https://saglam.fr/
+**Canlı:** https://saglam.fr/ · **Panel:** https://saglam.fr/panel/
+
+---
+
+## Site yönetimi paneli (2026-10)
+
+Ressam sitedeki her şeyi `/panel/`'den değiştirir: eserler (ekle, düzenle,
+gizle, sırala, sil), ana sayfa eserleri (★), sanatçı sayfaları (biyografi,
+atölye notu, sergiler, koleksiyonlar, yayınlar, basın), iletişim, menü
+başlıkları ve sitedeki yazılar (TR/EN/FR), sitenin açık/kapalı durumu,
+geçmişe dönüş. Değişiklikler taslak olarak cihazda saklanır; üstteki tek
+**Yayınla** düğmesi hepsini tek commit'le gönderir, panel sitenin gerçekten
+güncellendiğini `yayin.json`'daki dosya parmak izlerinden görür.
+
+**Veri:** eserler `icerik/eserler/*.json` + `icerik/gorseller/`, geri kalan
+her şey `icerik/site.json`. Okuyan tek yer `site_veri.py`; bozuk bir kayıt
+derlemeyi açık bir mesajla durdurur (site son hâlinde kalır).
+
+**Kurulum (bir kez, Serdar):**
+1. GitHub → Settings → Developer settings → Fine-grained tokens → yeni anahtar:
+   yalnız `ressam-portfolyo-prototip`; Contents: Read and write; Actions: Read.
+2. `/panel/`'i aç, anahtarı yapıştır.
+3. Üstteki "Şimdi kur" → kullanıcı adı + "Güçlü şifre üret" → Kaydet.
+   Anahtar şifreyle kilitlenip `panel/kilit.json` olarak yayınlanır;
+   ressam bundan sonra yalnız kullanıcı adı ve şifreyle girer.
+
+**Site kapalıyken** (`yayin.acik = false`) asıl site `/onizleme/` altında da
+yayınlanır: bağlantısız, noindex, robots.txt'de kapalı — ressam değişikliğini
+orada görür.
 
 ---
 
