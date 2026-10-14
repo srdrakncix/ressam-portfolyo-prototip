@@ -45,41 +45,64 @@ def hata(m):
 
 # ── 1) çıktı ────────────────────────────────────────────────────────────────
 adim('çıktı')
-yakinda = json.load(io.open(os.path.join(SITE, 'yayin.json'), encoding='utf-8')).get('yakinda', False)
-gerekli = ['index.html', '404.html', 'favicon.svg', 'robots.txt', 'sitemap.xml',
-           'assets/zemin/oruntu.webp', 'yayin.json', 'eserler.json',
-           'panel/index.html', 'panel/secenekler.json']
-gerekli += ['onizleme/index.html', 'onizleme/galeri/index.html'] if yakinda else ['galeri/index.html']
-for y in gerekli:
-    if not os.path.exists(os.path.join(SITE, *y.split('/'))):
-        hata('eksik dosya: site/' + y)
+yayin = json.load(io.open(os.path.join(SITE, 'yayin.json'), encoding='utf-8'))
+hedef = yayin.get('hedef', 'yerel')
+yakinda = yayin.get('yakinda', False)
+print('  hedef: ' + {'site': 'saglam.fr (site, panelsiz)', 'panel': 'panel (Cloudflare)',
+                     'yerel': 'yerel (site + /panel/)'}.get(hedef, hedef))
 
-# Panelde "Gizle" denmiş eserler sitede yok; denetim onları aramaz.
-kayitlar = []
-for f in sorted(os.listdir(os.path.join(KOK, 'icerik', 'eserler'))):
-    if f.endswith('.json'):
-        k = json.load(io.open(os.path.join(KOK, 'icerik', 'eserler', f), encoding='utf-8'))
-        if not k.get('gizli'):
-            kayitlar.append(k)
-if not kayitlar:
-    hata('sitede gösterilecek hiç eser yok')
-for k in kayitlar:
-    if not os.path.exists(os.path.join(SITE, 'assets', k['slug'] + '.webp')):
-        hata('görseli üretilmeyen eser: ' + k['slug'])
-
-if yakinda:
-    if 'Le site est en construction' not in io.open(os.path.join(SITE, 'index.html'), encoding='utf-8').read():
-        hata('site kapalı ama kök sayfa "yapım aşamasında" sayfası değil')
-    sayfa = os.path.join(SITE, 'onizleme', 'galeri', 'index.html')
+if hedef == 'panel':
+    # Yalnız panel: kök sayfa panel, sitenin adresi biliniyor, dizine kapalı.
+    for y in ('index.html', 'secenekler.json', 'robots.txt'):
+        if not os.path.exists(os.path.join(SITE, y)):
+            hata('eksik dosya: site/' + y)
+    se = json.load(io.open(os.path.join(SITE, 'secenekler.json'), encoding='utf-8'))
+    if not str(se.get('site', '')).startswith('https://'):
+        hata('panelin site adresi yok ya da https değil: %r' % se.get('site'))
+    if 'Disallow: /' not in io.open(os.path.join(SITE, 'robots.txt'), encoding='utf-8').read():
+        hata('panel arama motorlarına açık')
+    if not os.path.exists(os.path.join(KOK, 'functions', 'api', '[[yol]].js')):
+        hata('kapıcı yok: functions/api/[[yol]].js')
 else:
-    sayfa = os.path.join(SITE, 'galeri', 'index.html')
-if os.path.exists(sayfa):
-    govde = io.open(sayfa, encoding='utf-8').read()
-    for k in kayitlar[:3]:
-        if k['baslik'] not in govde:
-            hata('galeride eser yok: ' + k['baslik'])
-mb = sum(os.path.getsize(os.path.join(r, f)) for r, _, fs in os.walk(SITE) for f in fs) / 1048576
-print('  %d eser, %s, site/ %.2f MB' % (len(kayitlar), 'site kapalı (önizleme var)' if yakinda else 'site açık', mb))
+    gerekli = ['index.html', '404.html', 'favicon.svg', 'robots.txt', 'sitemap.xml',
+               'assets/zemin/oruntu.webp', 'yayin.json', 'eserler.json']
+    gerekli += ['onizleme/index.html', 'onizleme/galeri/index.html'] if yakinda else ['galeri/index.html']
+    if hedef == 'yerel':
+        gerekli += ['panel/index.html', 'panel/secenekler.json']
+    for y in gerekli:
+        if not os.path.exists(os.path.join(SITE, *y.split('/'))):
+            hata('eksik dosya: site/' + y)
+    # saglam.fr'de panel OLMAMALI (panel kendi adresinde).
+    if hedef == 'site' and os.path.exists(os.path.join(SITE, 'panel')):
+        hata('saglam.fr yayınında panel var — olmamalı')
+
+if hedef != 'panel':
+    # Panelde "Gizle" denmiş eserler sitede yok; denetim onları aramaz.
+    kayitlar = []
+    for f in sorted(os.listdir(os.path.join(KOK, 'icerik', 'eserler'))):
+        if f.endswith('.json'):
+            k = json.load(io.open(os.path.join(KOK, 'icerik', 'eserler', f), encoding='utf-8'))
+            if not k.get('gizli'):
+                kayitlar.append(k)
+    if not kayitlar:
+        hata('sitede gösterilecek hiç eser yok')
+    for k in kayitlar:
+        if not os.path.exists(os.path.join(SITE, 'assets', k['slug'] + '.webp')):
+            hata('görseli üretilmeyen eser: ' + k['slug'])
+
+    if yakinda:
+        if 'Le site est en construction' not in io.open(os.path.join(SITE, 'index.html'), encoding='utf-8').read():
+            hata('site kapalı ama kök sayfa "yapım aşamasında" sayfası değil')
+        sayfa = os.path.join(SITE, 'onizleme', 'galeri', 'index.html')
+    else:
+        sayfa = os.path.join(SITE, 'galeri', 'index.html')
+    if os.path.exists(sayfa):
+        govde = io.open(sayfa, encoding='utf-8').read()
+        for k in kayitlar[:3]:
+            if k['baslik'] not in govde:
+                hata('galeride eser yok: ' + k['baslik'])
+    mb = sum(os.path.getsize(os.path.join(r, f)) for r, _, fs in os.walk(SITE) for f in fs) / 1048576
+    print('  %d eser, %s, site/ %.2f MB' % (len(kayitlar), 'site kapalı (önizleme var)' if yakinda else 'site açık', mb))
 
 # ── 2) menü okunurluğu ──────────────────────────────────────────────────────
 adim('menü okunurluğu')

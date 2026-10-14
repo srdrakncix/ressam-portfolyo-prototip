@@ -108,6 +108,8 @@ function izinli(yol, yontem) {
   if (new RegExp('^git/(commits|trees|blobs)/' + SHA + '$').test(yol)) return yontem === 'GET';
   if (yol === 'git/commits' || yol === 'git/trees' || yol === 'git/blobs') return yontem === 'POST';
   if (yol === 'commits') return yontem === 'GET';
+  /* Yayın derlemesi düştü mü (panel "siteye çıkamadı" diyebilsin). Okuma. */
+  if (yol === 'actions/runs') return yontem === 'GET';
   return false;
 }
 

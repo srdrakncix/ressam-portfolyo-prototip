@@ -45,6 +45,19 @@ CIKTI = os.path.join(KOK, 'site')
 # damgası etkilenmiyor: panel çalışmaya devam ediyor.
 YAKINDA = None
 
+# NEREYE DERLENİYOR. Aynı depodan iki ayrı yayın çıkıyor:
+#   site   saglam.fr (GitHub Pages, GitHub Actions derliyor). Ziyaretçinin
+#          gördüğü site. PANEL YOK — saglam.fr/panel/ diye bir adres yok.
+#   panel  panelfrsaglam.pages.dev (Cloudflare Pages derliyor). Yalnız
+#          yönetim paneli + kapıcısı (functions/api). Görselleri ve yayın
+#          damgasını saglam.fr'den okuyor (SITE_ADRESI).
+#   yerel  bu bilgisayar: site + /panel/ birlikte (denemeler için).
+# Hangisi olduğu ortamdan anlaşılıyor; YAYIN_HEDEF ile zorlanabilir.
+HEDEF = (os.environ.get('YAYIN_HEDEF') or
+         ('panel' if os.environ.get('CF_PAGES') else
+          'site' if os.environ.get('GITHUB_ACTIONS') else 'yerel'))
+SITE_ADRESI = os.environ.get('SITE_ADRESI', 'https://saglam.fr').rstrip('/')
+
 SAYFALAR = [
     ('mekan.html', 'index.html'),
     ('sergi.html', os.path.join('galeri', 'index.html')),
@@ -78,6 +91,10 @@ def main():
                 except OSError:
                     pass
     os.makedirs(CIKTI, exist_ok=True)
+
+    if HEDEF == 'panel':
+        panel_derle()
+        return
 
     # 1) sayfalar (build.py assets/ icine eser gorsellerini de yaziyor)
     for sablon, hedef in SAYFALAR:
@@ -143,37 +160,12 @@ def main():
             n += 1
     print(f'varlik/            {n} dosya kopyalandi')
 
-    # 3) panel + secenekleri
-    #    Seri ve durum listeleri content.py'den turetiliyor: panelde elle
-    #    yazilirsa iki yer birbirinden kopar.
+    # 3) panel — yalnız yerelde, sitenin yanında. saglam.fr'de panel yok.
     import json as _json
-    import content as _C
-    panel_hedef = os.path.join(CIKTI, 'panel')
-    os.makedirs(panel_hedef, exist_ok=True)
     from datetime import datetime, timezone
     damga = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')
-    panel_kod = io.open(os.path.join(KOK, 'panel', 'index.html'),
-                        encoding='utf-8').read().replace('__YAPIM__', damga)
-    io.open(os.path.join(panel_hedef, 'index.html'), 'w',
-            encoding='utf-8').write(panel_kod)
-    import ceviri as _T
-    io.open(os.path.join(panel_hedef, 'secenekler.json'), 'w', encoding='utf-8').write(
-        _json.dumps({
-            'durumlar': [{'anahtar': k, 'ad': v} for k, v in _C.STATUS_TR.items()],
-            # Panelin "Menü ve yazılar" bölümü: hangi alanlar, hangi sırayla,
-            # boş bırakılırsa ne yazacağı. Tek kaynak site_veri.YAZILAR.
-            'yazilar': list(V.YAZILAR),
-            'yazi_varsayilan': {d: {k: _T.UI[d][k] for k in V.YAZILAR}
-                                for d in V.DILLER},
-        }, ensure_ascii=False, indent=2))
-    # Sifreli girisin kilidi. Panelden kurulunca depoya yaziliyor;
-    # icinde GitHub anahtarinin SIFRELENMIS hali var, duz hali degil.
-    kilit_kaynak = os.path.join(KOK, 'panel', 'kilit.json')
-    if os.path.exists(kilit_kaynak):
-        shutil.copy2(kilit_kaynak, os.path.join(panel_hedef, 'kilit.json'))
-        print('panel/            index.html + secenekler.json + kilit.json')
-    else:
-        print('panel/            index.html + secenekler.json')
+    if HEDEF == 'yerel':
+        panel_yaz(os.path.join(CIKTI, 'panel'), site='')
 
     # 4) yayin damgasi
     #    Panel "site guncellendi mi" sorusunu buradan cevapliyor: her
@@ -184,6 +176,7 @@ def main():
                      'surum': os.environ.get('GITHUB_SHA', 'yerel')[:12],
                      # CI denetimi hangi sayfaları arayacağını buradan okuyor.
                      'yakinda': yakinda,
+                     'hedef': HEDEF,
                      # Panel "sitede duran sürüm hangisi" sorusunu buradan
                      # cevaplıyor: icerik/ altındaki her dosyanın GIT BLOB
                      # SHA'sı. Panel aynı değeri depo ağacından alıyor, yani
@@ -235,6 +228,53 @@ def main():
     toplam = sum(os.path.getsize(os.path.join(r, f))
                  for r, _, fs in os.walk(CIKTI) for f in fs)
     print(f'\nsite/              {toplam / 1048576:.2f} MB')
+
+
+def panel_yaz(hedef_dizin, site):
+    """Yönetim panelini hedef_dizin'e yazar: index.html + secenekler.json.
+
+    site: panelin görselleri, yayın damgasını ve önizlemeyi okuduğu sitenin
+    adresi. Boşsa panel sitenin içinde (/panel/) duruyor, göreli okur."""
+    import json as _json
+    from datetime import datetime, timezone
+    import content as _C
+    import ceviri as _T
+    import site_veri as V
+    os.makedirs(hedef_dizin, exist_ok=True)
+    damga = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')
+    io.open(os.path.join(hedef_dizin, 'index.html'), 'w', encoding='utf-8').write(
+        io.open(os.path.join(KOK, 'panel', 'index.html'), encoding='utf-8').read()
+        .replace('__YAPIM__', damga))
+    io.open(os.path.join(hedef_dizin, 'secenekler.json'), 'w', encoding='utf-8').write(
+        _json.dumps({
+            'site': site,
+            'durumlar': [{'anahtar': k, 'ad': v} for k, v in _C.STATUS_TR.items()],
+            # Panelin "Menü ve yazılar" bölümü: hangi alanlar, hangi sırayla,
+            # boş bırakılırsa ne yazacağı. Tek kaynak site_veri.YAZILAR.
+            'yazilar': list(V.YAZILAR),
+            'yazi_varsayilan': {d: {k: _T.UI[d][k] for k in V.YAZILAR}
+                                for d in V.DILLER},
+        }, ensure_ascii=False, indent=2))
+    # Sifreli girisin kilidi (kapicisiz yol). Yalniz yerel denemede var.
+    kilit = os.path.join(KOK, 'panel', 'kilit.json')
+    if os.path.exists(kilit):
+        shutil.copy2(kilit, os.path.join(hedef_dizin, 'kilit.json'))
+    print('panel             ' + os.path.relpath(hedef_dizin, KOK) +
+          (' (site: ' + site + ')' if site else ''))
+
+
+def panel_derle():
+    """Cloudflare: yalnız panel. Kök adres panelin kendisi; kapıcı
+    functions/api'de (Cloudflare onu depodan kendisi alıyor). Arama
+    motorlarına tamamen kapalı."""
+    import json as _json
+    import site_veri as V
+    V.oku()               # bozuk içerik panel derlemesini de durdursun
+    panel_yaz(CIKTI, site=SITE_ADRESI)
+    io.open(os.path.join(CIKTI, 'robots.txt'), 'w', encoding='utf-8').write(
+        'User-agent: *\nDisallow: /\n')
+    io.open(os.path.join(CIKTI, 'yayin.json'), 'w', encoding='utf-8').write(
+        _json.dumps({'hedef': 'panel', 'site': SITE_ADRESI}) + chr(10))
 
 
 ONIZLEME = 'onizleme'

@@ -461,7 +461,7 @@ dialog ul li { display: flex; gap: 10px; align-items: center; justify-content: s
     <div class="marka"><b id="marka-ad"></b><span>Site Yönetimi</span></div>
     <div class="yayin" id="yayin" aria-live="polite"></div>
     <div class="ust-sag">
-      <a class="metin-dugme" id="siteyi-ac" href="../" target="_blank" rel="noopener">Siteyi aç ↗</a>
+      <a class="metin-dugme" id="siteyi-ac" href="#" target="_blank" rel="noopener">Siteyi aç ↗</a>
       <button class="metin-dugme" id="cik" type="button">Çık</button>
     </div>
   </header>
@@ -608,6 +608,11 @@ const SITE_ETIKET = {
                ya kilit.json'dan şifreyle çözülür.
    Panel açılışta /api/durum'a bakıp hangisinde olduğunu kendisi anlar. */
 let sunucu = false;
+/* Sitenin kendisi (görseller, yayın damgası, önizleme). Panel kendi
+   adresinde (panelfrsaglam.pages.dev) duruyorsa https://saglam.fr;
+   sitenin içinde (/panel/, yalnız yerel deneme) duruyorsa göreli '..'.
+   Değer derlemeden gelir: secenekler.json → site. */
+let SITE_KOK = '..';
 let jeton = '';
 let kilit = null;
 let secenek = { durumlar: [], yazilar: [], yazi_varsayilan: { tr: {}, en: {}, fr: {} } };
@@ -840,7 +845,7 @@ async function depoyuOku() {
 async function yayinOku() {
   try {
     /* Sorgu dizesi ŞART: Pages'in önünde 10 dakikalık bir CDN önbelleği var. */
-    const r = await fetch('../yayin.json?t=' + Date.now(), { cache: 'no-store' });
+    const r = await fetch(SITE_KOK + '/yayin.json?t=' + Date.now(), { cache: 'no-store' });
     return r.ok ? await r.json() : null;
   } catch (e) { return null; }
 }
@@ -979,7 +984,7 @@ async function resimKaynagi(slug, alan, boy) {
   const iz = yayindaki && yayindaki.izler;
   if (iz && iz[yol] === sha && !r.gizli) {
     const ad = alan === 'gorsel' ? slug : 'ortam-' + slug;
-    for (const u of ['../assets/' + ad + '-' + boy + '.webp', '../assets/' + ad + '.webp'])
+    for (const u of [SITE_KOK + '/assets/' + ad + '-' + boy + '.webp', SITE_KOK + '/assets/' + ad + '.webp'])
       if (await resimVarMi(u)) return (yerel[sha] = u);
   }
   const tip = /\.png$/i.test(yol) ? 'image/png' : /\.jpe?g$/i.test(yol) ? 'image/jpeg' : 'image/webp';
@@ -1103,7 +1108,7 @@ function cubukYaz() {
   }
   kutu.replaceChildren(c);
   const ac = $('#siteyi-ac');
-  ac.href = K.site.yayin.acik ? '../' : '../onizleme/';
+  ac.href = SITE_KOK + (K.site.yayin.acik ? '/' : '/onizleme/');
   ac.textContent = K.site.yayin.acik ? 'Siteyi aç ↗' : 'Önizlemeyi aç ↗';
   ac.title = K.site.yayin.acik ? '' : 'Site yapım aşamasında. Önizleme adresini yalnız siz biliyorsunuz.';
 }
@@ -1302,7 +1307,6 @@ async function izle(sha, beklenen) {
 }
 
 async function calismaDurumu(sha) {
-  if (sunucu) return null;        /* yayın Cloudflare'de; izleme yayin.json'dan */
   try {
     const r = await gh('actions/runs?head_sha=' + sha + '&per_page=10');
     const c = (r.workflow_runs || []).find((x) => /yayinla\.yml$/.test(x.path || '')) || (r.workflow_runs || [])[0];
@@ -1937,7 +1941,8 @@ function cizAyarlar(m) {
       h('button', { class: 'secenek-kart', type: 'button', role: 'radio', 'aria-checked': String(acik), onclick: () => sec(true) },
         h('b', {}, '🌐 Yayında'), h('span', {}, 'Asıl site herkese açık.'))),
     !K.site.yayin.acik ? h('div', { class: 'bilgi-kutu' }, 'Önizleme adresi: ',
-      h('a', { href: '../onizleme/', target: '_blank', rel: 'noopener' }, location.origin + '/onizleme/'),
+      h('a', { href: SITE_KOK + '/onizleme/', target: '_blank', rel: 'noopener' },
+        new URL(SITE_KOK + '/onizleme/', location.href).href),
       ' — hiçbir yerden bağlantı verilmez, arama motorlarına kapalıdır.') : ''));
 
   if (sunucu) m.append(kart('Panel girişi', 'Kullanıcı adı ve şifre Cloudflare’de, sitenin kapıcısında saklı; hiçbir dosyada durmuyor. Değiştirmek için Serdar’a yazın.', ''));
@@ -2277,6 +2282,7 @@ window.addEventListener('beforeunload', (e) => {
   };
   const [s, k, d] = await Promise.all([al('secenekler.json'), al('kilit.json'), al('/api/durum')]);
   if (s) secenek = Object.assign(secenek, s);
+  if (secenek.site) SITE_KOK = String(secenek.site).replace(/\/+$/, '');
   kilit = k;
   let mesaj = '';
   try { mesaj = sessionStorage.getItem('saglam-panel-mesaj') || ''; sessionStorage.removeItem('saglam-panel-mesaj'); } catch (e) { /* yoksay */ }

@@ -47,7 +47,7 @@ d.rectangle([5.5*k, 7*k, 26.5*k, 25*k], outline=(201, 168, 106), width=max(1, in
 im.save(os.path.join(SITE, 'apple-touch-icon.png'))
 
 open(os.path.join(SITE, 'robots.txt'), 'w', encoding='utf-8').write(
-    'User-agent: *\nAllow: /\nDisallow: /panel/\nDisallow: /onizleme/\n\n'
+    'User-agent: *\nAllow: /\nDisallow: /onizleme/\n\n'
     'Sitemap: %ssitemap.xml\n' % KOK)
 
 SAYFALAR = [('', '1.0'), ('galeri/', '0.8')]

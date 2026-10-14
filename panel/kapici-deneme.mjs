@@ -94,6 +94,9 @@ const giris = (sifre, kullanici = 'saglam', ek = {}) => cagir('giris', Object.as
      !(await y.text()).includes(ORTAM.GITHUB_ANAHTAR));
   const q = await cagir('gh/commits?path=icerik&per_page=25&sha=main', { headers: C });
   ol('sorgu dizesi korunuyor', q.status === 200 && sonIstek.adres.endsWith('/commits?path=icerik&per_page=25&sha=main'));
+  ol('yayın durumu okunabiliyor', (await cagir('gh/actions/runs?head_sha=abc&per_page=10', { headers: C })).status === 200 &&
+     sonIstek.adres.endsWith('/actions/runs?head_sha=abc&per_page=10'));
+  ol('yayın yeniden başlatılamıyor', (await cagir('gh/actions/runs/1/rerun', { method: 'POST', headers: C, body: '{}' })).status === 403);
   const sha = 'a'.repeat(40);
   for (const u of ['git/commits/' + sha, 'git/trees/' + sha + '?recursive=1', 'git/blobs/' + sha])
     ol('izinli okuma: ' + u.split('?')[0].slice(0, 12), (await cagir('gh/' + u, { headers: C })).status === 200);
