@@ -160,7 +160,6 @@ def main():
     io.open(os.path.join(panel_hedef, 'secenekler.json'), 'w', encoding='utf-8').write(
         _json.dumps({
             'durumlar': [{'anahtar': k, 'ad': v} for k, v in _C.STATUS_TR.items()],
-            'sunucu': getattr(_C, 'PANEL_SUNUCU', ''),
             # Panelin "Menü ve yazılar" bölümü: hangi alanlar, hangi sırayla,
             # boş bırakılırsa ne yazacağı. Tek kaynak site_veri.YAZILAR.
             'yazilar': list(V.YAZILAR),

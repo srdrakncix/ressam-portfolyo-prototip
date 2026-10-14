@@ -43,102 +43,12 @@ jobs:
       - name: Siteyi üret
         run: python yayinla.py
 
-      # Menu panelinin okunurlugu. Panel boyayken firca.py yirmi yazi
-      # kutusunun altindaki opakligi gercek pikselden olcuyordu; panel duz
-      # kreme gecince olcum kapali forma indi ama KALKMADI -- murekkepler
-      # kabuk.css'te tek yerde duruyor ve kapi onlari oradan okuyup
-      # panelin en koyu ucuna karsi olcuyor.
-      - name: Menü okunurluğu
-        run: python menu.py
-
-      # Bozuk bir yayin sessizce gecmesin. Denetim, panelin yazdigi kayitlarla
-      # uretilen ciktiyi KARSILASTIRIYOR: her esere bir gorsel dusmus mu?
-      # (Once "dosya adi sayi mi" diye bakiyordu; adlar slug'a donunce yanlis
-      #  alarm verdi. Olcut artik veriyle esleme.)
-      - name: Çıktıyı denetle
-        run: |
-          python - <<'PY'
-          import json, os, sys
-
-          # Yayinlanan sayfa iki tane ve adreslerinde sayfa adi yok:
-          #   /  ve  /galeri/
-          # mekan.html / sergi.html / salon.html artik uretilmiyor.
-          # "Yakında" modunda (yayinla.py YAKINDA) galeri yayında değil.
-          yakinda = json.load(open('site/yayin.json', encoding='utf-8')).get('yakinda', False)
-          gerekli = ['site/index.html'] + ([] if yakinda else ['site/galeri/index.html']) + [
-                     'site/404.html', 'site/favicon.svg', 'site/robots.txt',
-                     # Zemin TEK dosya: dikey serit aynalanip yana tekrar
-          # ediyor (zemin.py). Once sayfa basina ayri kirpintilar
-          # vardi; acilis.webp o donemden kalmaydi ve artik yok.
-          'site/sitemap.xml', 'site/assets/zemin/oruntu.webp',
-                     'site/yayin.json',
-                     'site/eserler.json',
-                     'site/panel/index.html', 'site/panel/secenekler.json']
-          eksik = [y for y in gerekli if not os.path.exists(y)]
-          if eksik:
-              sys.exit('EKSIK DOSYA: ' + ', '.join(eksik))
-
-          # Panelde "Gizle" denmis eserler sitede yok; denetim onlari aramaz.
-          kayitlar = [f for f in sorted(os.listdir('icerik/eserler')) if f.endswith('.json')
-                      and not json.load(open(os.path.join('icerik/eserler', f), encoding='utf-8')).get('gizli')]
-          if not kayitlar:
-              sys.exit('HIC ESER KAYDI YOK')
-
-          kayip = []
-          for f in kayitlar:
-              k = json.load(open(os.path.join('icerik/eserler', f), encoding='utf-8'))
-              if not os.path.exists(os.path.join('site/assets', k['slug'] + '.webp')):
-                  kayip.append(k['slug'])
-          if kayip:
-              sys.exit('GORSELI URETILMEYEN ESER: ' + ', '.join(kayip))
-
-          # Sayfalar gercekten eserleri tasiyor mu? Bos bir kabuk yayinlanmasin.
-          # Yakinda modunda ise kok sayfa GERCEKTEN "yapim asamasinda" sayfasi mi?
-          if yakinda:
-              kok = open('site/index.html', encoding='utf-8').read()
-              if 'Le site est en construction' not in kok:
-                  sys.exit('YAKINDA SAYFASI YAYINDA DEGIL')
-              print('yakinda modu: kok sayfa yapim asamasinda, galeri yayinda degil')
-          else:
-              govde = open('site/galeri/index.html', encoding='utf-8').read()
-              for f in kayitlar[:3]:
-                  k = json.load(open(os.path.join('icerik/eserler', f), encoding='utf-8'))
-                  if k['baslik'] not in govde:
-                      sys.exit('SAYFADA ESER YOK: ' + k['baslik'])
-
-          mb = sum(os.path.getsize(os.path.join(r, f))
-                   for r, _, fs in os.walk('site') for f in fs) / 1048576
-          print(f'{len(kayitlar)} eser, hepsinin gorseli uretildi. site/ {mb:.2f} MB')
-          PY
-
-      # Tarayici tarafi da denetlensin: bozuk bir JS derlemeyi durdurmuyordu,
-      # cunku Python tarafi saglamdi. Panel calismaz halde yayina cikabiliyordu.
-      - name: JavaScript sözdizimi
-        run: |
-          python - <<'PY'
-          import re, subprocess, sys, io, os
-          hatali = []
-          for yol in [y for y in ['site/index.html', 'site/galeri/index.html',
-                                  'site/panel/index.html'] if os.path.exists(y)]:
-              kod = io.open(yol, encoding='utf-8').read()
-              js = '\n'.join(re.findall(
-                  r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', kod, re.S))
-              gec = '/tmp/_k.js'
-              io.open(gec, 'w', encoding='utf-8').write(js)
-              r = subprocess.run(['node', '--check', gec],
-                                 capture_output=True, text=True)
-              if r.returncode:
-                  hatali.append(yol + ': ' + r.stderr.strip().splitlines()[-1][:160])
-              else:
-                  print('  ' + os.path.basename(yol) + ' JS OK')
-          if hatali:
-              sys.exit('BOZUK JAVASCRIPT\n' + '\n'.join(hatali))
-          PY
-
-      # Giris sunucusu: sifre denetimi, oturum imzasi ve YOL IZNI. Izin
-      # listesi genisleyip farkinda olmadan deponun tamamini acmayalim.
-      - name: Giriş sunucusu denemesi
-        run: node sunucu/deneme.mjs
+      # Yayindan onceki BUTUN denetimler tek dosyada (denetim.py): cikti
+      # tamligi, menu okunurlugu, JavaScript sozdizimi, panelin kapicisi ve
+      # sifreli giris denemeleri. Cloudflare Pages'in derleme komutu da
+      # ayni dosyayi cagiriyor -- iki yayin yolu tek kurala bagli.
+      - name: Denetim
+        run: python denetim.py
 
       - uses: actions/upload-pages-artifact@v5
         with:

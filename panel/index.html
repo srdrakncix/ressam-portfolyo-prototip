@@ -601,6 +601,13 @@ const SITE_ETIKET = {
    Yeni fotoğraflar seçildiği anda GitHub'a "blob" olarak yüklenir (henüz
    hiçbir commit'e bağlı değil); taslak yalnızca o blob'un sha'sını tutar.
    Böylece taslak küçük bir JSON kalır ve tarayıcı kapansa da kaybolmaz. */
+/* İKİ ÇALIŞMA BİÇİMİ:
+   - kapıcı  : site Cloudflare'de, /api/ kapıcısı var. Ressam kullanıcı adı +
+               şifreyle girer, GitHub anahtarı kapıcıda kalır (hiç inmez).
+   - anahtar : kapıcı yok (GitHub Pages). Anahtar ya doğrudan yapıştırılır
+               ya kilit.json'dan şifreyle çözülür.
+   Panel açılışta /api/durum'a bakıp hangisinde olduğunu kendisi anlar. */
+let sunucu = false;
 let jeton = '';
 let kilit = null;
 let secenek = { durumlar: [], yazilar: [], yazi_varsayilan: { tr: {}, en: {}, fr: {} } };
@@ -703,7 +710,12 @@ function onayla(baslik, metin, evet = 'Tamam', tehlike = false) {
 
 /* ── GitHub ────────────────────────────────────────────────────────────── */
 class GhHata extends Error {
-  constructor(kod, govde) { super(ghMesaj(kod, govde)); this.kod = kod; }
+  constructor(kod, govde) {
+    let m = '';
+    try { m = (JSON.parse(govde || '{}').hata) || ''; } catch (e) { /* düz metin */ }
+    super(m || ghMesaj(kod, govde));
+    this.kod = kod;
+  }
 }
 function ghMesaj(kod, govde) {
   if (kod === 401) return 'Giriş anahtarı geçersiz ya da süresi dolmuş. Serdar\'a haber verin.';
@@ -716,21 +728,37 @@ function ghMesaj(kod, govde) {
 }
 
 async function gh(yol, secim = {}) {
-  const adres = 'https://api.github.com/repos/' + DEPO + (yol ? '/' + yol : '');
+  let adres, basliklar;
+  if (sunucu) {
+    /* Kapıcı: çerez kendiliğinden gidiyor; anahtar burada hiç yok. */
+    adres = '/api/gh' + (yol ? '/' + yol : '');
+    basliklar = { 'Content-Type': 'application/json', 'X-Panel': '1' };
+  } else {
+    adres = 'https://api.github.com/repos/' + DEPO + (yol ? '/' + yol : '');
+    basliklar = { Authorization: 'Bearer ' + jeton, Accept: 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2022-11-28' };
+  }
   let y;
   try {
     /* no-store ŞART: API yanıtları tarayıcıda 60 sn önbelleklenebiliyor ve
        yayından hemen sonra eski dal başı okunuyordu. */
-    y = await fetch(adres, {
-      cache: 'no-store', ...secim,
-      headers: { Authorization: 'Bearer ' + jeton, Accept: 'application/vnd.github+json',
-                 'X-GitHub-Api-Version': '2022-11-28', ...(secim.headers || {}) },
-    });
+    y = await fetch(adres, { cache: 'no-store', credentials: 'same-origin', ...secim,
+                             headers: { ...basliklar, ...(secim.headers || {}) } });
   } catch (e) {
     throw new Error('İnternete ulaşılamadı. Bağlantınızı kontrol edip tekrar deneyin.');
   }
-  if (!y.ok) throw new GhHata(y.status, await y.text().catch(() => ''));
+  if (!y.ok) {
+    const govde = await y.text().catch(() => '');
+    /* Kapıcıda 401 = oturum bitti: giriş ekranına dön. */
+    if (sunucu && y.status === 401 && T) { oturumBitti(); }
+    throw new GhHata(y.status, govde);
+  }
   return y.status === 204 ? null : y.json();
+}
+
+function oturumBitti() {
+  try { sessionStorage.setItem('saglam-panel-mesaj', 'Oturumun süresi doldu; tekrar girin. Yayınlanmamış değişiklikleriniz duruyor.'); } catch (e) { /* yoksay */ }
+  location.reload();
 }
 
 /* Blob'lar sha ile adreslenir, yani değişmez: bir kez okunan bir daha
@@ -1274,6 +1302,7 @@ async function izle(sha, beklenen) {
 }
 
 async function calismaDurumu(sha) {
+  if (sunucu) return null;        /* yayın Cloudflare'de; izleme yayin.json'dan */
   try {
     const r = await gh('actions/runs?head_sha=' + sha + '&per_page=10');
     const c = (r.workflow_runs || []).find((x) => /yayinla\.yml$/.test(x.path || '')) || (r.workflow_runs || [])[0];
@@ -1303,7 +1332,7 @@ function ciz() {
   const m = $('#icerik');
   m.replaceChildren();
   if (ustNot) m.append(ustNot);
-  if (!kilit && jeton) m.append(h('div', { class: 'ust-not' },
+  if (!sunucu && !kilit && jeton) m.append(h('div', { class: 'ust-not' },
     h('span', {}, 'Ressamın giriş yapabilmesi için kullanıcı adı ve şifre kurulmadı.'),
     h('button', { class: 'dugme kucuk ana', type: 'button', onclick: sifrePenceresi }, 'Şimdi kur')));
   ({ eserler: cizEserler, ana: cizAna, sanatci: cizSanatci, iletisim: cizIletisim,
@@ -1911,7 +1940,8 @@ function cizAyarlar(m) {
       h('a', { href: '../onizleme/', target: '_blank', rel: 'noopener' }, location.origin + '/onizleme/'),
       ' — hiçbir yerden bağlantı verilmez, arama motorlarına kapalıdır.') : ''));
 
-  m.append(kart('Panel girişi', kilit ? 'Kullanıcı adı: ' + (kilit.kullanici || '—') : 'Henüz kullanıcı adı ve şifre kurulmadı.', '',
+  if (sunucu) m.append(kart('Panel girişi', 'Kullanıcı adı ve şifre Cloudflare’de, sitenin kapıcısında saklı; hiçbir dosyada durmuyor. Değiştirmek için Serdar’a yazın.', ''));
+  else m.append(kart('Panel girişi', kilit ? 'Kullanıcı adı: ' + (kilit.kullanici || '—') : 'Henüz kullanıcı adı ve şifre kurulmadı.', '',
     h('button', { class: 'dugme', type: 'button', onclick: sifrePenceresi }, kilit ? 'Şifreyi değiştir' : 'Kullanıcı adı ve şifre kur')));
 
   const gecmisKutu = h('div', {}, h('button', { class: 'dugme', type: 'button', onclick: () => gecmisYukle(gecmisKutu) }, 'Geçmişi göster'));
@@ -2088,7 +2118,11 @@ function jetonSakla(t, hatirla) {
   } catch (e) { /* gizli sekme */ }
 }
 
-function cik() {
+async function cik() {
+  if (sunucu) {
+    try { await fetch('/api/cikis', { method: 'POST', headers: { 'X-Panel': '1' }, credentials: 'same-origin' }); }
+    catch (e) { /* çevrimdışı: çerez süresinde düşer */ }
+  }
   try {
     localStorage.removeItem(JETON); sessionStorage.removeItem(JETON);
     /* panel v1'in anahtarları */
@@ -2102,11 +2136,13 @@ function girisKipi(k) {
   $('#giris-sifre').hidden = k !== 'sifre';
   $('#giris-anahtar').hidden = k !== 'anahtar';
   const b = $('#giris-kip');
-  b.hidden = !kilit;
+  b.hidden = !kilit || sunucu;
+  /* Kapıcıda oturum zaten 30 gün; "hatırla" kutusu anlamsız. */
+  $('#hatirla').closest('label').hidden = sunucu;
   b.textContent = k === 'sifre' ? 'Erişim anahtarıyla gir (geliştirici)' : 'Kullanıcı adı ve şifreyle gir';
   b.onclick = (e) => { e.preventDefault(); girisKipi(k === 'sifre' ? 'anahtar' : 'sifre'); };
   $('#giris-hata').textContent = '';
-  if (!kilit) $('#giris-alt').textContent = 'Kurulum: önce bir GitHub erişim anahtarıyla girin.';
+  if (!kilit && !sunucu) $('#giris-alt').textContent = 'Kurulum: önce bir GitHub erişim anahtarıyla girin.';
   $('#giris').hidden = false;
   (k === 'sifre' ? ($('#kullanici').value ? $('#sifre') : $('#kullanici')) : $('#jeton')).focus();
 }
@@ -2164,6 +2200,17 @@ $('#giris-sifre').addEventListener('submit', async (e) => {
   if (!k || !p) return;
   const hata = $('#giris-hata');
   hata.textContent = 'Denetleniyor…';
+  if (sunucu) {
+    try {
+      const y = await fetch('/api/giris', { method: 'POST', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-Panel': '1' },
+        body: JSON.stringify({ kullanici: k, sifre: p }) });
+      if (!y.ok) throw new GhHata(y.status, await y.text().catch(() => ''));
+      hata.textContent = '';
+      await baslat();
+    } catch (er) { hata.textContent = er.message; }
+    return;
+  }
   try {
     if (kilit.kullanici && kilit.kullanici.toLowerCase() !== k.toLowerCase())
       throw new Error('Kullanıcı adı ya da şifre hatalı.');
@@ -2228,9 +2275,27 @@ window.addEventListener('beforeunload', (e) => {
     try { const r = await fetch(u + '?t=' + Date.now(), { cache: 'no-store' }); return r.ok ? await r.json() : null; }
     catch (e) { return null; }
   };
-  const [s, k] = await Promise.all([al('secenekler.json'), al('kilit.json')]);
+  const [s, k, d] = await Promise.all([al('secenekler.json'), al('kilit.json'), al('/api/durum')]);
   if (s) secenek = Object.assign(secenek, s);
   kilit = k;
+  let mesaj = '';
+  try { mesaj = sessionStorage.getItem('saglam-panel-mesaj') || ''; sessionStorage.removeItem('saglam-panel-mesaj'); } catch (e) { /* yoksay */ }
+  if (d && d.sunucu) {
+    sunucu = true;
+    if (!d.kurulu) {
+      $('#yukleme').hidden = false;
+      $('#yukleme').textContent = 'Panel henüz kurulmadı. Serdar’a haber verin.';
+      return;
+    }
+    /* Çerez geçerliyse doğrudan aç. */
+    try {
+      const o = await fetch('/api/oturum', { cache: 'no-store', credentials: 'same-origin' });
+      if (o.ok) { await baslat(); return; }
+    } catch (e) { /* çevrimdışı */ }
+    girisKipi('sifre');
+    $('#giris-hata').textContent = mesaj;
+    return;
+  }
   let t = null;
   try { t = sessionStorage.getItem(JETON) || localStorage.getItem(JETON); } catch (e) { /* yoksay */ }
   let hata = '';
