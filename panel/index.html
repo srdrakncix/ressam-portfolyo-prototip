@@ -167,7 +167,18 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--vurgu); out
 .cubuk.hata { background: var(--uyari-acik); border-color: #efcdbf; }
 .cubuk.hata .nokta { background: var(--uyari); }
 .cubuk .dugme { min-height: 34px; padding: 5px 16px; border-radius: 999px; }
-.cubuk:not(.bekliyor):not(.hata) { padding-right: 15px; }
+.cubuk.yalin { padding-right: 15px; }
+.cubuk .dugme.ikinci { background: #fff; color: var(--murekkep); border-color: var(--cizgi2); }
+.cubuk .dugme.ikinci:hover { border-color: var(--murekkep); }
+.kayitlar { list-style: none; margin: 0; padding: 0; }
+.kayitlar li {
+  display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--cizgi); flex-wrap: wrap;
+}
+.kayitlar li:first-child { border-top: 0; }
+.kayitlar .ne { flex: 1; min-width: 180px; }
+.kayitlar .ne b { display: block; font-size: 15px; }
+.kayitlar .ne small { color: var(--soluk); }
+.kayitlar .simge { font-size: 22px; width: 32px; text-align: center; }
 @keyframes nabiz { 50% { opacity: .25; } }
 
 /* ── gövde ── */
@@ -576,6 +587,21 @@ dialog ul li { display: flex; gap: 10px; align-items: center; justify-content: s
   </div>
 </form></dialog>
 
+<dialog id="kayit-pencere"><form class="ic" id="kayit-form">
+  <h3>Kaydet</h3>
+  <p>Şu anki hâl bir kayıt olarak saklanır. Sitede görünmez; istediğiniz zaman
+     <b>Kayıtlar</b> bölümünden açıp devam edebilir ya da yayınlayabilirsiniz.</p>
+  <div class="alan">
+    <label for="kayit-ad">Kaydın adı</label>
+    <input type="text" id="kayit-ad" maxlength="80" autocomplete="off">
+  </div>
+  <div class="sonuc" id="kayit-sonuc"></div>
+  <div class="dugmeler">
+    <button type="button" class="dugme" id="kayit-kapat">Vazgeç</button>
+    <button type="submit" class="dugme ana" id="kayit-tamam">Kaydet</button>
+  </div>
+</form></dialog>
+
 <div class="bildirim" id="bildirim" role="status"></div>
 
 <script>
@@ -604,6 +630,7 @@ const BOLUMLER = [
   ['sanatci', '✎', 'Sanatçı'],
   ['iletisim', '✉', 'İletişim'],
   ['yazilar', '☰', 'Menü ve yazılar'],
+  ['kayitlar', '💾', 'Kayıtlar'],
   ['ayarlar', '⚙', 'Ayarlar'],
 ];
 
@@ -860,7 +887,7 @@ async function depoAgaci(commitSha) {
 /* TEK COMMIT: bir yayın = bir commit = bir derleme. Git Data API ile bütün
    dosyalar tek ağaçta: ya hepsi yayına girer ya hiçbiri.
    Girdi: {yol, metin} | {yol, sha} (önceden yüklenmiş blob) | {yol, sil} */
-async function tekCommit(dosyalar, mesaj, tabanBas, tabanAgac) {
+async function agacVeCommit(dosyalar, mesaj, tabanBas, tabanAgac) {
   const girdiler = [];
   for (const d of dosyalar) {
     let sha = null;
@@ -874,8 +901,12 @@ async function tekCommit(dosyalar, mesaj, tabanBas, tabanAgac) {
     body: JSON.stringify({ base_tree: tabanAgac, tree: girdiler }) });
   const yeni = await gh('git/commits', { method: 'POST',
     body: JSON.stringify({ message: mesaj, tree: agac.sha, parents: [tabanBas] }) });
-  await gh('git/refs/heads/' + DAL, { method: 'PATCH', body: JSON.stringify({ sha: yeni.sha }) });
   return { bas: yeni.sha, agac: agac.sha };
+}
+async function tekCommit(dosyalar, mesaj, tabanBas, tabanAgac) {
+  const s = await agacVeCommit(dosyalar, mesaj, tabanBas, tabanAgac);
+  await gh('git/refs/heads/' + DAL, { method: 'PATCH', body: JSON.stringify({ sha: s.bas }) });
+  return s;
 }
 
 /* ── depoyu okuma ──────────────────────────────────────────────────────── */
@@ -1150,29 +1181,33 @@ function cubukYaz() {
   const deg = degisiklikler();
   const c = h('div', { class: 'cubuk' });
   const yazi = (...x) => h('span', { class: 'yazi' }, ...x);
+  const kaydetD = () => h('button', { class: 'dugme ikinci', type: 'button', onclick: kayitPenceresi,
+    disabled: yukleniyor.size > 0 || kaydediliyor, title: 'Şu anki hâli bir kayıt olarak sakla (sitede görünmez)' },
+    kaydediliyor ? 'Kaydediliyor…' : 'Kaydet');
   if (isleniyor) {
-    c.classList.add('calisiyor');
+    c.classList.add('calisiyor', 'yalin');
     c.append(h('span', { class: 'nokta' }), yazi('Yayınlanıyor…'));
   } else if (deg.length) {
     c.classList.add('bekliyor');
     c.append(h('span', { class: 'nokta' }),
       yazi(h('button', { type: 'button', onclick: listeAc, title: 'Neler değişti?' },
         deg.length === 1 ? '1 değişiklik yayınlanmadı' : deg.length + ' değişiklik yayınlanmadı')),
+      kaydetD(),
       h('button', { class: 'dugme ana', type: 'button', onclick: yayinla,
                     disabled: yukleniyor.size > 0 }, yukleniyor.size ? 'Fotoğraf yükleniyor…' : 'Yayınla'));
   } else if (izleme && izleme.hata) {
     c.classList.add('hata');
     c.append(h('span', { class: 'nokta' }),
       yazi('Son yayın siteye çıkamadı; site önceki hâliyle duruyor. ',
-           izleme.url ? h('a', { href: izleme.url, target: '_blank', rel: 'noopener' }, 'Ayrıntı') : ''));
+           izleme.url ? h('a', { href: izleme.url, target: '_blank', rel: 'noopener' }, 'Ayrıntı') : ''), kaydetD());
   } else if (izleme) {
     c.classList.add('calisiyor');
     const sn = Math.round((Date.now() - izleme.bas) / 1000);
     c.append(h('span', { class: 'nokta' }),
-      yazi(izleme.gecikti ? 'Site hâlâ hazırlanıyor (uzun sürdü)…' : 'Kaydedildi · site hazırlanıyor… ' + sn + ' sn'));
+      yazi(izleme.gecikti ? 'Site hâlâ hazırlanıyor (uzun sürdü)…' : 'Yayınlandı · site hazırlanıyor… ' + sn + ' sn'), kaydetD());
   } else {
     const g = yayindaGuncel();
-    c.append(h('span', { class: 'nokta' }), yazi(g === false ? 'Kaydedildi · site birazdan güncellenir' : 'Site güncel'));
+    c.append(h('span', { class: 'nokta' }), yazi(g === false ? 'Yayınlandı · site birazdan güncellenir' : 'Site güncel'), kaydetD());
   }
   kutu.replaceChildren(c);
   const ac = $('#siteyi-ac');
@@ -1328,7 +1363,7 @@ async function yayinla() {
         isleniyor = false;
         izle(s.bas, beklenen);
         ciz();
-        bildir('Kaydedildi. Site bir dakika içinde güncellenir.', 4000);
+        bildir('Yayınlandı. Site bir dakika içinde güncellenir.', 4000);
         return;
       } catch (e) {
         /* Dal başı tam o anda ilerlediyse bir kez baştan dene. */
@@ -1420,7 +1455,7 @@ function ciz() {
     h('span', {}, 'Ressamın giriş yapabilmesi için kullanıcı adı ve şifre kurulmadı.'),
     h('button', { class: 'dugme kucuk ana', type: 'button', onclick: sifrePenceresi }, 'Şimdi kur')));
   ({ eserler: cizEserler, ana: cizAna, gorunum: cizGorunum, sanatci: cizSanatci, iletisim: cizIletisim,
-     yazilar: cizYazilar, ayarlar: cizAyarlar }[bolum] || cizEserler)(m);
+     yazilar: cizYazilar, kayitlar: cizKayitlar, ayarlar: cizAyarlar }[bolum] || cizEserler)(m);
 }
 
 function bolumBasi(baslik, alt) {
@@ -2193,6 +2228,137 @@ function seritKarti(z, kaynak) {
       } }, 'En canlı yeri seç'))));
 }
 
+/* ── KAYITLAR ───────────────────────────────────────────────────────────────
+   "Kaydet": şu anki hâl (yayınlanmamış değişiklikler dahil) adıyla saklanır.
+   Her kayıt deponun kendi dalında (kayit-…): yayın yalnız main'den çıktığı
+   için kayıtlar sitede görünmez, siteyi değiştirmez. Kayıt cihazda değil
+   depoda durduğu için başka bilgisayardan da açılır. Kaydın içinde bütün
+   site içeriği var (fotoğraflar dahil): açınca o günkü hâl taslağa gelir,
+   istenirse Yayınla ile siteye çıkar. */
+const KAYIT_ON = 'kayit-';
+let kayitlar = null;            /* [{ad, sha, baslik, zaman}] yeniden eskiye */
+let kaydediliyor = false;
+
+async function kayitlariOku() {
+  let refs = [];
+  try { refs = await gh('git/matching-refs/heads/' + KAYIT_ON); }
+  catch (e) { if (e.kod !== 404) throw e; }
+  const l = await Promise.all((refs || []).map(async (rf) => {
+    const c = await gh('git/commits/' + rf.object.sha);
+    return { ad: rf.ref.replace('refs/heads/', ''), sha: rf.object.sha,
+             baslik: String(c.message || '').split('\n')[0].replace(/^Kayıt: /, '') || 'Adsız kayıt',
+             zaman: (c.author && c.author.date) || (c.committer && c.committer.date) || '' };
+  }));
+  /* Yeniden eskiye. Commit saati saniye hassasiyetinde; aynı saniyedeki iki
+     kayıt dal adındaki milisaniyeyle (kayit-<ms36>-…) ayrılıyor. */
+  const an = (k) => parseInt(String(k.ad).split('-')[1], 36) || 0;
+  kayitlar = l.sort((a, b) => (a.zaman < b.zaman ? 1 : a.zaman > b.zaman ? -1 : an(b) - an(a)));
+  return kayitlar;
+}
+
+function siradakiKayitAdi() {
+  let n = 0;
+  for (const k of kayitlar || []) {
+    const m = /^Kayıt (\d+)$/.exec(k.baslik);
+    if (m) n = Math.max(n, Number(m[1]));
+  }
+  return 'Kayıt ' + Math.max(n + 1, (kayitlar || []).length + 1);
+}
+
+async function kayitPenceresi() {
+  if (yukleniyor.size) return bildir('Fotoğraflar yükleniyor; bitince kaydedin.');
+  if (kayitlar === null) { try { await kayitlariOku(); } catch (e) { kayitlar = []; } }
+  $('#kayit-ad').value = siradakiKayitAdi();
+  $('#kayit-sonuc').textContent = '';
+  $('#kayit-pencere').showModal();
+  $('#kayit-ad').select();
+}
+
+async function kaydet(ad) {
+  if (kaydediliyor) return;
+  kaydediliyor = true; cubukYaz();
+  try {
+    /* Anlık kopya: kaydederken yazmaya devam edilirse sonradan yazılan bu
+       kayda girmez, taslakta bekler. */
+    const anlik = { site: kopya(T.site), eser: kopya(T.eser), gorsel: Object.assign({}, T.gorsel) };
+    const dosyalar = yazilacaklar(anlik).filter((x) => !(x.sil && !K.dosya[x.yol]));
+    const s = await agacVeCommit(dosyalar, 'Kayıt: ' + ad, K.bas, K.agac);
+    const dal = KAYIT_ON + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 6);
+    await gh('git/refs', { method: 'POST', body: JSON.stringify({ ref: 'refs/heads/' + dal, sha: s.bas }) });
+    (kayitlar = kayitlar || []).unshift({ ad: dal, sha: s.bas, baslik: ad, zaman: new Date().toISOString() });
+    bildir('“' + ad + '” kaydedildi. Kayıtlar bölümünden açabilirsiniz.', 4500);
+    if (bolum === 'kayitlar') ciz();
+    return true;
+  } catch (e) {
+    onayla('Kaydedilemedi', e.message + ' Değişiklikleriniz kaybolmadı; tekrar deneyebilirsiniz.', 'Tamam');
+    return false;
+  } finally {
+    kaydediliyor = false; cubukYaz();
+  }
+}
+
+async function kayitAc(k) {
+  if (degisiklikler().length && !await onayla('“' + k.baslik + '” açılsın mı?',
+      'Şu an yayınlanmamış değişiklikleriniz var; bu kaydın hâli onların yerine geçer. ' +
+      'Onları da saklamak isterseniz önce “Kaydet”e basın.', 'Kaydı aç', true)) return;
+  bildir('Kayıt açılıyor…', 8000);
+  try {
+    const a = await depoAgaci(k.sha);
+    if (!a.dosya[SITE_JSON]) throw new Error('Kayıtta site bilgileri yok.');
+    const site = siteDuzelt(await jsonOku(a.dosya[SITE_JSON]));
+    const eser = {};
+    await Promise.all(Object.keys(a.dosya).filter((p) => p.startsWith(ESER) && p.endsWith('.json'))
+      .map(async (p) => { eser[p.slice(ESER.length, -5)] = await jsonOku(a.dosya[p]); }));
+    /* Kayıttaki fotoğraflardan sitede olmayanlar yayında yazılsın. */
+    const gorsel = {};
+    for (const [p, sha] of Object.entries(a.dosya))
+      if (p.startsWith(GORSEL) && K.dosya[p] !== sha) gorsel[p] = sha;
+    T = { site: site, eser: eser, gorsel: gorsel };
+    cekmeceKapat(true);
+    degisti(); ciz();
+    bildir('“' + k.baslik + '” açıldı. Siteye çıkması için Yayınla.', 5000);
+  } catch (e) {
+    onayla('Kayıt açılamadı', e.message, 'Tamam');
+  }
+}
+
+async function kayitSil(k) {
+  if (!await onayla('“' + k.baslik + '” silinsin mi?', 'Yalnız bu kayıt silinir; siteye ve öteki kayıtlara dokunulmaz.',
+                    'Sil', true)) return;
+  try {
+    await gh('git/refs/heads/' + k.ad, { method: 'DELETE' });
+    kayitlar = (kayitlar || []).filter((x) => x.ad !== k.ad);
+    bildir('Kayıt silindi.');
+    ciz();
+  } catch (e) { onayla('Silinemedi', e.message, 'Tamam'); }
+}
+
+function cizKayitlar(m) {
+  m.append(bolumBasi('Kayıtlar', 'Kaydettiğiniz hâller. Kayıtlar sitede görünmez. Birini açınca o hâl buraya gelir; ' +
+    'üzerinde çalışmaya devam edebilir ya da Yayınla ile siteye çıkarabilirsiniz.'));
+  const ust = h('div', { style: 'margin-bottom:16px' },
+    h('button', { class: 'dugme ana', type: 'button', onclick: kayitPenceresi, disabled: kaydediliyor }, 'Şu anki hâli kaydet'));
+  m.append(ust);
+  const kutu = h('div');
+  m.append(kart('Kayıtlarınız', '', '', kutu));
+  const yaz = () => {
+    if (!kayitlar || !kayitlar.length) {
+      kutu.replaceChildren(h('p', { class: 'ipucu', style: 'margin:0' }, 'Henüz kayıt yok. Üstteki “Kaydet” ya da “Şu anki hâli kaydet” ile oluşturun.'));
+      return;
+    }
+    kutu.replaceChildren(h('ul', { class: 'kayitlar' }, kayitlar.map((k) => h('li', {},
+      h('span', { class: 'simge', 'aria-hidden': 'true' }, '💾'),
+      h('div', { class: 'ne' }, h('b', { text: k.baslik }), h('small', { text: tarihYaz(k.zaman) })),
+      h('button', { class: 'dugme kucuk ana', type: 'button', onclick: () => kayitAc(k) }, 'Aç'),
+      h('button', { class: 'dugme kucuk tehlike', type: 'button', onclick: () => kayitSil(k) }, 'Sil')))));
+  };
+  if (kayitlar === null) {
+    kutu.replaceChildren(h('p', { class: 'ipucu', style: 'margin:0' }, 'Yükleniyor…'));
+    kayitlariOku().then(() => { if (bolum === 'kayitlar') yaz(); })
+      .catch((e) => kutu.replaceChildren(h('p', { class: 'ipucu', text: 'Kayıtlar okunamadı: ' + e.message })));
+  } else yaz();
+}
+
 /* ── SANATÇI ───────────────────────────────────────────────────────────── */
 function doluMu(o) { return DILLER.some((d) => (o[d] || '').trim()); }
 
@@ -2643,6 +2809,14 @@ $('#liste-kapat').addEventListener('click', () => $('#degisiklik-liste').close()
 $('#liste-yayinla').addEventListener('click', () => { $('#degisiklik-liste').close(); yayinla(); });
 $('#hepsini-at').addEventListener('click', hepsiniAt);
 $('#sifre-form').addEventListener('submit', sifreKaydet);
+$('#kayit-kapat').addEventListener('click', () => $('#kayit-pencere').close());
+$('#kayit-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const ad = $('#kayit-ad').value.trim().replace(/\s+/g, ' ');
+  if (!ad) { $('#kayit-sonuc').textContent = 'Bir ad yazın.'; $('#kayit-sonuc').className = 'sonuc kotu'; return; }
+  $('#kayit-pencere').close();
+  await kaydet(ad);
+});
 $('#sifre-kapat').addEventListener('click', () => $('#sifre-pencere').close());
 $('#sifre-uret').addEventListener('click', () => {
   const s = sifreUret();
@@ -2655,7 +2829,7 @@ $('#sifre-uret').addEventListener('click', () => {
 });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && acikEser && !document.querySelector('dialog[open]')) cekmeceKapat();
-  if ((e.ctrlKey || e.metaKey) && e.key === 's' && T) { e.preventDefault(); yayinla(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 's' && T) { e.preventDefault(); kayitPenceresi(); }
 });
 /* Fotoğrafı sayfanın herhangi bir yerine bırakmak eser ekler. */
 document.addEventListener('dragover', (e) => {

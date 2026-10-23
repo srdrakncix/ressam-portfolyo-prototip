@@ -96,6 +96,16 @@ const giris = (sifre, kullanici = 'saglam', ek = {}) => cagir('giris', Object.as
   ol('sorgu dizesi korunuyor', q.status === 200 && sonIstek.adres.endsWith('/commits?path=icerik&per_page=25&sha=main'));
   ol('yayın durumu okunabiliyor', (await cagir('gh/actions/runs?head_sha=abc&per_page=10', { headers: C })).status === 200 &&
      sonIstek.adres.endsWith('/actions/runs?head_sha=abc&per_page=10'));
+  ol('kayıtlar listelenebiliyor', (await cagir('gh/git/matching-refs/heads/kayit-', { headers: C })).status === 200);
+  ol('kayıt dalı oluşturulabiliyor', (await cagir('gh/git/refs', { method: 'POST', headers: C,
+     body: JSON.stringify({ ref: 'refs/heads/kayit-abc123', sha: 'a'.repeat(40) }) })).status === 200);
+  ol('main ya da başka dal oluşturulamıyor', (await cagir('gh/git/refs', { method: 'POST', headers: C,
+     body: JSON.stringify({ ref: 'refs/heads/main2', sha: 'a'.repeat(40) }) })).status === 403);
+  ol('kayıt silinebiliyor', (await cagir('gh/git/refs/heads/kayit-abc123', { method: 'DELETE', headers: C })).status === 200);
+  ol('main silinemiyor', (await cagir('gh/git/refs/heads/main', { method: 'DELETE', headers: C })).status === 403);
+  ol('kayıt adı dışı dal silinemiyor', (await cagir('gh/git/refs/heads/baska', { method: 'DELETE', headers: C })).status === 403);
+  ol('kayıt zorla güncellenemiyor', (await cagir('gh/git/refs/heads/kayit-abc', { method: 'PATCH', headers: C,
+     body: JSON.stringify({ sha: 'a'.repeat(40), force: true }) })).status === 403);
   ol('yayın yeniden başlatılamıyor', (await cagir('gh/actions/runs/1/rerun', { method: 'POST', headers: C, body: '{}' })).status === 403);
   const sha = 'a'.repeat(40);
   for (const u of ['git/commits/' + sha, 'git/trees/' + sha + '?recursive=1', 'git/blobs/' + sha])

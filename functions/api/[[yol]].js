@@ -108,6 +108,13 @@ function izinli(yol, yontem) {
   if (new RegExp('^git/(commits|trees|blobs)/' + SHA + '$').test(yol)) return yontem === 'GET';
   if (yol === 'git/commits' || yol === 'git/trees' || yol === 'git/blobs') return yontem === 'POST';
   if (yol === 'commits') return yontem === 'GET';
+  /* KAYITLAR (panelde "Kaydet"): her kayıt kendi dalı, kayit-<ad>. Sitede
+     görünmüyor (yayın yalnız main'den), silinebiliyor. Yalnız bu adla
+     başlayan dallar açık; main'e bu yoldan dokunulamıyor. */
+  if (yol === 'git/matching-refs/heads/kayit-') return yontem === 'GET';
+  if (/^git\/refs?\/heads\/kayit-[a-z0-9-]{1,40}$/.test(yol))
+    return yontem === 'GET' || yontem === 'DELETE' || (yontem === 'PATCH' && yol.indexOf('git/refs/') === 0);
+  if (yol === 'git/refs') return yontem === 'POST';
   /* Yayın derlemesi düştü mü (panel "siteye çıkamadı" diyebilsin). Okuma. */
   if (yol === 'actions/runs') return yontem === 'GET';
   return false;
@@ -124,7 +131,10 @@ function govdeIzinli(yol, govde) {
                                    x.path.indexOf('..') >= 0 || (x.type && x.type !== 'blob'));
     if (!l.length || disari.length) return 'Panel yalnızca içerik dosyalarını değiştirebilir.';
   }
-  if (yol === 'git/refs/heads/' + DAL && g.force) return 'Zorla güncelleme kapalı.';
+  if (yol.indexOf('git/refs/heads/') === 0 && g.force) return 'Zorla güncelleme kapalı.';
+  /* Yeni dal yalnız kayıt dalı olabilir. */
+  if (yol === 'git/refs' && !/^refs\/heads\/kayit-[a-z0-9-]{1,40}$/.test(String(g.ref || '')))
+    return 'Panel yalnız kayıt oluşturabilir.';
   return '';
 }
 

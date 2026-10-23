@@ -19,3 +19,6 @@ YEDEK-*.bundle
 
 # wrangler pages dev yerel durumu
 .wrangler/
+
+# denemelerin ekran goruntuleri
+denemeler/*.png
